@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
+import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../domain/home_models.dart';
@@ -15,24 +16,38 @@ class SectionTitle extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Padding(
-        padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
-        child: Row(
-          crossAxisAlignment: CrossAxisAlignment.end,
-          children: [
-            Text(title, style: const TextStyle(fontSize: 18, height: 1.5000, fontWeight: FontWeight.w700)),
-            const Spacer(),
-            if (onSeeAll != null)
-              GestureDetector(
-                onTap: onSeeAll,
-                child: const Padding(
-                  padding: EdgeInsets.only(bottom: 2),
-                  child: Text(AppStrings.seeAll,
-                      style: TextStyle(fontSize: 13, height: 1.4615, fontWeight: FontWeight.w600, color: AppColors.blue)),
+    padding: const EdgeInsets.fromLTRB(20, 22, 20, 12),
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.end,
+      children: [
+        Text(
+          title,
+          style: const TextStyle(
+            fontSize: 18,
+            height: 1.5000,
+            fontWeight: FontWeight.w700,
+          ),
+        ),
+        const Spacer(),
+        if (onSeeAll != null)
+          GestureDetector(
+            onTap: onSeeAll,
+            child: const Padding(
+              padding: EdgeInsets.only(bottom: 2),
+              child: Text(
+                AppStrings.seeAll,
+                style: TextStyle(
+                  fontSize: 13,
+                  height: 1.4615,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.blue,
                 ),
               ),
-          ],
-        ),
-      );
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
 class PostRequestCta extends StatelessWidget {
@@ -41,36 +56,63 @@ class PostRequestCta extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => GestureDetector(
-        onTap: onTap,
-        child: Container(
-          margin: const EdgeInsets.all(16),
-          padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
-          decoration: BoxDecoration(
-            color: AppColors.gold,
-            borderRadius: BorderRadius.circular(20),
-            boxShadow: const [BoxShadow(color: Color(0x99E8B33A), offset: Offset(0, 12), blurRadius: 24, spreadRadius: -10)],
+    onTap: onTap,
+    child: Container(
+      margin: const EdgeInsets.all(16),
+      padding: const EdgeInsets.symmetric(horizontal: 18, vertical: 16),
+      decoration: BoxDecoration(
+        color: AppColors.gold,
+        borderRadius: BorderRadius.circular(20),
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x99E8B33A),
+            offset: Offset(0, 12),
+            blurRadius: 24,
+            spreadRadius: -10,
           ),
-          child: Row(
+        ],
+      ),
+      child: Row(
+        children: [
+          Container(
+            width: 44,
+            height: 44,
+            decoration: BoxDecoration(
+              color: AppColors.navy,
+              borderRadius: BorderRadius.circular(14),
+            ),
+            alignment: Alignment.center,
+            child: const AppSvgIcon(
+              AppIcon.plus,
+              color: AppColors.white,
+              strokeWidth: 2.4,
+            ),
+          ),
+          const SizedBox(width: 12),
+          Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Container(
-                width: 44,
-                height: 44,
-                decoration: BoxDecoration(color: AppColors.navy, borderRadius: BorderRadius.circular(14)),
-                alignment: Alignment.center,
-                child: const AppSvgIcon(AppIcon.plus, color: AppColors.white, strokeWidth: 2.4),
+              const Text(
+                AppStrings.postNew,
+                style: TextStyle(
+                  fontSize: 17,
+                  height: 1.4706,
+                  fontWeight: FontWeight.w700,
+                ),
               ),
-              const SizedBox(width: 12),
-              Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  const Text(AppStrings.postNew, style: TextStyle(fontSize: 17, height: 1.4706, fontWeight: FontWeight.w700)),
-                  Opacity(opacity: .75, child: const Text(AppStrings.postNewSub, style: TextStyle(fontSize: 12))),
-                ],
+              Opacity(
+                opacity: .75,
+                child: const Text(
+                  AppStrings.postNewSub,
+                  style: TextStyle(fontSize: 12, height: 24 / 12),
+                ),
               ),
             ],
           ),
-        ),
-      );
+        ],
+      ),
+    ),
+  );
 }
 
 /// Tilted navy strip of anonymised live activity (category · governorate · offers).
@@ -82,7 +124,7 @@ class ActivityTicker extends StatelessWidget {
   Widget build(BuildContext context) {
     return ClipRect(
       child: SizedBox(
-        height: 6 + 14 + 39.5 + 6,
+        height: 6 + 14 + 39 + 6,
         child: Stack(
           clipBehavior: Clip.none,
           children: [
@@ -90,7 +132,7 @@ class ActivityTicker extends StatelessWidget {
               top: 6 + 14,
               right: -20,
               width: 430,
-              height: 39.5,
+              height: 39,
               child: Transform.rotate(
                 angle: -1.5 * 3.14159265 / 180,
                 child: Container(
@@ -104,12 +146,28 @@ class ActivityTicker extends StatelessWidget {
                         Padding(
                           padding: const EdgeInsets.symmetric(horizontal: 14),
                           child: Text.rich(
-                            TextSpan(children: [
-                              const TextSpan(text: '⚡ '),
-                              TextSpan(text: f.category, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.goldSoft)),
-                              TextSpan(text: ' · ${f.governorate} · ${AppStrings.offersCount(f.offers)}'),
-                            ]),
-                            style: const TextStyle(fontSize: 13, height: 1.4615, fontWeight: FontWeight.w600, color: AppColors.white),
+                            TextSpan(
+                              children: [
+                                const TextSpan(text: '⚡ '),
+                                TextSpan(
+                                  text: f.category,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    color: AppColors.goldSoft,
+                                  ),
+                                ),
+                                TextSpan(
+                                  text:
+                                      ' · ${f.governorate} · ${AppStrings.offersCount(f.offers)}',
+                                ),
+                              ],
+                            ),
+                            style: const TextStyle(
+                              fontSize: 13,
+                              height: 1.4615,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.white,
+                            ),
                           ),
                         ),
                     ],
@@ -131,7 +189,11 @@ class StatsRow extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final deco = BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(16), boxShadow: const [_ring]);
+    final deco = BoxDecoration(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(16),
+      boxShadow: const [_ring],
+    );
     if (stats.isEmpty) {
       return Container(
         margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -139,14 +201,28 @@ class StatsRow extends StatelessWidget {
         decoration: deco,
         child: const Row(
           children: [
-            Text('📊', style: TextStyle(fontSize: 22)),
+            Text('📊', style: TextStyle(fontSize: 22, height: 33 / 22)),
             SizedBox(width: 10),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  Text(AppStrings.statsSoon, style: TextStyle(fontSize: 14, height: 1.5000, fontWeight: FontWeight.w700)),
-                  Text(AppStrings.statsSoonSub, style: TextStyle(fontSize: 11, height: 1.5455, color: AppColors.grey)),
+                  Text(
+                    AppStrings.statsSoon,
+                    style: TextStyle(
+                      fontSize: 14,
+                      height: 1.5000,
+                      fontWeight: FontWeight.w700,
+                    ),
+                  ),
+                  Text(
+                    AppStrings.statsSoonSub,
+                    style: TextStyle(
+                      fontSize: 11,
+                      height: 24 / 11,
+                      color: AppColors.grey,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -155,9 +231,15 @@ class StatsRow extends StatelessWidget {
       );
     }
     final cells = <(String, String)>[
-      if (stats.verifiedPages != null) (thousands(stats.verifiedPages!), AppStrings.statPages),
-      if (stats.governorates != null) ('${stats.governorates}', AppStrings.statGovs),
-      if (stats.avgFirstOfferMinutes != null) (AppStrings.minutesShort(stats.avgFirstOfferMinutes!), AppStrings.statFirstOffer),
+      if (stats.verifiedPages != null)
+        (thousands(stats.verifiedPages!), AppStrings.statPages),
+      if (stats.governorates != null)
+        ('${stats.governorates}', AppStrings.statGovs),
+      if (stats.avgFirstOfferMinutes != null)
+        (
+          AppStrings.minutesShort(stats.avgFirstOfferMinutes!),
+          AppStrings.statFirstOffer,
+        ),
     ];
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -171,8 +253,23 @@ class StatsRow extends StatelessWidget {
                 decoration: deco,
                 child: Column(
                   children: [
-                    Text(cells[i].$1, style: const TextStyle(fontSize: 17, height: 1.4706, fontWeight: FontWeight.w700, color: AppColors.blue)),
-                    Text(cells[i].$2, style: const TextStyle(fontSize: 11, height: 1.5455, color: AppColors.grey)),
+                    Text(
+                      cells[i].$1,
+                      style: const TextStyle(
+                        fontSize: 17,
+                        height: 1.4706,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.blue,
+                      ),
+                    ),
+                    Text(
+                      cells[i].$2,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 24 / 11,
+                        color: AppColors.grey,
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -185,7 +282,12 @@ class StatsRow extends StatelessWidget {
 }
 
 class CategoryBento extends StatelessWidget {
-  const CategoryBento({super.key, required this.categories, required this.governorate, this.onTap});
+  const CategoryBento({
+    super.key,
+    required this.categories,
+    required this.governorate,
+    this.onTap,
+  });
   final List<TrendingCategory> categories;
   final String governorate;
   final ValueChanged<TrendingCategory>? onTap;
@@ -195,40 +297,66 @@ class CategoryBento extends StatelessWidget {
     if (categories.length < 5) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.symmetric(horizontal: 16),
-      child: LayoutBuilder(builder: (context, c) {
-        const gap = 10.0, rowH = 118.0;
-        final fr = (c.maxWidth - 2 * gap) / 3.25;
-        Widget tile(TrendingCategory cat, {bool big = false}) => _BentoTile(
-              cat: cat,
-              big: big,
-              governorate: governorate,
-              onTap: () => onTap?.call(cat),
-            );
-        return SizedBox(
-          height: rowH * 2 + gap,
-          child: Row(
-            children: [
-              SizedBox(width: fr * 1.25, child: tile(categories[0], big: true)),
-              const SizedBox(width: gap),
-              Expanded(
-                child: Column(
-                  children: [
-                    Expanded(child: Row(children: [Expanded(child: tile(categories[1])), const SizedBox(width: gap), Expanded(child: tile(categories[2]))])),
-                    const SizedBox(height: gap),
-                    Expanded(child: Row(children: [Expanded(child: tile(categories[3])), const SizedBox(width: gap), Expanded(child: tile(categories[4]))])),
-                  ],
+      child: LayoutBuilder(
+        builder: (context, c) {
+          const gap = 10.0, rowH = 118.0;
+          final fr = (c.maxWidth - 2 * gap) / 3.25;
+          Widget tile(TrendingCategory cat, {bool big = false}) => _BentoTile(
+            cat: cat,
+            big: big,
+            governorate: governorate,
+            onTap: () => onTap?.call(cat),
+          );
+          return SizedBox(
+            height: rowH * 2 + gap,
+            child: Row(
+              children: [
+                SizedBox(
+                  width: fr * 1.25,
+                  child: tile(categories[0], big: true),
                 ),
-              ),
-            ],
-          ),
-        );
-      }),
+                const SizedBox(width: gap),
+                Expanded(
+                  child: Column(
+                    children: [
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(child: tile(categories[1])),
+                            const SizedBox(width: gap),
+                            Expanded(child: tile(categories[2])),
+                          ],
+                        ),
+                      ),
+                      const SizedBox(height: gap),
+                      Expanded(
+                        child: Row(
+                          children: [
+                            Expanded(child: tile(categories[3])),
+                            const SizedBox(width: gap),
+                            Expanded(child: tile(categories[4])),
+                          ],
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          );
+        },
+      ),
     );
   }
 }
 
 class _BentoTile extends StatelessWidget {
-  const _BentoTile({required this.cat, required this.big, required this.governorate, this.onTap});
+  const _BentoTile({
+    required this.cat,
+    required this.big,
+    required this.governorate,
+    this.onTap,
+  });
   final TrendingCategory cat;
   final bool big;
   final String governorate;
@@ -237,7 +365,10 @@ class _BentoTile extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final badge = switch (cat.badge) {
-      CategoryBadge.trending => (AppStrings.trendingIn(governorate), AppColors.goldSoft),
+      CategoryBadge.trending => (
+        AppStrings.trendingIn(governorate),
+        AppColors.goldSoft,
+      ),
       CategoryBadge.isNew => (AppStrings.badgeNew, AppColors.white),
       CategoryBadge.none => null,
     };
@@ -266,17 +397,38 @@ class _BentoTile extends StatelessWidget {
                 child: Transform.rotate(
                   angle: -4 * 3.14159265 / 180,
                   child: Container(
-                    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                    decoration: BoxDecoration(color: badge.$2, borderRadius: BorderRadius.circular(99)),
-                    child: Text(badge.$1, style: const TextStyle(fontSize: 11, height: 1.5455, fontWeight: FontWeight.w700, color: AppColors.navy)),
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 9,
+                      vertical: 3,
+                    ),
+                    decoration: BoxDecoration(
+                      color: badge.$2,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: Text(
+                      badge.$1,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 1.5455,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navy,
+                      ),
+                    ),
                   ),
                 ),
               ),
             Positioned(
               bottom: 10,
               right: 12,
-              child: Text(cat.name,
-                  style: TextStyle(fontSize: big ? 18 : 14, fontWeight: FontWeight.w700, color: AppColors.white)),
+              child: Text(
+                cat.name,
+                style: TextStyle(
+                  fontSize: big ? 18 : 14,
+                  height: AppText.lh(big ? 18 : 14),
+                  fontWeight: FontWeight.w700,
+                  color: AppColors.white,
+                ),
+              ),
             ),
           ],
         ),
@@ -291,48 +443,86 @@ class LiveFeedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Container(
-        margin: const EdgeInsets.symmetric(horizontal: 16),
-        padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
-        decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(20), boxShadow: const [_ring]),
-        child: Column(
-          children: [
-            for (var i = 0; i < items.length; i++)
-              Container(
-                padding: const EdgeInsets.symmetric(vertical: 11),
-                decoration: i == items.length - 1
-                    ? null
-                    : const BoxDecoration(border: Border(bottom: BorderSide(color: Color(0xFFF1ECE0)))),
-                child: Row(
+    margin: const EdgeInsets.symmetric(horizontal: 16),
+    padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
+    decoration: BoxDecoration(
+      color: AppColors.white,
+      borderRadius: BorderRadius.circular(20),
+      boxShadow: const [_ring],
+    ),
+    child: Column(
+      children: [
+        for (var i = 0; i < items.length; i++)
+          Container(
+            padding: const EdgeInsets.symmetric(vertical: 11),
+            decoration: i == items.length - 1
+                ? null
+                : const BoxDecoration(
+                    border: Border(
+                      bottom: BorderSide(color: Color(0xFFF1ECE0)),
+                    ),
+                  ),
+            child: Row(
+              children: [
+                Container(
+                  width: 38,
+                  height: 38,
+                  decoration: BoxDecoration(
+                    borderRadius: BorderRadius.circular(12),
+                    image: DecorationImage(
+                      image: AssetImage(items[i].image),
+                      fit: BoxFit.cover,
+                    ),
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Container(
-                      width: 38,
-                      height: 38,
-                      decoration: BoxDecoration(
-                        borderRadius: BorderRadius.circular(12),
-                        image: DecorationImage(image: AssetImage(items[i].image), fit: BoxFit.cover),
+                    Text(
+                      items[i].category,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5000,
+                        fontWeight: FontWeight.w700,
                       ),
                     ),
-                    const SizedBox(width: 10),
-                    Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(items[i].category, style: const TextStyle(fontSize: 14, height: 1.5000, fontWeight: FontWeight.w700)),
-                        Text(items[i].governorate, style: const TextStyle(fontSize: 12, height: 1.5000, color: AppColors.grey)),
-                      ],
-                    ),
-                    const Spacer(),
-                    Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 4),
-                      decoration: BoxDecoration(color: AppColors.blueTint, borderRadius: BorderRadius.circular(99)),
-                      child: Text(AppStrings.offersCount(items[i].offers),
-                          style: const TextStyle(fontSize: 12, height: 1.5000, fontWeight: FontWeight.w700, color: AppColors.blue)),
+                    Text(
+                      items[i].governorate,
+                      style: const TextStyle(
+                        fontSize: 12,
+                        height: 19 / 12,
+                        color: AppColors.grey,
+                      ),
                     ),
                   ],
                 ),
-              ),
-          ],
-        ),
-      );
+                const Spacer(),
+                Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 9,
+                    vertical: 4,
+                  ),
+                  decoration: BoxDecoration(
+                    color: AppColors.blueTint,
+                    borderRadius: BorderRadius.circular(99),
+                  ),
+                  child: Text(
+                    AppStrings.offersCount(items[i].offers),
+                    style: const TextStyle(
+                      fontSize: 12,
+                      height: 1.5000,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.blue,
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          ),
+      ],
+    ),
+  );
 }
 
 class DealsStrip extends StatelessWidget {
@@ -341,51 +531,80 @@ class DealsStrip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => SizedBox(
-        height: 86 + 18 + 19.5 + 18,
-        child: ListView.separated(
-          scrollDirection: Axis.horizontal,
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          itemCount: deals.length,
-          separatorBuilder: (_, _) => const SizedBox(width: 10),
-          itemBuilder: (_, i) {
-            final d = deals[i];
-            return Container(
-              width: 150,
-              clipBehavior: Clip.antiAlias,
-              decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(18), border: Border.all(color: AppColors.cardRing)),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  SizedBox(height: 86, width: double.infinity, child: Image.asset(d.image, fit: BoxFit.cover)),
-                  Padding(
-                    padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 9),
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${d.category} · ${d.pageName}',
-                            maxLines: 1, softWrap: false, overflow: TextOverflow.clip,
-                            style: const TextStyle(fontSize: 13, height: 1.4615, fontWeight: FontWeight.w700)),
-                        Text.rich(
-                          TextSpan(children: [
-                            const TextSpan(text: AppStrings.save),
-                            TextSpan(
-                              text: thousands(d.saved),
-                              style: const TextStyle(color: Color(0xFF0B6E66), fontWeight: FontWeight.w700, fontSize: 12),
-                            ),
-                            const TextSpan(text: AppStrings.vsHighest),
-                          ]),
-                          maxLines: 1,
-                          style: const TextStyle(fontSize: 11, height: 1.5455, color: AppColors.grey),
-                        ),
-                      ],
-                    ),
-                  ),
-                ],
+    height: 86 + 18 + 19 + 24,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: deals.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 10),
+      itemBuilder: (_, i) {
+        final d = deals[i];
+        return Container(
+          width: 150,
+          clipBehavior: Clip.antiAlias,
+          decoration: BoxDecoration(
+            color: AppColors.white,
+            borderRadius: BorderRadius.circular(18),
+            border: Border.all(color: AppColors.cardRing),
+          ),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              SizedBox(
+                height: 86,
+                width: double.infinity,
+                child: Image.asset(d.image, fit: BoxFit.cover),
               ),
-            );
-          },
-        ),
-      );
+              Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 9,
+                ),
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Text(
+                      '${d.category} · ${d.pageName}',
+                      maxLines: 1,
+                      softWrap: false,
+                      overflow: TextOverflow.clip,
+                      style: const TextStyle(
+                        fontSize: 13,
+                        height: 1.4615,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
+                    Text.rich(
+                      TextSpan(
+                        children: [
+                          const TextSpan(text: AppStrings.save),
+                          TextSpan(
+                            text: thousands(d.saved),
+                            style: const TextStyle(
+                              color: Color(0xFF0B6E66),
+                              fontWeight: FontWeight.w700,
+                              fontSize: 12,
+                            ),
+                          ),
+                          const TextSpan(text: AppStrings.vsHighest),
+                        ],
+                      ),
+                      maxLines: 1,
+                      style: const TextStyle(
+                        fontSize: 11,
+                        height: 24 / 11,
+                        color: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ],
+          ),
+        );
+      },
+    ),
+  );
 }
 
 class SponsoredBanner extends StatelessWidget {
@@ -419,7 +638,10 @@ class SponsoredBanner extends StatelessWidget {
               width: 170,
               height: 170,
               child: DecoratedBox(
-                decoration: BoxDecoration(shape: BoxShape.circle, color: AppColors.white.withValues(alpha: .08)),
+                decoration: BoxDecoration(
+                  shape: BoxShape.circle,
+                  color: AppColors.white.withValues(alpha: .08),
+                ),
               ),
             ),
             Padding(
@@ -430,14 +652,40 @@ class SponsoredBanner extends StatelessWidget {
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
                     Container(
-                      padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 3),
-                      decoration: BoxDecoration(color: AppColors.white.withValues(alpha: .18), borderRadius: BorderRadius.circular(99)),
-                      child: const Text(AppStrings.sponsored, style: TextStyle(fontSize: 11, height: 1.5455, fontWeight: FontWeight.w600)),
+                      padding: const EdgeInsets.symmetric(
+                        horizontal: 9,
+                        vertical: 3,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.white.withValues(alpha: .18),
+                        borderRadius: BorderRadius.circular(99),
+                      ),
+                      child: const Text(
+                        AppStrings.sponsored,
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.5455,
+                          fontWeight: FontWeight.w600,
+                        ),
+                      ),
                     ),
                     const SizedBox(height: 8),
-                    Text(ad.pageName, style: const TextStyle(fontSize: 19, height: 1.5263, fontWeight: FontWeight.w700)),
+                    Text(
+                      ad.pageName,
+                      style: const TextStyle(
+                        fontSize: 19,
+                        height: 1.5263,
+                        fontWeight: FontWeight.w700,
+                      ),
+                    ),
                     const SizedBox(height: 2),
-                    Opacity(opacity: .85, child: Text(ad.headline, style: const TextStyle(fontSize: 13))),
+                    Opacity(
+                      opacity: .85,
+                      child: Text(
+                        ad.headline,
+                        style: const TextStyle(fontSize: 13, height: 19 / 13),
+                      ),
+                    ),
                   ],
                 ),
               ),
@@ -447,10 +695,24 @@ class SponsoredBanner extends StatelessWidget {
               top: 28,
               child: Column(
                 children: [
-                  Text('${ad.discountPercent}%',
-                      style: const TextStyle(fontSize: 34, height: 1, fontWeight: FontWeight.w700, color: AppColors.goldSoft)),
+                  Text(
+                    '${ad.discountPercent}%',
+                    style: const TextStyle(
+                      fontSize: 34,
+                      height: 1,
+                      fontWeight: FontWeight.w700,
+                      color: AppColors.goldSoft,
+                    ),
+                  ),
                   const SizedBox(height: 6),
-                  const Text(AppStrings.discount, style: TextStyle(fontSize: 12, height: 1.5000, color: AppColors.white)),
+                  const Text(
+                    AppStrings.discount,
+                    style: TextStyle(
+                      fontSize: 12,
+                      height: 1.5000,
+                      color: AppColors.white,
+                    ),
+                  ),
                 ],
               ),
             ),
@@ -458,10 +720,23 @@ class SponsoredBanner extends StatelessWidget {
               right: 18,
               bottom: 16,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 6),
-                decoration: BoxDecoration(color: AppColors.white, borderRadius: BorderRadius.circular(10)),
-                child: const Text(AppStrings.viewPage,
-                    style: TextStyle(fontSize: 12, height: 1.5000, fontWeight: FontWeight.w700, color: AppColors.blue)),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 12,
+                  vertical: 6,
+                ),
+                decoration: BoxDecoration(
+                  color: AppColors.white,
+                  borderRadius: BorderRadius.circular(10),
+                ),
+                child: const Text(
+                  AppStrings.viewPage,
+                  style: TextStyle(
+                    fontSize: 12,
+                    height: 1.5000,
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.blue,
+                  ),
+                ),
               ),
             ),
           ],

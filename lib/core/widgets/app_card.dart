@@ -4,7 +4,13 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 
 class AppCard extends StatelessWidget {
-  const AppCard({super.key, required this.child, this.color, this.padding = 16, this.flat = false});
+  const AppCard({
+    super.key,
+    required this.child,
+    this.color,
+    this.padding = 16,
+    this.flat = false,
+  });
 
   final Widget child;
   final Color? color;
@@ -24,7 +30,12 @@ class AppCard extends StatelessWidget {
         boxShadow: flat
             ? null
             : const [
-                BoxShadow(color: Color(0x660B1A3F), offset: Offset(0, 14), blurRadius: 30, spreadRadius: -20),
+                BoxShadow(
+                  color: Color(0x660B1A3F),
+                  offset: Offset(0, 14),
+                  blurRadius: 30,
+                  spreadRadius: -20,
+                ),
                 BoxShadow(color: AppColors.cardRing, spreadRadius: 1),
               ],
       ),
@@ -35,7 +46,12 @@ class AppCard extends StatelessWidget {
 
 /// Tinted alert card: bold title + body line (e.g. phone validation errors).
 class AlertCard extends StatelessWidget {
-  const AlertCard({super.key, required this.title, required this.body, this.leading});
+  const AlertCard({
+    super.key,
+    required this.title,
+    required this.body,
+    this.leading,
+  });
 
   final String title;
   final String body;
@@ -46,8 +62,22 @@ class AlertCard extends StatelessWidget {
     final texts = Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.danger, fontSize: 14)),
-        Text(body, style: const TextStyle(fontSize: 12.5, height: 1.5200, color: AppColors.dangerText)),
+        Text(
+          title,
+          style: const TextStyle(
+            fontWeight: FontWeight.w700,
+            color: AppColors.danger,
+            fontSize: 14,
+          ),
+        ),
+        Text(
+          body,
+          style: const TextStyle(
+            fontSize: 12.5,
+            height: 1.5200,
+            color: AppColors.dangerText,
+          ),
+        ),
       ],
     );
     return AppCard(
@@ -55,7 +85,13 @@ class AlertCard extends StatelessWidget {
       color: AppColors.dangerBg,
       child: leading == null
           ? texts
-          : Row(children: [leading!, const SizedBox(width: 12), Expanded(child: texts)]),
+          : Row(
+              children: [
+                leading!,
+                const SizedBox(width: 12),
+                Expanded(child: texts),
+              ],
+            ),
     );
   }
 }

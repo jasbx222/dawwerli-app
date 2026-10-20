@@ -13,7 +13,12 @@ import '../../../core/widgets/app_inputs.dart';
 import '../../auth/data/auth_providers.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
-  const ProfileSetupScreen({super.key, this.initialName = '', this.initialArea = '', this.initialGov = 'بغداد'});
+  const ProfileSetupScreen({
+    super.key,
+    this.initialName = '',
+    this.initialArea = '',
+    this.initialGov = 'بغداد',
+  });
 
   final String initialName;
   final String initialArea;
@@ -49,7 +54,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
   }
 
   Future<void> _save() async {
-    await ref.read(authRepositoryProvider).saveProfile(name: _name.text.trim(), governorate: _gov, area: _area.text.trim());
+    await ref
+        .read(authRepositoryProvider)
+        .saveProfile(
+          name: _name.text.trim(),
+          governorate: _gov,
+          area: _area.text.trim(),
+        );
     if (mounted) context.go(Routes.home);
   }
 
@@ -58,7 +69,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
     final govs = ref.watch(governoratesProvider).value ?? const <String>[];
     final shown = _showAll ? govs : govs.take(_visibleGovs).toList();
     final hidden = govs.length - shown.length;
-    final areaFocused = _areaFocus.hasFocus || (widget.initialArea.isNotEmpty && !_nameFocus.hasFocus);
+    final areaFocused =
+        _areaFocus.hasFocus ||
+        (widget.initialArea.isNotEmpty && !_nameFocus.hasFocus);
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
@@ -82,7 +95,13 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 const FieldLabel(AppStrings.profileName),
-                InputShell(focused: _nameFocus.hasFocus, child: BareTextField(controller: _name, focusNode: _nameFocus)),
+                InputShell(
+                  focused: _nameFocus.hasFocus,
+                  child: BareTextField(
+                    controller: _name,
+                    focusNode: _nameFocus,
+                  ),
+                ),
                 // 18 in the HTML; +2.5 measured against the approved hi-res render so «شسمك؟» lands on the same Y.
                 const SizedBox(height: 20.5),
                 const FieldLabel(AppStrings.profileGov),
@@ -90,8 +109,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   spacing: 8,
                   runSpacing: 8,
                   children: [
-                    for (final g in shown) AppChip(g, selected: g == _gov, onTap: () => setState(() => _gov = g)),
-                    if (hidden > 0) AppChip('+$hidden', onTap: () => setState(() => _showAll = true)),
+                    for (final g in shown)
+                      AppChip(
+                        g,
+                        selected: g == _gov,
+                        onTap: () => setState(() => _gov = g),
+                      ),
+                    if (hidden > 0)
+                      AppChip(
+                        '+$hidden',
+                        onTap: () => setState(() => _showAll = true),
+                      ),
                   ],
                 ),
                 const SizedBox(height: 18),
@@ -100,8 +128,17 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   focused: areaFocused,
                   child: Row(
                     children: [
-                      Expanded(child: BareTextField(controller: _area, focusNode: _areaFocus)),
-                      const AppSvgIcon(AppIcon.pin, color: AppColors.blue, size: 18),
+                      Expanded(
+                        child: BareTextField(
+                          controller: _area,
+                          focusNode: _areaFocus,
+                        ),
+                      ),
+                      const AppSvgIcon(
+                        AppIcon.pin,
+                        color: AppColors.blue,
+                        size: 18,
+                      ),
                     ],
                   ),
                 ),

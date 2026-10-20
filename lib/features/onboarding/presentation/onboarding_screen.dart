@@ -22,12 +22,20 @@ class OnboardingScreen extends StatelessWidget {
             child: Column(
               children: [
                 Text.rich(
-                  const TextSpan(children: [
-                    TextSpan(text: '${AppStrings.onbTitle1}\n'),
-                    TextSpan(text: AppStrings.onbTitle2, style: TextStyle(color: AppColors.blue)),
-                  ]),
+                  const TextSpan(
+                    children: [
+                      TextSpan(text: '${AppStrings.onbTitle1}\n'),
+                      TextSpan(
+                        text: AppStrings.onbTitle2,
+                        style: TextStyle(color: AppColors.blue),
+                      ),
+                    ],
+                  ),
                   textAlign: TextAlign.center,
-                  style: AppText.big.copyWith(fontSize: 27, height: AppText.lh(27)),
+                  style: AppText.big.copyWith(
+                    fontSize: 27,
+                    height: AppText.lh(27),
+                  ),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -38,7 +46,10 @@ class OnboardingScreen extends StatelessWidget {
                 const SizedBox(height: 22),
                 const _PageDots(count: 3, active: 0),
                 const SizedBox(height: 22),
-                AppButton(AppStrings.onbStart, onPressed: () => context.go(Routes.login)),
+                AppButton(
+                  AppStrings.onbStart,
+                  onPressed: () => context.go(Routes.login),
+                ),
                 const SizedBox(height: 14),
                 GestureDetector(
                   onTap: () => context.go(Routes.home),
@@ -86,7 +97,13 @@ class _Hero extends StatelessWidget {
                     image: AssetImage('assets/images/cat_phones_1.webp'),
                     fit: BoxFit.cover,
                   ),
-                  boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 20), blurRadius: 40)],
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x66000000),
+                      offset: Offset(0, 20),
+                      blurRadius: 40,
+                    ),
+                  ],
                 ),
               ),
             ),
@@ -95,7 +112,10 @@ class _Hero extends StatelessWidget {
             textDirection: TextDirection.ltr,
             top: 150,
             start: 24,
-            child: Transform.rotate(angle: -5 * 3.14159265 / 180, child: const _OffersCard()),
+            child: Transform.rotate(
+              angle: -5 * 3.14159265 / 180,
+              child: const _OffersCard(),
+            ),
           ),
           Positioned.directional(
             textDirection: TextDirection.ltr,
@@ -104,17 +124,30 @@ class _Hero extends StatelessWidget {
             child: Transform.rotate(
               angle: -7 * 3.14159265 / 180,
               child: Container(
-                padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+                padding: const EdgeInsets.symmetric(
+                  horizontal: 10,
+                  vertical: 4,
+                ),
                 decoration: BoxDecoration(
                   color: AppColors.sticker,
                   borderRadius: BorderRadius.circular(10),
                   boxShadow: const [
-                    BoxShadow(color: Color(0xB3FF7A59), offset: Offset(0, 4), blurRadius: 10, spreadRadius: -3),
+                    BoxShadow(
+                      color: Color(0xB3FF7A59),
+                      offset: Offset(0, 4),
+                      blurRadius: 10,
+                      spreadRadius: -3,
+                    ),
                   ],
                 ),
                 child: Text(
                   AppStrings.onbSticker,
-                  style: AppText.body.copyWith(fontSize: 12, height: AppText.lh(12), fontWeight: FontWeight.w700, color: AppColors.stickerText),
+                  style: AppText.body.copyWith(
+                    fontSize: 12,
+                    height: AppText.lh(12),
+                    fontWeight: FontWeight.w700,
+                    color: AppColors.stickerText,
+                  ),
                 ),
               ),
             ),
@@ -138,7 +171,13 @@ class _OffersCard extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(20),
-        boxShadow: const [BoxShadow(color: Color(0x66000000), offset: Offset(0, 20), blurRadius: 40)],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x66000000),
+            offset: Offset(0, 20),
+            blurRadius: 40,
+          ),
+        ],
       ),
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
@@ -149,7 +188,9 @@ class _OffersCard extends StatelessWidget {
             children: [
               for (var i = 0; i < _prices.length; i++) ...[
                 if (i > 0) const SizedBox(width: 7),
-                Expanded(child: _Slot(price: _prices[i], chosen: i == 0)),
+                Expanded(
+                  child: _Slot(price: _prices[i], chosen: i == 0),
+                ),
               ],
             ],
           ),
@@ -172,16 +213,31 @@ class _Slot extends StatelessWidget {
       decoration: BoxDecoration(
         color: chosen ? AppColors.blue : AppColors.slotBg,
         borderRadius: BorderRadius.circular(14),
-        border: Border.all(color: chosen ? AppColors.blue : AppColors.blueRing, width: 1.5),
+        border: Border.all(
+          color: chosen ? AppColors.blue : AppColors.blueRing,
+          width: 1.5,
+        ),
       ),
       child: Column(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          Text(price,
-              style: AppText.body.copyWith(
-                  fontSize: 13.5, height: AppText.lh(13.5), fontWeight: FontWeight.w700, color: chosen ? AppColors.white : AppColors.navy)),
-          Text(AppStrings.currency,
-              style: AppText.body.copyWith(fontSize: 10, height: AppText.lh(10), color: chosen ? AppColors.blueRing : AppColors.grey)),
+          Text(
+            price,
+            style: AppText.body.copyWith(
+              fontSize: 13.5,
+              height: AppText.lh(13.5),
+              fontWeight: FontWeight.w700,
+              color: chosen ? AppColors.white : AppColors.navy,
+            ),
+          ),
+          Text(
+            AppStrings.currency,
+            style: AppText.body.copyWith(
+              fontSize: 10,
+              height: AppText.lh(10),
+              color: chosen ? AppColors.blueRing : AppColors.grey,
+            ),
+          ),
         ],
       ),
     );

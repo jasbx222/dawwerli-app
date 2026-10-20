@@ -22,8 +22,14 @@ bool _preview(GoRouterState s) => s.uri.queryParameters['preview'] == '1';
 final appRouter = GoRouter(
   initialLocation: Routes.splash,
   routes: [
-    GoRoute(path: Routes.splash, builder: (_, s) => SplashScreen(autoAdvance: !_preview(s))),
-    GoRoute(path: Routes.onboarding, builder: (_, _) => const OnboardingScreen()),
+    GoRoute(
+      path: Routes.splash,
+      builder: (_, s) => SplashScreen(autoAdvance: !_preview(s)),
+    ),
+    GoRoute(
+      path: Routes.onboarding,
+      builder: (_, _) => const OnboardingScreen(),
+    ),
     GoRoute(
       path: Routes.login,
       builder: (_, s) => _preview(s)
@@ -44,26 +50,43 @@ final appRouter = GoRouter(
                   frozenClock: true,
                 )
               : const OtpScreen(),
-          routes: [GoRoute(path: 'states', builder: (_, _) => const OtpStatesScreen())],
+          routes: [
+            GoRoute(path: 'states', builder: (_, _) => const OtpStatesScreen()),
+          ],
         ),
       ],
     ),
     GoRoute(
       path: Routes.profileSetup,
       builder: (_, s) => _preview(s)
-          ? const ProfileSetupScreen(initialName: 'أبو علي', initialArea: 'الكرادة')
+          ? const ProfileSetupScreen(
+              initialName: 'أبو علي',
+              initialArea: 'الكرادة',
+            )
           : const ProfileSetupScreen(),
     ),
     GoRoute(
       path: Routes.home,
       builder: (_, s) => _preview(s)
           ? ProviderScope(
-              overrides: [homeRepositoryProvider.overrideWithValue(const MockHomeRepository(withData: true))],
+              overrides: [
+                homeDataProvider.overrideWith(
+                  (ref) =>
+                      const MockHomeRepository(withData: true)
+                          .load(governorate: 'بغداد'),
+                ),
+              ],
               child: const HomeScreen(),
             )
           : const HomeScreen(),
     ),
-    GoRoute(path: Routes.featuredPages, builder: (_, _) => const FeaturedPagesScreen()),
-    GoRoute(path: Routes.comingSoon, builder: (_, _) => const ComingSoonScreen()),
+    GoRoute(
+      path: Routes.featuredPages,
+      builder: (_, _) => const FeaturedPagesScreen(),
+    ),
+    GoRoute(
+      path: Routes.comingSoon,
+      builder: (_, _) => const ComingSoonScreen(),
+    ),
   ],
 );

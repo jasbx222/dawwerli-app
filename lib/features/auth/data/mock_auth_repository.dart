@@ -6,7 +6,10 @@ import '../domain/phone_number.dart';
 /// NOTE: the backend (POST /v1/auth/otp/request) must apply the same rule, counting failures from
 /// SMS provider delivery reports plus "not received" resends.
 class MockAuthRepository implements AuthRepository {
-  MockAuthRepository({DateTime Function()? clock, this.simulateSmsFailure = false}) : _now = clock ?? DateTime.now;
+  MockAuthRepository({
+    DateTime Function()? clock,
+    this.simulateSmsFailure = false,
+  }) : _now = clock ?? DateTime.now;
 
   static const maxFailedSms = 3;
 
@@ -33,13 +36,22 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<OtpRequestResult> requestOtp(PhoneNumber phone, {bool smsNotReceived = false}) async {
+  Future<OtpRequestResult> requestOtp(
+    PhoneNumber phone, {
+    bool smsNotReceived = false,
+  }) async {
     final k = phone.e164;
     final locked = _lockLeft(k);
     if (locked != null) return OtpLocked(locked);
-    if (smsNotReceived && _lastChannel[k] == OtpChannel.sms) _failedSms[k] = (_failedSms[k] ?? 0) + 1;
-    final channel = (_failedSms[k] ?? 0) >= maxFailedSms ? OtpChannel.whatsapp : OtpChannel.sms;
-    if (channel == OtpChannel.sms && simulateSmsFailure) _failedSms[k] = (_failedSms[k] ?? 0) + 1;
+    if (smsNotReceived && _lastChannel[k] == OtpChannel.sms) {
+      _failedSms[k] = (_failedSms[k] ?? 0) + 1;
+    }
+    final channel = (_failedSms[k] ?? 0) >= maxFailedSms
+        ? OtpChannel.whatsapp
+        : OtpChannel.sms;
+    if (channel == OtpChannel.sms && simulateSmsFailure) {
+      _failedSms[k] = (_failedSms[k] ?? 0) + 1;
+    }
     _lastChannel[k] = channel;
     _issuedAt[k] = _now();
     return OtpSent(
@@ -55,7 +67,9 @@ class MockAuthRepository implements AuthRepository {
     final locked = _lockLeft(k);
     if (locked != null) return OtpVerifyLocked(locked);
     final issued = _issuedAt[k];
-    if (issued != null && _now().difference(issued) > codeTtl) return const OtpExpired();
+    if (issued != null && _now().difference(issued) > codeTtl) {
+      return const OtpExpired();
+    }
     if (code == validCode) {
       _wrong.remove(k);
       return const OtpOk(needsProfile: true);
@@ -72,10 +86,30 @@ class MockAuthRepository implements AuthRepository {
 
   @override
   Future<List<String>> governorates() async => const [
-        'بغداد', 'البصرة', 'نينوى', 'أربيل', 'النجف', 'كربلاء', 'بابل', 'ديالى', 'الأنبار', //
-        'ذي قار', 'السليمانية', 'كركوك', 'صلاح الدين', 'واسط', 'ميسان', 'المثنى', 'القادسية', 'دهوك',
-      ];
+    'بغداد',
+    'البصرة',
+    'نينوى',
+    'أربيل',
+    'النجف',
+    'كربلاء',
+    'بابل',
+    'ديالى',
+    'الأنبار', //
+    'ذي قار',
+    'السليمانية',
+    'كركوك',
+    'صلاح الدين',
+    'واسط',
+    'ميسان',
+    'المثنى',
+    'القادسية',
+    'دهوك',
+  ];
 
   @override
-  Future<void> saveProfile({required String name, required String governorate, required String area}) async {}
+  Future<void> saveProfile({
+    required String name,
+    required String governorate,
+    required String area,
+  }) async {}
 }

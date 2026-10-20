@@ -5,19 +5,31 @@ import 'app_typography.dart';
 
 abstract final class AppTheme {
   static ThemeData get light => ThemeData(
-        useMaterial3: true,
-        fontFamily: AppText.family,
-        scaffoldBackgroundColor: AppColors.sand,
-        colorScheme: ColorScheme.fromSeed(
-          seedColor: AppColors.blue,
-          primary: AppColors.blue,
-          secondary: AppColors.gold,
-          surface: AppColors.sand,
+    useMaterial3: true,
+    fontFamily: AppText.family,
+    scaffoldBackgroundColor: AppColors.sand,
+    colorScheme: ColorScheme.fromSeed(
+      seedColor: AppColors.blue,
+      primary: AppColors.blue,
+      secondary: AppColors.gold,
+      surface: AppColors.sand,
+    ),
+    textTheme: Typography.material2021().black
+        .apply(fontFamily: AppText.family)
+        .copyWith(
+          bodyMedium: const TextStyle(
+            height: AppText.lineHeight,
+            fontSize: 14,
+            color: AppColors.navy,
+          ),
+          bodyLarge: const TextStyle(
+            height: AppText.lineHeight,
+            fontSize: 16,
+            color: AppColors.navy,
+          ),
         ),
-        textTheme: Typography.material2021().black.apply(fontFamily: AppText.family).copyWith(
-          bodyMedium: const TextStyle(height: AppText.lineHeight, fontSize: 14, color: AppColors.navy),
-          bodyLarge: const TextStyle(height: AppText.lineHeight, fontSize: 16, color: AppColors.navy),
-        ),
-        textSelectionTheme: const TextSelectionThemeData(cursorColor: AppColors.blue),
-      );
+    textSelectionTheme: const TextSelectionThemeData(
+      cursorColor: AppColors.blue,
+    ),
+  );
 }

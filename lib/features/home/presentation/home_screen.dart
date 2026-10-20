@@ -27,13 +27,20 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         children: [
           home.when(
-            loading: () => const Center(child: CircularProgressIndicator(color: AppColors.blue)),
+            loading: () => const Center(
+              child: CircularProgressIndicator(color: AppColors.blue),
+            ),
             error: (e, _) => Center(child: Text('$e')),
             data: (d) => SingleChildScrollView(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  HomeHeader(data: d, onBell: soon, onLocation: soon, onStory: (_) => soon()),
+                  HomeHeader(
+                    data: d,
+                    onBell: soon,
+                    onLocation: soon,
+                    onStory: (_) => soon(),
+                  ),
                   Transform.translate(
                     offset: const Offset(0, -_overlap),
                     child: _Body(data: d, onSoon: soon),
@@ -78,7 +85,11 @@ class _Body extends StatelessWidget {
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(AppStrings.secTrending, onSeeAll: onSoon),
-        CategoryBento(categories: d.categories, governorate: d.governorate, onTap: (_) => onSoon()),
+        CategoryBento(
+          categories: d.categories,
+          governorate: d.governorate,
+          onTap: (_) => onSoon(),
+        ),
         SectionTitle(AppStrings.secNow, onSeeAll: onSoon),
         LiveFeedCard(items: d.feed),
         if (d.deals.isNotEmpty) ...[

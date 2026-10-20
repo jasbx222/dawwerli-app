@@ -39,7 +39,14 @@ class IshtarPatternPainter extends CustomPainter {
         for (var i = 0; i < 8; i++) {
           canvas.save();
           canvas.rotate(i * math.pi / 4);
-          canvas.drawOval(Rect.fromCenter(center: const Offset(0, -8), width: 5.2, height: 10), fill);
+          canvas.drawOval(
+            Rect.fromCenter(
+              center: const Offset(0, -8),
+              width: 5.2,
+              height: 10,
+            ),
+            fill,
+          );
           canvas.restore();
         }
         canvas.restore();
@@ -54,7 +61,12 @@ class IshtarPatternPainter extends CustomPainter {
 
 /// Gradient background with the Ishtar tile pattern on top.
 class IshtarBackground extends StatelessWidget {
-  const IshtarBackground({super.key, required this.gradient, this.borderRadius, this.child});
+  const IshtarBackground({
+    super.key,
+    required this.gradient,
+    this.borderRadius,
+    this.child,
+  });
 
   final Gradient gradient;
   final BorderRadius? borderRadius;
@@ -82,7 +94,10 @@ class EllipseTransform extends GradientTransform {
 
   @override
   Matrix4 transform(Rect bounds, {TextDirection? textDirection}) {
-    final c = Offset(bounds.left + bounds.width * center.dx, bounds.top + bounds.height * center.dy);
+    final c = Offset(
+      bounds.left + bounds.width * center.dx,
+      bounds.top + bounds.height * center.dy,
+    );
     final base = bounds.shortestSide / 2;
     final sx = bounds.width * rx / base;
     final sy = bounds.height * ry / base;

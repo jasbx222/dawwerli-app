@@ -23,7 +23,8 @@ abstract final class AppStrings {
   static const loginSub = 'حتى ننشر طلبك. مسودتك محفوظة وما تضيع ✍️';
   static const loginPhoneLabel = 'رقم الموبايل';
   static const countryCode = '+964';
-  static const loginHint = 'نرسلك كود بالـ SMS. رقمك ما ينكشف لأي صفحة إلا اللي تختارها إنت.';
+  static const loginHint =
+      'نرسلك كود بالـ SMS. رقمك ما ينكشف لأي صفحة إلا اللي تختارها إنت.';
   static const errIncompleteTitle = 'الرقم ناقص';
   static const errIncompleteBody = 'اكتب رقم عراقي من 10 أرقام يبدي بـ 7';
   static const errNotIraqiTitle = 'هذا مو رقم عراقي';
@@ -63,10 +64,10 @@ abstract final class AppStrings {
   static const stRateBody = 'استنى شوية وجرب مرة ثانية.';
 
   static String attemptsLeft(int n) => switch (n) {
-        1 => 'محاولة وحدة',
-        2 => 'محاولتين',
-        _ => '$n محاولات',
-      };
+    1 => 'محاولة وحدة',
+    2 => 'محاولتين',
+    _ => '$n محاولات',
+  };
 
   // Profile setup
   static const profileTitle = 'كمّل معلوماتك';
@@ -89,10 +90,10 @@ abstract final class AppStrings {
   static String reachedPages(int n, String gov) => 'وصل لـ $n صفحة موثقة ب$gov';
   static String pagesCompeting(int n) => '$n صفحات دا تتعارك عليك 🔥';
   static String slotsLeft(int n) => switch (n) {
-        1 => 'باقي مكان واحد',
-        2 => 'باقي مكانين',
-        _ => 'باقي $n أماكن',
-      };
+    1 => 'باقي مكان واحد',
+    2 => 'باقي مكانين',
+    _ => 'باقي $n أماكن',
+  };
   static const cheapest = 'الأرخص';
   static const goodOffer = 'خوش عرض 👌';
   static const closesIn = 'يتسكر بعد ';
@@ -100,10 +101,10 @@ abstract final class AppStrings {
   static const postNew = 'انشر طلب جديد';
   static const postNewSub = 'صوّر أو اكتب أو احجي، وخلّي العروض تجيك';
   static String offersCount(int n) => switch (n) {
-        1 => 'عرض واحد',
-        2 => 'عرضين',
-        _ => '$n عروض',
-      };
+    1 => 'عرض واحد',
+    2 => 'عرضين',
+    _ => '$n عروض',
+  };
   static const statPages = 'صفحة موثقة';
   static const statGovs = 'محافظة';
   static const statFirstOffer = 'أول عرض بالمعدل';
@@ -133,8 +134,10 @@ abstract final class AppStrings {
   static const navAccount = 'حسابي';
 
   // Featured pages (45)
-  static String featuredTitle(String cat, String gov) => 'أفضل صفحات $cat ب$gov';
+  static String featuredTitle(String cat, String gov) =>
+      'أفضل صفحات $cat ب$gov';
   static const featuredSub = 'تقييم 4 وفوق وبدون شكاوى مؤكدة';
   static String inAppDeals(int n) => '$n صفقة بالتطبيق';
-  static const featuredFoot = 'الصفحات المعلّمة «إعلان» مدفوعة، الباقي حسب التقييم';
+  static const featuredFoot =
+      'الصفحات المعلّمة «إعلان» مدفوعة، الباقي حسب التقييم';
 }

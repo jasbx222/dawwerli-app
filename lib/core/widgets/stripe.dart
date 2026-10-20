@@ -7,8 +7,10 @@ class GoldStripe extends StatelessWidget {
   const GoldStripe({super.key});
 
   @override
-  Widget build(BuildContext context) =>
-      Opacity(opacity: .35, child: CustomPaint(painter: _StripePainter(), size: Size.infinite));
+  Widget build(BuildContext context) => Opacity(
+    opacity: .35,
+    child: CustomPaint(painter: _StripePainter(), size: Size.infinite),
+  );
 }
 
 class _StripePainter extends CustomPainter {
@@ -18,8 +20,13 @@ class _StripePainter extends CustomPainter {
     final p = Paint()..color = AppColors.goldSoft;
     canvas.clipRect(Offset.zero & size);
     const period = 14.0, band = 7.0;
-    const k = 1.4142135623730951; // diagonal stripes, period measured along 135°
-    for (var x = -size.height * 2; x < size.width + size.height * 2; x += period * k) {
+    const k =
+        1.4142135623730951; // diagonal stripes, period measured along 135°
+    for (
+      var x = -size.height * 2;
+      x < size.width + size.height * 2;
+      x += period * k
+    ) {
       final path = Path()
         ..moveTo(x, 0)
         ..lineTo(x + band * k, 0)

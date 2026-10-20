@@ -18,7 +18,10 @@ class Wordmark extends StatelessWidget {
         style: AppText.logo(size).copyWith(color: color),
         children: const [
           TextSpan(text: AppStrings.appName),
-          TextSpan(text: AppStrings.logoDot, style: TextStyle(color: AppColors.gold)),
+          TextSpan(
+            text: AppStrings.logoDot,
+            style: TextStyle(color: AppColors.gold),
+          ),
         ],
       ),
     );
@@ -40,7 +43,11 @@ class LogoMark extends StatelessWidget {
         color: AppColors.navy,
         borderRadius: BorderRadius.circular(size * .3),
         boxShadow: const [
-          BoxShadow(color: Color(0x66E8B02E), offset: Offset(0, 20), blurRadius: 60),
+          BoxShadow(
+            color: Color(0x66E8B02E),
+            offset: Offset(0, 20),
+            blurRadius: 60,
+          ),
           BoxShadow(color: AppColors.gold, spreadRadius: 3),
         ],
       ),
@@ -50,7 +57,10 @@ class LogoMark extends StatelessWidget {
           style: AppText.logo(size / 3),
           children: const [
             TextSpan(text: AppStrings.logoLetter),
-            TextSpan(text: AppStrings.logoDot, style: TextStyle(color: AppColors.gold)),
+            TextSpan(
+              text: AppStrings.logoDot,
+              style: TextStyle(color: AppColors.gold),
+            ),
           ],
         ),
       ),

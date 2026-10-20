@@ -40,7 +40,10 @@ class StateCard extends StatelessWidget {
               Container(
                 width: 44,
                 height: 44,
-                decoration: BoxDecoration(color: tint, borderRadius: BorderRadius.circular(14)),
+                decoration: BoxDecoration(
+                  color: tint,
+                  borderRadius: BorderRadius.circular(14),
+                ),
                 alignment: Alignment.center,
                 child: AppSvgIcon(icon, color: tone),
               ),
@@ -49,16 +52,32 @@ class StateCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontSize: 15.5, height: 1.4839, fontWeight: FontWeight.w700, color: tone)),
+                    Text(
+                      title,
+                      style: TextStyle(
+                        fontSize: 15.5,
+                        height: 1.4839,
+                        fontWeight: FontWeight.w700,
+                        color: tone,
+                      ),
+                    ),
                     const SizedBox(height: 3),
-                    Text.rich(body, style: AppText.muted.copyWith(height: 19 / 12.5)),
+                    Text.rich(
+                      body,
+                      style: AppText.muted.copyWith(height: 19 / 12.5),
+                    ),
                   ],
                 ),
               ),
             ],
           ),
           const SizedBox(height: 12),
-          AppButton(action, variant: actionVariant, compact: true, onPressed: onAction),
+          AppButton(
+            action,
+            variant: actionVariant,
+            compact: true,
+            onPressed: onAction,
+          ),
         ],
       ),
     );

@@ -12,15 +12,18 @@ class ComingSoonScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) => Scaffold(
-        body: Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppHeader(
-              title: AppStrings.appName,
-              onBack: () => context.canPop() ? context.pop() : context.go(Routes.home),
-            ),
-            const Expanded(child: Center(child: Text(AppStrings.comingSoon, style: AppText.big))),
-          ],
+    body: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        AppHeader(
+          title: AppStrings.appName,
+          onBack: () =>
+              context.canPop() ? context.pop() : context.go(Routes.home),
         ),
-      );
+        const Expanded(
+          child: Center(child: Text(AppStrings.comingSoon, style: AppText.big)),
+        ),
+      ],
+    ),
+  );
 }

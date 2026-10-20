@@ -35,36 +35,114 @@ class MockHomeRepository implements HomeRepository {
       ),
       ticker: const [
         FeedItem(category: 'أحذية', governorate: 'بغداد', offers: 3, image: ''),
-        FeedItem(category: 'موبايلات', governorate: 'البصرة', offers: 5, image: ''),
+        FeedItem(
+          category: 'موبايلات',
+          governorate: 'البصرة',
+          offers: 5,
+          image: '',
+        ),
         FeedItem(category: 'عطور', governorate: 'أربيل', offers: 2, image: ''),
         FeedItem(category: 'ملابس', governorate: 'بابل', offers: 4, image: ''),
       ],
       stats: withData
-          ? const HomeStats(verifiedPages: 1240, governorates: 18, avgFirstOfferMinutes: 7)
+          ? const HomeStats(
+              verifiedPages: 1240,
+              governorates: 18,
+              avgFirstOfferMinutes: 7,
+            )
           : const HomeStats(),
       categories: const [
-        TrendingCategory(id: 'phones', name: 'موبايلات', image: '$_img/phone.jpg', badge: CategoryBadge.trending),
-        TrendingCategory(id: 'perfumes', name: 'عطور', image: '$_img/perfume.jpg'),
-        TrendingCategory(id: 'eid', name: 'هدوم العيد', image: '$_img/shirt.jpg'),
-        TrendingCategory(id: 'care', name: 'عناية', image: '$_img/cosmetics.jpg', badge: CategoryBadge.isNew),
-        TrendingCategory(id: 'home', name: 'أغراض البيت', image: '$_img/lamp.jpg'),
+        TrendingCategory(
+          id: 'phones',
+          name: 'موبايلات',
+          image: '$_img/phone.jpg',
+          badge: CategoryBadge.trending,
+        ),
+        TrendingCategory(
+          id: 'perfumes',
+          name: 'عطور',
+          image: '$_img/perfume.jpg',
+        ),
+        TrendingCategory(
+          id: 'eid',
+          name: 'هدوم العيد',
+          image: '$_img/shirt.jpg',
+        ),
+        TrendingCategory(
+          id: 'care',
+          name: 'عناية',
+          image: '$_img/cosmetics.jpg',
+          badge: CategoryBadge.isNew,
+        ),
+        TrendingCategory(
+          id: 'home',
+          name: 'أغراض البيت',
+          image: '$_img/lamp.jpg',
+        ),
       ],
       feed: const [
-        FeedItem(category: 'موبايلات', governorate: 'بغداد', offers: 4, image: '$_img/phone.jpg'),
-        FeedItem(category: 'ملابس', governorate: 'البصرة', offers: 2, image: '$_img/jacket.jpg'),
-        FeedItem(category: 'عطور', governorate: 'أربيل', offers: 5, image: '$_img/perfume.jpg'),
+        FeedItem(
+          category: 'موبايلات',
+          governorate: 'بغداد',
+          offers: 4,
+          image: '$_img/phone.jpg',
+        ),
+        FeedItem(
+          category: 'ملابس',
+          governorate: 'البصرة',
+          offers: 2,
+          image: '$_img/jacket.jpg',
+        ),
+        FeedItem(
+          category: 'عطور',
+          governorate: 'أربيل',
+          offers: 5,
+          image: '$_img/perfume.jpg',
+        ),
       ],
       deals: withData
           ? const [
-              Deal(category: 'ساعات', pageName: 'ستايل بغداد', saved: 18000, image: '$_img/watch.jpg'),
-              Deal(category: 'ملابس', pageName: 'بوتيك ريم', saved: 25000, image: '$_img/dress.jpg'),
-              Deal(category: 'إلكترونيات', pageName: 'موبايل زون', saved: 12000, image: '$_img/headphones.jpg'),
+              Deal(
+                category: 'ساعات',
+                pageName: 'ستايل بغداد',
+                saved: 18000,
+                image: '$_img/watch.jpg',
+              ),
+              Deal(
+                category: 'ملابس',
+                pageName: 'بوتيك ريم',
+                saved: 25000,
+                image: '$_img/dress.jpg',
+              ),
+              Deal(
+                category: 'إلكترونيات',
+                pageName: 'موبايل زون',
+                saved: 12000,
+                image: '$_img/headphones.jpg',
+              ),
             ]
           : const [],
-      ad: const AdBanner(pageName: 'ستايل بغداد', headline: 'كل الأحذية الرياضية', discountPercent: 20, pageId: 'p1'),
+      ad: const AdBanner(
+        pageName: 'ستايل بغداد',
+        headline: 'كل الأحذية الرياضية',
+        discountPercent: 20,
+        pageId: 'p1',
+      ),
       featuredPages: const [
-        PageSummary(id: 'p1', name: 'ستايل بغداد', rating: 4.8, deals: 120, isAd: true),
-        PageSummary(id: 'p2', name: 'موبايل زون', rating: 4.7, deals: 86, isAd: true),
+        PageSummary(
+          id: 'p1',
+          name: 'ستايل بغداد',
+          rating: 4.8,
+          deals: 120,
+          isAd: true,
+        ),
+        PageSummary(
+          id: 'p2',
+          name: 'موبايل زون',
+          rating: 4.7,
+          deals: 86,
+          isAd: true,
+        ),
         PageSummary(id: 'p3', name: 'بيتي', rating: 4.9, deals: 64, isAd: true),
       ],
     );

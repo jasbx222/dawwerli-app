@@ -7,7 +7,11 @@ sealed class OtpRequestResult {
 }
 
 class OtpSent extends OtpRequestResult {
-  const OtpSent({required this.channel, required this.expiresIn, required this.resendIn});
+  const OtpSent({
+    required this.channel,
+    required this.expiresIn,
+    required this.resendIn,
+  });
   final OtpChannel channel;
   final Duration expiresIn;
   final Duration resendIn;
@@ -50,8 +54,15 @@ class OtpVerifyLocked extends OtpVerifyResult {
 abstract interface class AuthRepository {
   /// [smsNotReceived] = the user is resending because the previous SMS never arrived
   /// (counts as a failed delivery, alongside provider delivery-failure reports).
-  Future<OtpRequestResult> requestOtp(PhoneNumber phone, {bool smsNotReceived = false});
+  Future<OtpRequestResult> requestOtp(
+    PhoneNumber phone, {
+    bool smsNotReceived = false,
+  });
   Future<OtpVerifyResult> verifyOtp(PhoneNumber phone, String code);
   Future<List<String>> governorates();
-  Future<void> saveProfile({required String name, required String governorate, required String area});
+  Future<void> saveProfile({
+    required String name,
+    required String governorate,
+    required String area,
+  });
 }

@@ -26,18 +26,33 @@ class AppButton extends StatelessWidget {
   Widget build(BuildContext context) {
     final (bg, fg, shadows) = switch (variant) {
       AppButtonVariant.primary => (
-          AppColors.gold,
-          AppColors.navy,
-          [BoxShadow(color: const Color(0x99E8B33A), offset: const Offset(0, 12), blurRadius: 24, spreadRadius: -10)]
-        ),
+        AppColors.gold,
+        AppColors.navy,
+        [
+          BoxShadow(
+            color: const Color(0x99E8B33A),
+            offset: const Offset(0, 12),
+            blurRadius: 24,
+            spreadRadius: -10,
+          ),
+        ],
+      ),
       AppButtonVariant.navy => (AppColors.navy, AppColors.white, <BoxShadow>[]),
       AppButtonVariant.ghost => (
-          AppColors.white,
-          AppColors.blue,
-          [const BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5)]
-        ),
-      AppButtonVariant.whatsapp => (AppColors.whatsapp, AppColors.white, <BoxShadow>[]),
-      AppButtonVariant.disabled => (AppColors.disabledBg, AppColors.disabledText, <BoxShadow>[]),
+        AppColors.white,
+        AppColors.blue,
+        [const BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5)],
+      ),
+      AppButtonVariant.whatsapp => (
+        AppColors.whatsapp,
+        AppColors.white,
+        <BoxShadow>[],
+      ),
+      AppButtonVariant.disabled => (
+        AppColors.disabledBg,
+        AppColors.disabledText,
+        <BoxShadow>[],
+      ),
     };
     return Semantics(
       button: true,
@@ -52,7 +67,14 @@ class AppButton extends StatelessWidget {
             boxShadow: shadows,
           ),
           alignment: Alignment.center,
-          child: Text(label, style: AppText.button.copyWith(color: fg, fontSize: compact ? 14.5 : 16, height: AppText.lh(compact ? 14.5 : 16))),
+          child: Text(
+            label,
+            style: AppText.button.copyWith(
+              color: fg,
+              fontSize: compact ? 14.5 : 16,
+              height: AppText.lh(compact ? 14.5 : 16),
+            ),
+          ),
         ),
       ),
     );

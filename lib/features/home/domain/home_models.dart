@@ -34,7 +34,12 @@ class LiveRequest {
 }
 
 class FeedItem {
-  const FeedItem({required this.category, required this.governorate, required this.offers, required this.image});
+  const FeedItem({
+    required this.category,
+    required this.governorate,
+    required this.offers,
+    required this.image,
+  });
   final String category;
   final String governorate;
   final int offers;
@@ -43,18 +48,30 @@ class FeedItem {
 
 /// Real aggregates from GET /home/stats; each null until it passes the admin threshold.
 class HomeStats {
-  const HomeStats({this.verifiedPages, this.governorates, this.avgFirstOfferMinutes});
+  const HomeStats({
+    this.verifiedPages,
+    this.governorates,
+    this.avgFirstOfferMinutes,
+  });
   final int? verifiedPages;
   final int? governorates;
   final int? avgFirstOfferMinutes;
 
-  bool get isEmpty => verifiedPages == null && governorates == null && avgFirstOfferMinutes == null;
+  bool get isEmpty =>
+      verifiedPages == null &&
+      governorates == null &&
+      avgFirstOfferMinutes == null;
 }
 
 enum CategoryBadge { none, trending, isNew }
 
 class TrendingCategory {
-  const TrendingCategory({required this.id, required this.name, required this.image, this.badge = CategoryBadge.none});
+  const TrendingCategory({
+    required this.id,
+    required this.name,
+    required this.image,
+    this.badge = CategoryBadge.none,
+  });
   final String id;
   final String name;
   final ImageRef image;
@@ -62,7 +79,12 @@ class TrendingCategory {
 }
 
 class Deal {
-  const Deal({required this.category, required this.pageName, required this.saved, required this.image});
+  const Deal({
+    required this.category,
+    required this.pageName,
+    required this.saved,
+    required this.image,
+  });
   final String category;
   final String pageName;
   final int saved;

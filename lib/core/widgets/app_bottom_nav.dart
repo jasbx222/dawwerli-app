@@ -8,7 +8,12 @@ enum NavTab { home, requests, notifications, account }
 
 /// Floating bottom bar with the gold "post" FAB in the middle.
 class AppBottomNav extends StatelessWidget {
-  const AppBottomNav({super.key, required this.current, required this.onTab, required this.onPost});
+  const AppBottomNav({
+    super.key,
+    required this.current,
+    required this.onTab,
+    required this.onPost,
+  });
 
   final NavTab current;
   final ValueChanged<NavTab> onTab;
@@ -27,7 +32,15 @@ class AppBottomNav extends StatelessWidget {
           children: [
             AppSvgIcon(icon, color: c, size: 22),
             const SizedBox(height: 3),
-            Text(label, style: TextStyle(fontSize: 11, height: 1.5455, fontWeight: FontWeight.w600, color: c)),
+            Text(
+              label,
+              style: TextStyle(
+                fontSize: 11,
+                height: 1.5455,
+                fontWeight: FontWeight.w600,
+                color: c,
+              ),
+            ),
           ],
         ),
       );
@@ -38,7 +51,14 @@ class AppBottomNav extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white.withValues(alpha: .92),
         borderRadius: BorderRadius.circular(24),
-        boxShadow: const [BoxShadow(color: Color(0x400F172A), offset: Offset(0, 10), blurRadius: 30, spreadRadius: -10)],
+        boxShadow: const [
+          BoxShadow(
+            color: Color(0x400F172A),
+            offset: Offset(0, 10),
+            blurRadius: 30,
+            spreadRadius: -10,
+          ),
+        ],
       ),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
@@ -56,11 +76,21 @@ class AppBottomNav extends StatelessWidget {
                   color: AppColors.gold,
                   borderRadius: BorderRadius.circular(18),
                   boxShadow: const [
-                    BoxShadow(color: Color(0xB3E8B33A), offset: Offset(0, 10), blurRadius: 20, spreadRadius: -6),
+                    BoxShadow(
+                      color: Color(0xB3E8B33A),
+                      offset: Offset(0, 10),
+                      blurRadius: 20,
+                      spreadRadius: -6,
+                    ),
                   ],
                 ),
                 alignment: Alignment.center,
-                child: const AppSvgIcon(AppIcon.plus, color: AppColors.navy, size: 26, strokeWidth: 2.6),
+                child: const AppSvgIcon(
+                  AppIcon.plus,
+                  color: AppColors.navy,
+                  size: 26,
+                  strokeWidth: 2.6,
+                ),
               ),
             ),
           ),

@@ -18,7 +18,9 @@ class AppHeader extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return IshtarBackground(
-      borderRadius: const BorderRadius.vertical(bottom: Radius.circular(AppRadius.header)),
+      borderRadius: const BorderRadius.vertical(
+        bottom: Radius.circular(AppRadius.header),
+      ),
       gradient: cssRadial(
         rx: 1.2,
         ry: .9,
@@ -42,30 +44,48 @@ class AppHeader extends StatelessWidget {
                         height: 40,
                         decoration: BoxDecoration(
                           color: AppColors.white.withValues(alpha: .16),
-                          borderRadius: BorderRadius.circular(AppRadius.iconBox),
+                          borderRadius: BorderRadius.circular(
+                            AppRadius.iconBox,
+                          ),
                         ),
                         alignment: Alignment.center,
-                        child: const AppSvgIcon(AppIcon.back, color: AppColors.white, size: 20),
+                        child: const AppSvgIcon(
+                          AppIcon.back,
+                          color: AppColors.white,
+                          size: 20,
+                        ),
                       ),
                     ),
                     const SizedBox(width: 12),
-                    Text(title, style: AppText.title.copyWith(color: AppColors.white)),
+                    Text(
+                      title,
+                      style: AppText.title.copyWith(color: AppColors.white),
+                    ),
                   ],
                 ),
                 if (subtitle != null) ...[
                   const SizedBox(height: 8),
                   DefaultTextStyle.merge(
-                    style: const TextStyle(fontSize: 13, height: 1.4615, color: AppColors.headerSub),
+                    style: const TextStyle(
+                      fontSize: 13,
+                      height: 1.4615,
+                      color: AppColors.headerSub,
+                    ),
                     child: subtitle!,
                   ),
                 ],
               ],
             ),
           ),
-          const Positioned(left: 0, right: 0, bottom: 0, height: 10, child: GoldStripe()),
+          const Positioned(
+            left: 0,
+            right: 0,
+            bottom: 0,
+            height: 10,
+            child: GoldStripe(),
+          ),
         ],
       ),
     );
   }
 }
-

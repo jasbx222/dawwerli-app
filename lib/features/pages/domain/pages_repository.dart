@@ -7,14 +7,20 @@ class FeaturedQuery {
 
   @override
   bool operator ==(Object other) =>
-      other is FeaturedQuery && other.categoryId == categoryId && other.governorate == governorate;
+      other is FeaturedQuery &&
+      other.categoryId == categoryId &&
+      other.governorate == governorate;
 
   @override
   int get hashCode => Object.hash(categoryId, governorate);
 }
 
 class FeaturedPages {
-  const FeaturedPages({required this.categoryName, required this.governorate, required this.pages});
+  const FeaturedPages({
+    required this.categoryName,
+    required this.governorate,
+    required this.pages,
+  });
   final String categoryName;
   final String governorate;
 

@@ -14,7 +14,11 @@ import '../data/auth_providers.dart';
 import '../domain/phone_number.dart';
 
 class LoginPhoneScreen extends ConsumerStatefulWidget {
-  const LoginPhoneScreen({super.key, this.initialPhone = '', this.initialErrors = const {}});
+  const LoginPhoneScreen({
+    super.key,
+    this.initialPhone = '',
+    this.initialErrors = const {},
+  });
 
   /// Used by design previews / deep links.
   final String initialPhone;
@@ -87,7 +91,14 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                         textDirection: TextDirection.ltr,
                         child: Row(
                           children: [
-                            Text(AppStrings.countryCode, style: AppText.number.copyWith(fontSize: 18, height: AppText.lh(18), color: AppColors.navy)),
+                            Text(
+                              AppStrings.countryCode,
+                              style: AppText.number.copyWith(
+                                fontSize: 18,
+                                height: AppText.lh(18),
+                                color: AppColors.navy,
+                              ),
+                            ),
                             const SizedBox(width: 9),
                             Expanded(
                               child: BareTextField(
@@ -95,8 +106,14 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                                 focusNode: _focus,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                style: AppText.number.copyWith(fontSize: 18, height: AppText.lh(18), color: AppColors.navy),
-                                onChanged: (_) => _errors.isEmpty ? null : setState(() => _errors = {}),
+                                style: AppText.number.copyWith(
+                                  fontSize: 18,
+                                  height: AppText.lh(18),
+                                  color: AppColors.navy,
+                                ),
+                                onChanged: (_) => _errors.isEmpty
+                                    ? null
+                                    : setState(() => _errors = {}),
                               ),
                             ),
                             const Text('🇮🇶', style: TextStyle(fontSize: 15)),
@@ -119,20 +136,31 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
               mainAxisSize: MainAxisSize.min,
               children: [
                 if (_errors.contains(PhoneError.incomplete))
-                  const AlertCard(title: AppStrings.errIncompleteTitle, body: AppStrings.errIncompleteBody),
+                  const AlertCard(
+                    title: AppStrings.errIncompleteTitle,
+                    body: AppStrings.errIncompleteBody,
+                  ),
                 if (_errors.length > 1) const SizedBox(height: 10),
                 if (_errors.contains(PhoneError.notIraqi))
-                  const AlertCard(title: AppStrings.errNotIraqiTitle, body: AppStrings.errNotIraqiBody),
+                  const AlertCard(
+                    title: AppStrings.errNotIraqiTitle,
+                    body: AppStrings.errNotIraqiBody,
+                  ),
                 if (_errors.isNotEmpty) const SizedBox(height: 24),
-                AppButton(AppStrings.loginSend, onPressed: _busy ? null : _submit),
+                AppButton(
+                  AppStrings.loginSend,
+                  onPressed: _busy ? null : _submit,
+                ),
                 const SizedBox(height: 16),
                 Text.rich(
-                  const TextSpan(children: [
-                    TextSpan(text: AppStrings.termsPrefix),
-                    TextSpan(text: AppStrings.privacy, style: _link),
-                    TextSpan(text: AppStrings.and),
-                    TextSpan(text: AppStrings.terms, style: _link),
-                  ]),
+                  const TextSpan(
+                    children: [
+                      TextSpan(text: AppStrings.termsPrefix),
+                      TextSpan(text: AppStrings.privacy, style: _link),
+                      TextSpan(text: AppStrings.and),
+                      TextSpan(text: AppStrings.terms, style: _link),
+                    ],
+                  ),
                   textAlign: TextAlign.center,
                   style: AppText.muted,
                 ),
@@ -144,5 +172,8 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
     );
   }
 
-  static const _link = TextStyle(fontWeight: FontWeight.w700, color: AppColors.blue);
+  static const _link = TextStyle(
+    fontWeight: FontWeight.w700,
+    color: AppColors.blue,
+  );
 }

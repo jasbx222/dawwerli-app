@@ -56,7 +56,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     super.initState();
     if (!widget.frozenClock) {
       _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
-      WidgetsBinding.instance.addPostFrameCallback((_) => _focus.requestFocus());
+      WidgetsBinding.instance.addPostFrameCallback(
+        (_) => _focus.requestFocus(),
+      );
     }
   }
 
@@ -81,7 +83,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     super.dispose();
   }
 
-  PhoneNumber? get _phone => ref.read(pendingPhoneProvider) ?? PhoneNumber.parse('7701234567').phone;
+  PhoneNumber? get _phone =>
+      ref.read(pendingPhoneProvider) ?? PhoneNumber.parse('7701234567').phone;
 
   Future<void> _onChanged(String v) async {
     setState(() {});
@@ -105,7 +108,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   Future<void> _resendCode() async {
-    final r = await ref.read(authRepositoryProvider).requestOtp(_phone!, smsNotReceived: true);
+    final r = await ref
+        .read(authRepositoryProvider)
+        .requestOtp(_phone!, smsNotReceived: true);
     if (!mounted) return;
     setState(() {
       switch (r) {
@@ -135,7 +140,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             children: [
               AppHeader(
                 title: AppStrings.otpTitle,
-                subtitle: Text('${AppStrings.otpSentTo}${phone.pretty} \u202A${AppStrings.countryCode}\u202C'),
+                subtitle: Text(
+                  '${AppStrings.otpSentTo}${phone.pretty} \u202A${AppStrings.countryCode}\u202C',
+                ),
                 onBack: () => context.go(Routes.login),
               ),
               const SizedBox(height: 28),
@@ -171,7 +178,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         children: [
                           for (var i = 0; i < _len; i++) ...[
                             if (i > 0) const SizedBox(width: 8),
-                            _Box(char: i < code.length ? code[i] : '', active: i == code.length),
+                            _Box(
+                              char: i < code.length ? code[i] : '',
+                              active: i == code.length,
+                            ),
                           ],
                         ],
                       ),
@@ -181,20 +191,28 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
               const SizedBox(height: 18),
               Text.rich(
-                TextSpan(children: [
-                  const TextSpan(text: AppStrings.otpExpiresIn),
-                  TextSpan(
-                    text: mmss(_expires),
-                    style: AppText.number.copyWith(fontWeight: FontWeight.w700, color: AppColors.navy),
-                  ),
-                ]),
+                TextSpan(
+                  children: [
+                    const TextSpan(text: AppStrings.otpExpiresIn),
+                    TextSpan(
+                      text: mmss(_expires),
+                      style: AppText.number.copyWith(
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navy,
+                      ),
+                    ),
+                  ],
+                ),
                 textAlign: TextAlign.center,
                 style: AppText.muted,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: _resend > Duration.zero
-                    ? AppButton('${AppStrings.otpResendIn}${mmss(_resend)}', variant: AppButtonVariant.disabled)
+                    ? AppButton(
+                        '${AppStrings.otpResendIn}${mmss(_resend)}',
+                        variant: AppButtonVariant.disabled,
+                      )
                     : AppButton(AppStrings.otpResend, onPressed: _resendCode),
               ),
             ],
@@ -227,8 +245,14 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           child: Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              Text(AppStrings.otpNoSmsTitle, style: AppText.strong),
-                              Text(AppStrings.otpNoSmsBody, style: AppText.muted),
+                              Text(
+                                AppStrings.otpNoSmsTitle,
+                                style: AppText.strong,
+                              ),
+                              Text(
+                                AppStrings.otpNoSmsBody,
+                                style: AppText.muted,
+                              ),
                             ],
                           ),
                         ),
@@ -238,7 +262,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 if (_locked != null) ...[
                   const SizedBox(height: 12),
                   const AlertCard(
-                    leading: AppSvgIcon(AppIcon.lock, color: AppColors.danger, size: 22),
+                    leading: AppSvgIcon(
+                      AppIcon.lock,
+                      color: AppColors.danger,
+                      size: 22,
+                    ),
                     title: AppStrings.otpLockedTitle,
                     body: AppStrings.otpLockedBody,
                   ),
@@ -267,9 +295,21 @@ class _Box extends StatelessWidget {
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(16),
-        boxShadow: [BoxShadow(color: active ? AppColors.blue : AppColors.border, spreadRadius: active ? 2 : 1.5)],
+        boxShadow: [
+          BoxShadow(
+            color: active ? AppColors.blue : AppColors.border,
+            spreadRadius: active ? 2 : 1.5,
+          ),
+        ],
       ),
-      child: Text(char, style: AppText.number.copyWith(fontSize: 24, height: AppText.lh(24), color: AppColors.navy)),
+      child: Text(
+        char,
+        style: AppText.number.copyWith(
+          fontSize: 24,
+          height: AppText.lh(24),
+          color: AppColors.navy,
+        ),
+      ),
     );
   }
 }
