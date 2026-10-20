@@ -191,7 +191,7 @@ abstract final class AppStrings {
   static const publish = 'انشر';
   static const offlineDraftNote =
       'انقطع النت؟ نخليه بالمسودة وينرسل وحده لما يرجع';
-  static const offlineToast = 'النت فاصل، طلبك انحفظ مسودة وينرسل وحده 📶';
+  static const offlineToast = 'النت فاصل، طلبك انحفظ مسودة وينرسل وحده';
   static const errIncomplete = 'الطلب ناقص';
   static const errSize = 'القياس ناقص';
   static const errSizeBody = 'الأحذية والملابس تحتاج قياس. ارجع واختار القياس.';

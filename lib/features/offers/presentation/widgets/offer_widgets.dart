@@ -386,22 +386,32 @@ class IconLabelButton extends StatelessWidget {
 
 /// Transparent card with a 1.5px dashed #CBD5E1 border (pad 16).
 class DashedCard extends StatelessWidget {
-  const DashedCard({super.key, required this.child});
+  const DashedCard({
+    super.key,
+    required this.child,
+    this.radius = AppRadius.card,
+    this.padding = 17.5,
+  });
   final Widget child;
+  final double radius;
+  final double padding;
 
   @override
   Widget build(BuildContext context) => CustomPaint(
-    painter: _Dashed(),
-    child: Padding(padding: const EdgeInsets.all(17.5), child: child),
+    painter: _Dashed(radius),
+    child: Padding(padding: EdgeInsets.all(padding), child: child),
   );
 }
 
 class _Dashed extends CustomPainter {
+  _Dashed(this.radius);
+  final double radius;
+
   @override
   void paint(Canvas canvas, Size size) {
     final rr = RRect.fromRectAndRadius(
       (Offset.zero & size).deflate(.75),
-      const Radius.circular(AppRadius.card - .75),
+      Radius.circular(radius - .75),
     );
     final p = Paint()
       ..color = const Color(0xFFCBD5E1)

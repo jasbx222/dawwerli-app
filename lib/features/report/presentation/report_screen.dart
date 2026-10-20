@@ -13,6 +13,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/ishtar_pattern.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
+import '../../offers/presentation/widgets/offer_widgets.dart';
 import '../../orders/data/orders_providers.dart';
 
 /// 27 · report a problem with an order; the block toggle asks via 27c.
@@ -91,21 +92,19 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                             ),
                           ),
                           const SizedBox(width: 12),
-                          Container(
-                            width: 76,
-                            height: 76,
-                            decoration: BoxDecoration(
-                              borderRadius: BorderRadius.circular(16),
-                              border: Border.all(
-                                color: const Color(0xFFCBD5E1),
-                                width: 1.5,
+                          const DashedCard(
+                            radius: 16,
+                            padding: 0,
+                            child: SizedBox(
+                              width: 76,
+                              height: 76,
+                              child: Center(
+                                child: AppSvgIcon(
+                                  AppIcon.camera,
+                                  color: AppColors.blue,
+                                  size: 24,
+                                ),
                               ),
-                            ),
-                            alignment: Alignment.center,
-                            child: const AppSvgIcon(
-                              AppIcon.camera,
-                              color: AppColors.blue,
-                              size: 24,
                             ),
                           ),
                         ],

@@ -1,3 +1,5 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 
@@ -306,34 +308,38 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
     body: Stack(
       fit: StackFit.expand,
       children: [
-        Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            AppHeader(title: 'احذف حسابي', onBack: () => context.pop()),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: GestureDetector(
-                onTap: () => setState(() => sheet = true),
-                child: const AppCard(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text('شنو ينحذف؟', style: AppText.strong),
-                      SizedBox(height: 6),
-                      Text(
-                        '• اسمك ورقمك\n• صور وتسجيلات طلباتك\n• إشعاراتك وأجهزتك\nالطلبات المالية تبقى بدون اسم',
-                        style: TextStyle(
-                          fontSize: 12.5,
-                          height: 1.9,
-                          color: AppColors.grey,
+        ImageFiltered(
+          enabled: sheet,
+          imageFilter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppHeader(title: 'احذف حسابي', onBack: () => context.pop()),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: GestureDetector(
+                  onTap: () => setState(() => sheet = true),
+                  child: const AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('شنو ينحذف؟', style: AppText.strong),
+                        SizedBox(height: 6),
+                        Text(
+                          '• اسمك ورقمك\n• صور وتسجيلات طلباتك\n• إشعاراتك وأجهزتك\nالطلبات المالية تبقى بدون اسم',
+                          style: TextStyle(
+                            fontSize: 12.5,
+                            height: 1.9,
+                            color: AppColors.grey,
+                          ),
                         ),
-                      ),
-                    ],
+                      ],
+                    ),
                   ),
                 ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
         if (sheet) ...[
           GestureDetector(
