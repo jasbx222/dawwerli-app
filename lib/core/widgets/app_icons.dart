@@ -86,6 +86,8 @@ enum AppIcon {
   wifiOffSmall(
     '<path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M2 8.8a15 15 0 0 1 4.2-2.7"/><circle cx="12" cy="20" r="1"/>',
   ),
+  snowflake('<path d="M12 2v20M3.5 7l17 10M20.5 7l-17 10"/>'),
+  x('<path d="M6 6l12 12M18 6 6 18"/>'),
   star(
     '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14 3 9.27l6.91-1.01z"/>',
     filled: true,

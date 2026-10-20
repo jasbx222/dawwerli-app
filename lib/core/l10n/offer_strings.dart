@@ -5,6 +5,16 @@ abstract final class OfferStrings {
     2 => 'عرضين وصلوك',
     _ => '$n عروض وصلتك',
   };
+  static const hiddenOne = 'خفيت عرض واحد';
+  static String hiddenCount(int n) => n == 1 ? hiddenOne : 'خفيت $n عروض';
+  static String hiddenChip(int n) => 'المخفية ($n)';
+  static String hiddenTag(String page) => '$page · مخفي';
+  static String hiddenSub(String price) => '$price د.ع · يبقى محسوب من الـ 5';
+  static String hiddenPlaces(String places) =>
+      '$places · المخفي ينحسب من الخمسة';
+  static String hiddenToast(String page) =>
+      'خفينا عرض «$page». تكدر ترجعه لحد ما يتسكر الطلب';
+  static const unhide = 'رجّعه';
   static const pricesFixed = 'الأسعار ثابتة وتشمل التوصيل';
   static const sortCheapest = 'الأرخص';
   static const sortTopRated = 'الأعلى تقييم';

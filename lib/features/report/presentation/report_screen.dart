@@ -71,7 +71,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       for (var i = 0; i < ReportStrings.reasons.length; i++)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: _Radio(
+                          child: ReportRadio(
                             label: ReportStrings.reasons[i],
                             on: i == reason,
                             onTap: () => setState(() => reason = i),
@@ -227,8 +227,13 @@ class BlockSheet extends StatelessWidget {
 }
 
 /// `.inp` row with a radio on the far side; selected = `.inp.f`.
-class _Radio extends StatelessWidget {
-  const _Radio({required this.label, required this.on, required this.onTap});
+class ReportRadio extends StatelessWidget {
+  const ReportRadio({
+    super.key,
+    required this.label,
+    required this.on,
+    required this.onTap,
+  });
   final String label;
   final bool on;
   final VoidCallback onTap;

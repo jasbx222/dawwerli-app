@@ -8,6 +8,7 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/l10n/offer_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../states/state_screens.dart';
+import '../../post/presentation/widgets/post_widgets.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
@@ -28,7 +29,11 @@ class OffersScreen extends ConsumerStatefulWidget {
     required this.requestId,
     this.confirmId,
     this.forceError = false,
+    this.hidden = const {},
   });
+
+  /// 47 · offers hidden by the customer (`?preview=hidden` hides o3).
+  final Set<String> hidden;
 
   /// `?preview=error` shows 34.
   final bool forceError;
@@ -46,6 +51,21 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
   OfferSort _sort = OfferSort.cheapest;
   late String? _confirm = widget.confirmId;
   bool _busy = false;
+  late final Set<String> _hidden = {...widget.hidden};
+  bool _onlyHidden = false;
+  String? _toast;
+  bool _previewToastDone = false;
+
+  // 47 · long-press a card to hide it; the toast explains it can come back.
+  void _hide(Offer o) {
+    setState(() {
+      _hidden.add(o.id);
+      _toast = OfferStrings.hiddenToast(o.pageName);
+    });
+    Future<void>.delayed(const Duration(seconds: 4), () {
+      if (mounted) setState(() => _toast = null);
+    });
+  }
 
   void _back() => context.canPop()
       ? context.pop()
@@ -92,15 +112,34 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
     final chosen = ref.watch(selectionProvider(widget.requestId)).value;
     final cheapest = board.cheapest?.id;
     final confirm = _confirm == null ? null : board.byId(_confirm!);
-    final list = board.sorted(_sort);
+    final all = board.sorted(_sort);
+    final list = [
+      for (final o in all)
+        if (!_hidden.contains(o.id) && !_onlyHidden) o,
+    ];
+    // Preview of 47 opens with its toast, as in the design frame.
+    if (!_previewToastDone && widget.hidden.isNotEmpty) {
+      _previewToastDone = true;
+      final h = board.byId(widget.hidden.first);
+      if (h != null) _toast = OfferStrings.hiddenToast(h.pageName);
+    }
+    final hiddenList = [
+      for (final o in all)
+        if (_hidden.contains(o.id)) o,
+    ];
     Widget card(Offer o) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Opacity(
         opacity: chosen != null && chosen.offer.id != o.id ? .5 : 1,
-        child: OfferCard(
-          offer: o,
-          cheapest: o.id == cheapest,
-          onTap: confirm == null && chosen == null ? () => _open(o) : null,
+        child: GestureDetector(
+          onLongPress: confirm == null && chosen == null
+              ? () => _hide(o)
+              : null,
+          child: OfferCard(
+            offer: o,
+            cheapest: o.id == cheapest,
+            onTap: confirm == null && chosen == null ? () => _open(o) : null,
+          ),
         ),
       ),
     );
@@ -116,7 +155,11 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             AppHeader(
               title: OfferStrings.offersArrived(board.offers.length),
               titleIcon: OfferIcon.fire.of(const Color(0xFFFF7A59), 22),
-              subtitle: const Text(OfferStrings.pricesFixed),
+              subtitle: Text(
+                _hidden.isEmpty
+                    ? OfferStrings.pricesFixed
+                    : OfferStrings.hiddenCount(_hidden.length),
+              ),
               onBack: _back,
             ),
             Padding(
@@ -132,8 +175,17 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                   ])
                     AppChip(
                       l,
-                      selected: _sort == s,
-                      onTap: () => setState(() => _sort = s),
+                      selected: _sort == s && !_onlyHidden,
+                      onTap: () => setState(() {
+                        _sort = s;
+                        _onlyHidden = false;
+                      }),
+                    ),
+                  if (_hidden.isNotEmpty)
+                    AppChip(
+                      OfferStrings.hiddenChip(_hidden.length),
+                      selected: _onlyHidden,
+                      onTap: () => setState(() => _onlyHidden = !_onlyHidden),
                     ),
                 ],
               ),
@@ -179,15 +231,27 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             ],
             const SizedBox(height: 8),
             for (final o in list) card(o),
+            for (final o in hiddenList)
+              _HiddenRow(
+                offer: o,
+                onUnhide: () => setState(() {
+                  _hidden.remove(o.id);
+                  if (_hidden.isEmpty) _onlyHidden = false;
+                }),
+              ),
             if (left > 0)
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: DashedCard(
                   child: Text(
-                    OfferStrings.placesLeft(
-                      AppStrings.placesLeft(left),
-                      board.maxOffers,
-                    ),
+                    _hidden.isEmpty
+                        ? OfferStrings.placesLeft(
+                            AppStrings.placesLeft(left),
+                            board.maxOffers,
+                          )
+                        : OfferStrings.hiddenPlaces(
+                            AppStrings.placesLeft(left),
+                          ),
                     textAlign: TextAlign.center,
                     style: AppText.muted,
                     // Inline span in a 14px block: the line box is 21px, not 19.
@@ -199,7 +263,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                   ),
                 ),
               ),
-            if (list.any((o) => o.sponsored)) ...[
+            if (_hidden.isEmpty && list.any((o) => o.sponsored)) ...[
               const SizedBox(height: 12),
               const Text(
                 OfferStrings.sponsoredNote,
@@ -243,6 +307,17 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           fit: StackFit.expand,
           children: [
             content,
+            if (_toast case final t? when confirm == null)
+              Positioned(
+                left: 16,
+                right: 16,
+                bottom: 110 + MediaQuery.viewPaddingOf(context).bottom,
+                child: OfflineBanner(
+                  t,
+                  icon: AppIcon.refresh,
+                  iconColor: AppColors.white,
+                ),
+              ),
             if (confirm != null) ...[
               GestureDetector(
                 onTap: () => setState(() => _confirm = null),
@@ -363,4 +438,63 @@ class ConfirmSheet extends StatelessWidget {
       ],
     );
   }
+}
+
+/// 47 · a hidden offer: dimmed tan row with «رجّعه».
+class _HiddenRow extends StatelessWidget {
+  const _HiddenRow({required this.offer, required this.onUnhide});
+  final Offer offer;
+  final VoidCallback onUnhide;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+    child: AppCard(
+      flat: true,
+      color: AppColors.tabTrack,
+      insets: const EdgeInsets.symmetric(horizontal: 16, vertical: 12),
+      child: Row(
+        children: [
+          Opacity(
+            opacity: .6,
+            child: ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                offer.image,
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+              ),
+            ),
+          ),
+          const SizedBox(width: 12),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  OfferStrings.hiddenTag(offer.pageName),
+                  style: AppText.strong,
+                ),
+                Text(
+                  OfferStrings.hiddenSub(thousands(offer.price)),
+                  style: AppText.muted,
+                ),
+              ],
+            ),
+          ),
+          const SizedBox(width: 12),
+          SizedBox(
+            width: 68,
+            child: AppButton(
+              OfferStrings.unhide,
+              compact: true,
+              variant: AppButtonVariant.ghost,
+              onPressed: onUnhide,
+            ),
+          ),
+        ],
+      ),
+    ),
+  );
 }

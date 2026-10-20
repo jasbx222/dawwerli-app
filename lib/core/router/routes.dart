@@ -24,6 +24,10 @@ abstract final class Routes {
   static const account = '/account';
   static const privacy = '/account/privacy';
   static const deleteAccount = '/account/delete';
+  static const standing = '/account/standing';
+  static const disputeNew = '/account/dispute';
+  static const disputeStatus = '/account/dispute/status';
+  static String recoverOffers(String id) => '/requests/$id/others';
   static const myRequests = '/requests';
   static const offline = '/offline';
   static const maxOpen = '/post-limit';

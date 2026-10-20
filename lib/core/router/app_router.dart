@@ -26,6 +26,7 @@ import '../../features/offers/data/offers_providers.dart';
 import '../../features/offers/presentation/chosen_screen.dart';
 import '../../features/offers/presentation/offer_details_screen.dart';
 import '../../features/offers/presentation/offers_screen.dart';
+import '../../features/offers/presentation/recover_offers_screen.dart';
 import '../../features/orders/data/mock_orders_repository.dart';
 import '../../features/orders/data/orders_providers.dart';
 import '../../features/orders/domain/order.dart';
@@ -35,6 +36,7 @@ import '../../features/orders/presentation/my_requests_screen.dart';
 import '../../features/report/presentation/report_screen.dart';
 import '../../features/states/state_screens.dart';
 import '../../features/account/presentation/account_screens.dart';
+import '../../features/account/presentation/standing_screens.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
@@ -245,6 +247,9 @@ final appRouter = GoRouter(
               ? 'o1'
               : s.uri.queryParameters['confirm'],
           forceError: s.uri.queryParameters['preview'] == 'error',
+          hidden: s.uri.queryParameters['preview'] == 'hidden'
+              ? const {'o3'}
+              : const {},
         );
       },
       routes: [
@@ -379,6 +384,24 @@ final appRouter = GoRouter(
       builder: (_, _) => const AccountScreen(),
       routes: [
         GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
+        // 46 · `?preview=banned` is 46b.
+        GoRoute(
+          path: 'standing',
+          builder: (_, s) => StandingScreen(
+            banned: s.uri.queryParameters['preview'] == 'banned',
+          ),
+        ),
+        // 49 new dispute; 50 its status.
+        GoRoute(
+          path: 'dispute',
+          builder: (_, _) => const DisputeNewScreen(),
+          routes: [
+            GoRoute(
+              path: 'status',
+              builder: (_, _) => const DisputeStatusScreen(),
+            ),
+          ],
+        ),
         GoRoute(path: 'delete', builder: (_, _) => const DeleteAccountScreen()),
       ],
     ),
@@ -396,6 +419,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/requests/:id/no-pages',
       builder: (_, _) => const NoPagesScreen(),
+    ),
+    // 47b · other offers kept 48h after choosing.
+    GoRoute(
+      path: '/requests/:id/others',
+      builder: (_, s) =>
+          RecoverOffersScreen(requestId: s.pathParameters['id']!),
     ),
     // 26 · «الإشعارات» tab.
     GoRoute(
