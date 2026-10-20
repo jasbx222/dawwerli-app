@@ -19,6 +19,9 @@ class HomeScreen extends ConsumerWidget {
   /// Live card overlaps the header by this much (design: margin-top -72).
   static const _overlap = 72.0;
 
+  /// Nav offset (18) + nav height (70) + clearance above it (32).
+  static const navClearance = 18.0 + 70 + 32;
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final home = ref.watch(homeDataProvider);
@@ -52,7 +55,7 @@ class HomeScreen extends ConsumerWidget {
           Positioned(
             left: 16,
             right: 16,
-            bottom: 18,
+            bottom: 18 + MediaQuery.viewPaddingOf(context).bottom,
             child: AppBottomNav(
               current: NavTab.home,
               onTab: (t) => t == NavTab.home ? null : soon(),
@@ -115,8 +118,15 @@ class _Body extends StatelessWidget {
             ],
           ),
         ),
-        // Room for the floating nav (minus the overlap pulled up above).
-        const SizedBox(height: 120 - HomeScreen._overlap),
+        // Room for the floating nav: its 18px offset + 70px bar + 32px clearance
+        // + the system bottom inset (Android gesture/nav bar), minus the overlap
+        // the body is pulled up by.
+        SizedBox(
+          height:
+              HomeScreen.navClearance +
+              MediaQuery.viewPaddingOf(context).bottom -
+              HomeScreen._overlap,
+        ),
       ],
     );
   }

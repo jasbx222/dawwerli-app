@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'exact_line.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -72,12 +74,15 @@ class AppButton extends StatelessWidget {
             boxShadow: shadows,
           ),
           alignment: Alignment.center,
-          child: Text(
-            label,
-            style: AppText.button.copyWith(
-              color: fg,
-              fontSize: compact ? 14.5 : 16,
-              height: AppText.lh(compact ? 14.5 : 16),
+          child: ExactLine(
+            fontSize: compact ? 14.5 : 16,
+            child: Text(
+              label,
+              style: AppText.button.copyWith(
+                color: fg,
+                fontSize: compact ? 14.5 : 16,
+                height: AppText.lh(compact ? 14.5 : 16),
+              ),
             ),
           ),
         ),

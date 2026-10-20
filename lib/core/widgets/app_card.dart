@@ -78,7 +78,7 @@ class AlertCard extends StatelessWidget {
           body,
           style: const TextStyle(
             fontSize: 12.5,
-            height: 1.5200,
+            height: 1.502222,
             color: AppColors.dangerText,
           ),
         ),

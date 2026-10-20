@@ -67,7 +67,7 @@ class OffersCard extends StatelessWidget {
               if (widensIn != null) ...[
                 const SizedBox(height: 16),
                 SizedBox(
-                  height: 21,
+                  height: 20.94, // 14px line, device-rounded
                   child: Row(
                     children: [
                       const AppSvgIcon(

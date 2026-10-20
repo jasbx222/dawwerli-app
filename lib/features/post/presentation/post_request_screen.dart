@@ -94,6 +94,7 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                     height: 70,
                     child: InputShell(
                       focused: true,
+                      exactLine: false,
                       child: Align(
                         alignment: AlignmentDirectional.topStart,
                         child: BareTextField(controller: _desc),
@@ -204,7 +205,7 @@ class _VoiceCard extends StatelessWidget {
   Widget build(BuildContext context) {
     const muted = TextStyle(
       fontSize: 12.5,
-      height: 1.52,
+      height: 1.502222,
       color: AppColors.grey,
     );
     return AppCard(
@@ -259,7 +260,7 @@ class _VoiceCard extends StatelessWidget {
             AppStrings.voiceWarn,
             style: TextStyle(
               fontSize: 12.5,
-              height: 1.52,
+              height: 1.502222,
               fontWeight: FontWeight.w700,
               color: AppColors.danger,
             ),

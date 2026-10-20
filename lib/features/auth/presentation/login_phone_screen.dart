@@ -87,6 +87,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                     const FieldLabel(AppStrings.loginPhoneLabel),
                     InputShell(
                       focused: focused,
+                      exactLine: false,
                       child: Directionality(
                         textDirection: TextDirection.ltr,
                         child: Row(

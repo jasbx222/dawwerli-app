@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/exact_line.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/widgets/app_card.dart';
@@ -22,8 +23,9 @@ class SegTabs extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    // Item height: 19px text line (22 with the inline 16px icon) + 2×9 padding.
-    final h = icons == null ? 37.0 : 40.0;
+    // Item height = line box + 2×9 padding, device-rounded like the design render:
+    // 13px text line 19.5; with the inline 16px icon the line box is 21.41.
+    final h = icons == null ? AppText.lh(13) * 13 + 18 : 21.41 + 18;
     return Container(
       padding: const EdgeInsets.all(4),
       decoration: BoxDecoration(
@@ -155,16 +157,19 @@ class IssueCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          Text(
-            title,
-            style: TextStyle(
-              fontSize: 14,
-              height: AppText.lh(14),
-              fontWeight: FontWeight.w700,
-              color: fg,
+          ExactLine(
+            fontSize: 14,
+            child: Text(
+              title,
+              style: TextStyle(
+                fontSize: 14,
+                height: AppText.lh(14),
+                fontWeight: FontWeight.w700,
+                color: fg,
+              ),
             ),
           ),
-          Text(
+          ExactText(
             body,
             style: TextStyle(
               fontSize: 12.5,

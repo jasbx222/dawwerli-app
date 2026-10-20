@@ -95,7 +95,7 @@ class PageTile extends StatelessWidget {
                 page.name.characters.first,
                 style: const TextStyle(
                   fontSize: 18,
-                  height: 1.5000,
+                  height: 1.504630,
                   fontWeight: FontWeight.w700,
                   color: AppColors.blue,
                 ),
@@ -112,7 +112,7 @@ class PageTile extends StatelessWidget {
                       page.name,
                       style: const TextStyle(
                         fontSize: 15,
-                        height: 1.4667,
+                        height: 1.492593,
                         fontWeight: FontWeight.w700,
                       ),
                     ),

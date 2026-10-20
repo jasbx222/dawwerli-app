@@ -83,7 +83,7 @@ class AppHeader extends StatelessWidget {
                   DefaultTextStyle.merge(
                     style: const TextStyle(
                       fontSize: 13,
-                      height: 1.4615,
+                      height: 1.500000,
                       color: AppColors.headerSub,
                     ),
                     child: subtitle!,

@@ -102,8 +102,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                     focusNode: _nameFocus,
                   ),
                 ),
-                // 18 in the HTML; +2.5 measured against the approved hi-res render so «شسمك؟» lands on the same Y.
-                const SizedBox(height: 20.5),
+                const SizedBox(height: 18),
                 const FieldLabel(AppStrings.profileGov),
                 Wrap(
                   spacing: 8,

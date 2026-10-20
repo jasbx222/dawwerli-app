@@ -25,7 +25,7 @@ class SectionTitle extends StatelessWidget {
           title,
           style: const TextStyle(
             fontSize: 18,
-            height: 1.5000,
+            height: 1.504630,
             fontWeight: FontWeight.w700,
           ),
         ),
@@ -39,7 +39,7 @@ class SectionTitle extends StatelessWidget {
                 AppStrings.seeAll,
                 style: TextStyle(
                   fontSize: 13,
-                  height: 1.4615,
+                  height: 1.500000,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blue,
                 ),
@@ -97,7 +97,7 @@ class PostRequestCta extends StatelessWidget {
                 AppStrings.postNew,
                 style: TextStyle(
                   fontSize: 17,
-                  height: 1.4706,
+                  height: 1.508170,
                   fontWeight: FontWeight.w700,
                 ),
               ),
@@ -105,7 +105,7 @@ class PostRequestCta extends StatelessWidget {
                 opacity: .75,
                 child: const Text(
                   AppStrings.postNewSub,
-                  style: TextStyle(fontSize: 12, height: 24 / 12),
+                  style: TextStyle(fontSize: 12, height: 23.8333 / 12),
                 ),
               ),
             ],
@@ -163,7 +163,7 @@ class ActivityTicker extends StatelessWidget {
                             ),
                             style: const TextStyle(
                               fontSize: 13,
-                              height: 1.4615,
+                              height: 1.500000,
                               fontWeight: FontWeight.w600,
                               color: AppColors.white,
                             ),
@@ -210,7 +210,7 @@ class StatsRow extends StatelessWidget {
                     AppStrings.statsSoon,
                     style: TextStyle(
                       fontSize: 14,
-                      height: 1.5000,
+                      height: 1.496032,
                       fontWeight: FontWeight.w700,
                     ),
                   ),
@@ -218,7 +218,7 @@ class StatsRow extends StatelessWidget {
                     AppStrings.statsSoonSub,
                     style: TextStyle(
                       fontSize: 11,
-                      height: 24 / 11,
+                      height: 23.8333 / 11,
                       color: AppColors.grey,
                     ),
                   ),
@@ -256,7 +256,7 @@ class StatsRow extends StatelessWidget {
                       cells[i].$1,
                       style: const TextStyle(
                         fontSize: 17,
-                        height: 1.4706,
+                        height: 1.508170,
                         fontWeight: FontWeight.w700,
                         color: AppColors.blue,
                       ),
@@ -265,7 +265,7 @@ class StatsRow extends StatelessWidget {
                       cells[i].$2,
                       style: const TextStyle(
                         fontSize: 11,
-                        height: 24 / 11,
+                        height: 23.8333 / 11,
                         color: AppColors.grey,
                       ),
                     ),
@@ -413,7 +413,7 @@ class _BentoTile extends StatelessWidget {
                       badge.$1,
                       style: const TextStyle(
                         fontSize: 11,
-                        height: 1.5455,
+                        height: 1.510101,
                         fontWeight: FontWeight.w700,
                         color: AppColors.navy,
                       ),
@@ -487,7 +487,7 @@ class LiveFeedCard extends StatelessWidget {
                       items[i].category,
                       style: const TextStyle(
                         fontSize: 14,
-                        height: 1.5000,
+                        height: 1.496032,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -495,7 +495,7 @@ class LiveFeedCard extends StatelessWidget {
                       items[i].governorate,
                       style: const TextStyle(
                         fontSize: 12,
-                        height: 19 / 12,
+                        height: 19.5000 / 12,
                         color: AppColors.grey,
                       ),
                     ),
@@ -515,7 +515,7 @@ class LiveFeedCard extends StatelessWidget {
                     AppStrings.offersCount(items[i].offers),
                     style: const TextStyle(
                       fontSize: 12,
-                      height: 1.5000,
+                      height: 1.504630,
                       fontWeight: FontWeight.w700,
                       color: AppColors.blue,
                     ),
@@ -574,7 +574,7 @@ class DealsStrip extends StatelessWidget {
                       overflow: TextOverflow.clip,
                       style: const TextStyle(
                         fontSize: 13,
-                        height: 1.4615,
+                        height: 1.500000,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -596,7 +596,7 @@ class DealsStrip extends StatelessWidget {
                       maxLines: 1,
                       style: const TextStyle(
                         fontSize: 11,
-                        height: 24 / 11,
+                        height: 23.8333 / 11,
                         color: AppColors.grey,
                       ),
                     ),
@@ -668,7 +668,7 @@ class SponsoredBanner extends StatelessWidget {
                         AppStrings.sponsored,
                         style: TextStyle(
                           fontSize: 11,
-                          height: 1.5455,
+                          height: 1.510101,
                           fontWeight: FontWeight.w600,
                         ),
                       ),
@@ -678,7 +678,7 @@ class SponsoredBanner extends StatelessWidget {
                       ad.pageName,
                       style: const TextStyle(
                         fontSize: 19,
-                        height: 1.5263,
+                        height: 1.501462,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -687,7 +687,10 @@ class SponsoredBanner extends StatelessWidget {
                       opacity: .85,
                       child: Text(
                         ad.headline,
-                        style: const TextStyle(fontSize: 13, height: 19 / 13),
+                        style: const TextStyle(
+                          fontSize: 13,
+                          height: 19.5000 / 13,
+                        ),
                       ),
                     ),
                   ],
@@ -713,7 +716,7 @@ class SponsoredBanner extends StatelessWidget {
                     AppStrings.discount,
                     style: TextStyle(
                       fontSize: 12,
-                      height: 1.5000,
+                      height: 1.504630,
                       color: AppColors.white,
                     ),
                   ),
@@ -736,7 +739,7 @@ class SponsoredBanner extends StatelessWidget {
                   AppStrings.viewPage,
                   style: TextStyle(
                     fontSize: 12,
-                    height: 1.5000,
+                    height: 1.504630,
                     fontWeight: FontWeight.w700,
                     color: AppColors.blue,
                   ),

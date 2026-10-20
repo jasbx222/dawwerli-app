@@ -55,7 +55,7 @@ class LiveRequestCard extends StatelessWidget {
                       r.title,
                       style: const TextStyle(
                         fontSize: 16,
-                        height: 1.5000,
+                        height: 1.489583,
                         fontWeight: FontWeight.w700,
                       ),
                     ),
@@ -63,7 +63,7 @@ class LiveRequestCard extends StatelessWidget {
                       AppStrings.reachedPages(r.reachedPages, r.governorate),
                       style: const TextStyle(
                         fontSize: 12,
-                        height: 1.5000,
+                        height: 1.504630,
                         color: AppColors.grey,
                       ),
                     ),
@@ -80,7 +80,7 @@ class LiveRequestCard extends StatelessWidget {
                 AppStrings.pagesCompeting(r.offerPrices.length),
                 style: const TextStyle(
                   fontSize: 13,
-                  height: 1.4615,
+                  height: 1.500000,
                   fontWeight: FontWeight.w600,
                 ),
               ),
@@ -89,7 +89,7 @@ class LiveRequestCard extends StatelessWidget {
                 AppStrings.slotsLeft(r.maxOffers - r.offerPrices.length),
                 style: const TextStyle(
                   fontSize: 13,
-                  height: 1.4615,
+                  height: 1.500000,
                   fontWeight: FontWeight.w600,
                   color: AppColors.blue,
                 ),
@@ -139,7 +139,7 @@ class LiveRequestCard extends StatelessWidget {
                         AppStrings.goodOffer,
                         style: TextStyle(
                           fontSize: 11,
-                          height: 1.5455,
+                          height: 1.510101,
                           fontWeight: FontWeight.w700,
                           color: AppColors.white,
                         ),
@@ -173,7 +173,7 @@ class LiveRequestCard extends StatelessWidget {
                 ),
                 style: const TextStyle(
                   fontSize: 13,
-                  height: 1.4615,
+                  height: 1.500000,
                   color: Color(0xFF475569),
                 ),
               ),
@@ -196,7 +196,7 @@ class LiveRequestCard extends StatelessWidget {
                         AppStrings.compareOffers,
                         style: TextStyle(
                           fontSize: 14,
-                          height: 1.5000,
+                          height: 1.496032,
                           fontWeight: FontWeight.w700,
                           color: AppColors.white,
                         ),
@@ -246,7 +246,7 @@ class _LivePill extends StatelessWidget {
           AppStrings.live,
           style: TextStyle(
             fontSize: 12,
-            height: 1.5000,
+            height: 1.504630,
             fontWeight: FontWeight.w700,
             color: Color(0xFF0B6E66),
           ),
@@ -285,7 +285,7 @@ class _Slot extends StatelessWidget {
                 thousands(price),
                 style: TextStyle(
                   fontSize: 14,
-                  height: 1.5000,
+                  height: 1.496032,
                   fontWeight: FontWeight.w700,
                   color: fg,
                 ),
@@ -294,7 +294,7 @@ class _Slot extends StatelessWidget {
                 AppStrings.currency,
                 style: TextStyle(
                   fontSize: 10,
-                  height: 1.5000,
+                  height: 1.480556,
                   color: cheapest ? AppColors.blueRing : AppColors.grey,
                 ),
               ),
@@ -314,7 +314,7 @@ class _Slot extends StatelessWidget {
                 AppStrings.cheapest,
                 style: TextStyle(
                   fontSize: 10,
-                  height: 1.5000,
+                  height: 1.480556,
                   fontWeight: FontWeight.w700,
                   color: AppColors.navy,
                 ),

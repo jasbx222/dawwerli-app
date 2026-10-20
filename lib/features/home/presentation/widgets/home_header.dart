@@ -102,7 +102,7 @@ class HomeHeader extends StatelessWidget {
                                   ),
                                   style: const TextStyle(
                                     fontSize: 13,
-                                    height: 1.4615,
+                                    height: 1.500000,
                                     fontWeight: FontWeight.w600,
                                   ),
                                 ),
@@ -279,7 +279,7 @@ class _Story extends StatelessWidget {
                 AppStrings.ad,
                 style: TextStyle(
                   fontSize: 9,
-                  height: 1.5556,
+                  height: 1.484568,
                   color: AppColors.goldSoft,
                 ),
               ),

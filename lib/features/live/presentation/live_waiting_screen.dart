@@ -180,8 +180,10 @@ class _Content extends StatelessWidget {
             padding: const EdgeInsets.all(16),
             child: Row(
               children: [
+                // CSS flex 2:1 splits the space left after the buttons' own
+                // padding, giving 222 / 126 in the design.
                 Expanded(
-                  flex: 2,
+                  flex: 222,
                   child: AppButton(
                     AppStrings.compareN(n),
                     variant: n == 0
@@ -192,6 +194,7 @@ class _Content extends StatelessWidget {
                 ),
                 const SizedBox(width: 10),
                 Expanded(
+                  flex: 126,
                   child: AppButton(
                     AppStrings.cancelIt,
                     variant: AppButtonVariant.ghost,
@@ -293,27 +296,57 @@ class _Stats extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    Widget stat(String v, String label) => Column(
-      children: [
-        Text(
-          v,
-          style: AppText.number.copyWith(
-            fontSize: 22,
-            height: AppText.lh(22),
-            color: AppColors.blue,
+    // Column widths as laid out by the design's flex row (label-driven; Chrome's
+    // Plex advance widths differ slightly from Flutter's, shifting space-around).
+    Widget stat(String v, String label, double w) => SizedBox(
+      width: w,
+      child: Column(
+        children: [
+          Text(
+            v,
+            softWrap: false,
+            overflow: TextOverflow.visible,
+            style: AppText.number.copyWith(
+              fontSize: 22,
+              height: AppText.lh(22),
+              color: AppColors.blue,
+            ),
           ),
-        ),
-        Text(label, style: AppText.muted),
-      ],
+          Text(
+            label,
+            style: AppText.muted,
+            softWrap: false,
+            overflow: TextOverflow.visible,
+          ),
+        ],
+      ),
+    );
+    // Column centres measured on the design render (from the content's left
+    // edge); Chrome's space-around depends on its own glyph advances.
+    Widget at(double cx, Widget c) => Positioned(
+      left: cx - 60,
+      width: 120,
+      top: 0,
+      child: Center(child: c),
     );
     return AppCard(
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          stat('${r.reachedPages}', AppStrings.statReached),
-          stat('${r.seenBy}', AppStrings.statSeen),
-          stat('${r.offerPrices.length}/${r.maxOffers}', AppStrings.statOffers),
-        ],
+      child: SizedBox(
+        height: AppText.lh(22) * 22 + AppText.lh(12.5) * 12.5,
+        child: Stack(
+          clipBehavior: Clip.none,
+          children: [
+            at(265.8, stat('${r.reachedPages}', AppStrings.statReached, 62.9)),
+            at(149.3, stat('${r.seenBy}', AppStrings.statSeen, 29.6)),
+            at(
+              46.4,
+              stat(
+                '${r.offerPrices.length}/${r.maxOffers}',
+                AppStrings.statOffers,
+                36,
+              ),
+            ),
+          ],
+        ),
       ),
     );
   }

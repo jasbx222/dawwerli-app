@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'exact_line.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -11,16 +13,24 @@ class FieldLabel extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsets.only(bottom: 8),
-    child: Text(text, style: AppText.label),
+    child: ExactLine(fontSize: 13, child: Text(text, style: AppText.label)),
   );
 }
 
 /// Input shell (`.inp`), focused variant draws the blue ring.
 class InputShell extends StatelessWidget {
-  const InputShell({super.key, required this.child, this.focused = false});
+  const InputShell({
+    super.key,
+    required this.child,
+    this.focused = false,
+    this.exactLine = true,
+  });
 
   final Widget child;
   final bool focused;
+
+  /// Pin the content to one 15px design line (22.39); off for multi-line/fixed boxes.
+  final bool exactLine;
 
   @override
   Widget build(BuildContext context) {
@@ -51,10 +61,10 @@ class InputShell extends StatelessWidget {
       child: DefaultTextStyle.merge(
         style: const TextStyle(
           fontSize: 15,
-          height: 1.4667,
+          height: 1.492593,
           color: AppColors.navy,
         ),
-        child: child,
+        child: exactLine ? ExactLine(fontSize: 15, child: child) : child,
       ),
     );
   }
@@ -81,7 +91,11 @@ class BareTextField extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return TextField(
+    final rtl =
+        (textDirection ?? Directionality.of(context)) == TextDirection.rtl;
+    // EditableText reserves a caret margin (1px gap + 2px caret) at the line end,
+    // which in RTL pushes the text 3px in from the right edge vs. the HTML input.
+    final field = TextField(
       controller: controller,
       focusNode: focusNode,
       keyboardType: keyboardType,
@@ -92,11 +106,14 @@ class BareTextField extends StatelessWidget {
           const TextStyle(
             fontFamily: AppText.family,
             fontSize: 15,
-            height: 1.4667,
+            height: 1.492593,
             color: AppColors.navy,
           ),
       decoration: const InputDecoration.collapsed(hintText: ''),
     );
+    return rtl
+        ? Transform.translate(offset: const Offset(3, 0), child: field)
+        : field;
   }
 }
 
@@ -131,15 +148,18 @@ class AppChip extends StatelessWidget {
               ? null
               : const [BoxShadow(color: AppColors.border, spreadRadius: 1.5)],
         ),
-        child: Text(
-          label,
-          style: TextStyle(
-            fontSize: 13,
-            height: 1.4615,
-            fontWeight: FontWeight.w600,
-            color: selected
-                ? AppColors.white
-                : (gold ? AppColors.warn : AppColors.navy),
+        child: ExactLine(
+          fontSize: 13,
+          child: Text(
+            label,
+            style: TextStyle(
+              fontSize: 13,
+              height: 1.500000,
+              fontWeight: FontWeight.w600,
+              color: selected
+                  ? AppColors.white
+                  : (gold ? AppColors.warn : AppColors.navy),
+            ),
           ),
         ),
       ),

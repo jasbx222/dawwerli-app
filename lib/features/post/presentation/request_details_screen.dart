@@ -151,9 +151,10 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                   const SizedBox(height: 16),
                   const FieldLabel(AppStrings.maxPriceLabel),
                   SizedBox(
-                    height: 58,
+                    height: 58.86, // design render (device-rounded line box)
                     child: InputShell(
                       focused: priceFocused,
+                      exactLine: false,
                       child: Row(
                         children: [
                           Expanded(
@@ -163,7 +164,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                               keyboardType: TextInputType.number,
                               style: AppText.number.copyWith(
                                 fontSize: 20,
-                                height: 29 / 20,
+                                height: 29.86 / 20,
                                 color: AppColors.navy,
                               ),
                               onChanged: (s) {

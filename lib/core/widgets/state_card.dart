@@ -56,7 +56,7 @@ class StateCard extends StatelessWidget {
                       title,
                       style: TextStyle(
                         fontSize: 15.5,
-                        height: 1.4839,
+                        height: 1.514337,
                         fontWeight: FontWeight.w700,
                         color: tone,
                       ),

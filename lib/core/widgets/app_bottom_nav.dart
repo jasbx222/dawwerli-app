@@ -36,7 +36,7 @@ class AppBottomNav extends StatelessWidget {
               label,
               style: TextStyle(
                 fontSize: 11,
-                height: 1.5455,
+                height: 1.510101,
                 fontWeight: FontWeight.w600,
                 color: c,
               ),

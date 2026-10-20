@@ -348,7 +348,18 @@ class _PrivacyCard extends StatelessWidget {
     color: AppColors.blueTint,
     child: Row(
       children: [
-        const AppSvgIcon(AppIcon.shield, size: 22, color: AppColors.blue),
+        // Design: the 22px svg flex-shrinks to 17.4 next to the long note.
+        const SizedBox(
+          width: 17.4,
+          height: 22,
+          child: Center(
+            child: AppSvgIcon(
+              AppIcon.shield,
+              size: 17.4,
+              color: AppColors.blue,
+            ),
+          ),
+        ),
         const SizedBox(width: 12),
         Expanded(
           child: Text(
