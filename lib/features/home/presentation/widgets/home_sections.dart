@@ -484,7 +484,11 @@ class LiveFeedCard extends StatelessWidget {
                 ? null
                 : const BoxDecoration(
                     border: Border(
-                      bottom: BorderSide(color: Color(0xFFF1ECE0)),
+                      // CSS 1px renders as 2 device px at the design's DPR.
+                      bottom: BorderSide(
+                        color: Color(0xFFF1ECE0),
+                        width: 2 / AppText.designDpr,
+                      ),
                     ),
                   ),
             child: Row(
@@ -504,20 +508,26 @@ class LiveFeedCard extends StatelessWidget {
                 Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(
-                      items[i].category,
-                      style: const TextStyle(
-                        fontSize: 14,
-                        height: 1.496032,
-                        fontWeight: FontWeight.w700,
+                    SizedBox(
+                      height: MediaQuery.textScalerOf(context).scale(20.94),
+                      child: Text(
+                        items[i].category,
+                        style: const TextStyle(
+                          fontSize: 14,
+                          height: 1.496032,
+                          fontWeight: FontWeight.w700,
+                        ),
                       ),
                     ),
-                    Text(
-                      items[i].governorate,
-                      style: TextStyle(
-                        fontSize: 12,
-                        height: 19.5000 / 12,
-                        color: AppColors.grey,
+                    SizedBox(
+                      height: MediaQuery.textScalerOf(context).scale(19.5),
+                      child: Text(
+                        items[i].governorate,
+                        style: TextStyle(
+                          fontSize: 12,
+                          height: 19.5000 / 12,
+                          color: AppColors.grey,
+                        ),
                       ),
                     ),
                   ],
@@ -721,8 +731,11 @@ class SponsoredBanner extends StatelessWidget {
             Positioned(
               left: 18,
               top: 28,
+              // `.off`: two CSS line boxes; the 34px «20%» sits 8px into the first,
+              // «خصم» starts 70.16px below the box top (measured on the design).
               child: Column(
                 children: [
+                  const SizedBox(height: 8),
                   Text(
                     '${ad.discountPercent}%',
                     style: const TextStyle(
@@ -732,7 +745,7 @@ class SponsoredBanner extends StatelessWidget {
                       color: AppColors.goldSoft,
                     ),
                   ),
-                  const SizedBox(height: 6),
+                  const SizedBox(height: 70.16 - 8 - 34),
                   const Text(
                     AppStrings.discount,
                     style: TextStyle(

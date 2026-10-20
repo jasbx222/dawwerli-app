@@ -234,7 +234,8 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                   if (schema != null) ...[
                     const SizedBox(height: 8),
                     Wrap(
-                      spacing: 8,
+                      // Design: 68.9-wide chips, 7.9 apart.
+                      spacing: 7.9,
                       runSpacing: 8,
                       children: [
                         for (final p
@@ -244,6 +245,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                           AppChip(
                             thousands(p),
                             gold: true,
+                            width: MediaQuery.textScalerOf(context).scale(68.9),
                             onTap: () => _setPrice(p),
                           ),
                       ],

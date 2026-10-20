@@ -122,10 +122,15 @@ class AppChip extends StatelessWidget {
     this.selected = false,
     this.gold = false,
     this.onTap,
+    this.width,
   });
 
   final String label;
   final bool selected;
+
+  /// Fixed outer width (design-measured) so Chrome/Flutter glyph-width
+  /// differences don't shift neighbouring chips; label is centred.
+  final double? width;
 
   /// `.chip.g`: soft gold suggestion chip (no ring).
   final bool gold;
@@ -136,7 +141,12 @@ class AppChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+        width: width,
+        alignment: width == null ? null : Alignment.center,
+        padding: EdgeInsets.symmetric(
+          horizontal: width == null ? 13 : 0,
+          vertical: 8,
+        ),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.blue

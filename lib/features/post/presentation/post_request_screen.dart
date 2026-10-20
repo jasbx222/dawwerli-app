@@ -250,15 +250,21 @@ class _VoiceCard extends StatelessWidget {
                 ),
               ),
               const SizedBox(width: 12),
-              Text(
-                AppStrings.voiceProgress(
-                  mss(seconds),
-                  mss(PostRules.maxVoiceSeconds),
-                ),
-                style: AppText.number.copyWith(
-                  fontSize: 14,
-                  height: AppText.lh(14),
-                  color: AppColors.ink,
+              // Design: the time label box is 72 wide (waveform 192).
+              SizedBox(
+                width: MediaQuery.textScalerOf(context).scale(72),
+                child: Text(
+                  AppStrings.voiceProgress(
+                    mss(seconds),
+                    mss(PostRules.maxVoiceSeconds),
+                  ),
+                  softWrap: false,
+                  overflow: TextOverflow.visible,
+                  style: AppText.number.copyWith(
+                    fontSize: 14,
+                    height: AppText.lh(14),
+                    color: AppColors.ink,
+                  ),
                 ),
               ),
             ],
