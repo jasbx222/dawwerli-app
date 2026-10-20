@@ -14,7 +14,6 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
-import '../../../core/widgets/state_card.dart';
 import '../data/offers_providers.dart';
 import '../domain/offer.dart';
 import 'widgets/offer_widgets.dart';
@@ -260,73 +259,149 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                     onPressed: () => _whatsapp(s),
                   ),
                 ),
-                m(
-                  14,
-                  AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.stretch,
-                      children: [
-                        Row(
-                          children: [
-                            const AppSvgIcon(
-                              AppIcon.clock,
-                              size: 22,
-                              color: AppColors.blue,
-                            ),
-                            const SizedBox(width: 12),
-                            Expanded(
-                              child: Column(
-                                crossAxisAlignment: CrossAxisAlignment.start,
-                                children: [
-                                  Text(
-                                    OfferStrings.noReplyQ,
-                                    style: AppText.strong.copyWith(
-                                      height: AppText.lh(14),
-                                    ),
-                                  ),
-                                  Text.rich(
-                                    TextSpan(
-                                      children: open
-                                          ? const [
-                                              TextSpan(
-                                                text: OfferStrings.noReplyOpen,
-                                              ),
-                                            ]
-                                          : [
-                                              const TextSpan(
-                                                text:
-                                                    OfferStrings.noReplyLocked,
-                                              ),
-                                              TextSpan(
-                                                text: mmss,
-                                                style: const TextStyle(
-                                                  fontWeight: FontWeight.w600,
-                                                  fontFeatures: [
-                                                    FontFeature.tabularFigures(),
-                                                  ],
-                                                ),
-                                              ),
-                                            ],
-                                    ),
-                                    style: AppText.muted,
-                                  ),
-                                ],
+                if (_noneLeft)
+                  m(
+                    14,
+                    AppCard(
+                      padding: 14,
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Container(
+                                width: 44,
+                                height: 44,
+                                decoration: BoxDecoration(
+                                  color: AppColors.warnBg,
+                                  borderRadius: BorderRadius.circular(14),
+                                ),
+                                alignment: Alignment.center,
+                                child: const AppSvgIcon(
+                                  AppIcon.clock,
+                                  color: AppColors.warn,
+                                ),
                               ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    const Text(
+                                      OfferStrings.noneLeftTitle,
+                                      style: TextStyle(
+                                        fontSize: 15.5,
+                                        height: 1.514337,
+                                        fontWeight: FontWeight.w700,
+                                        color: AppColors.warn,
+                                      ),
+                                    ),
+                                    const SizedBox(height: 3),
+                                    Text(
+                                      OfferStrings.noneLeftBody,
+                                      style: AppText.muted.copyWith(
+                                        height: 19 / 12.5,
+                                      ),
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          AppButton(
+                            OfferStrings.repost,
+                            compact: true,
+                            onPressed: () => context.go(Routes.post),
+                          ),
+                          const SizedBox(height: 10),
+                          AppButton(
+                            OfferStrings.raisePrice,
+                            variant: AppButtonVariant.ghost,
+                            compact: true,
+                            onPressed: () => context.push(
+                              Uri(
+                                path: Routes.postDetails,
+                                queryParameters: {
+                                  'editPrice': widget.requestId,
+                                },
+                              ).toString(),
                             ),
-                          ],
-                        ),
-                        const SizedBox(height: 12),
-                        AppButton(
-                          OfferStrings.noReplyBtn,
-                          variant: open
-                              ? AppButtonVariant.navy
-                              : AppButtonVariant.disabled,
-                          onPressed: _noReply,
-                        ),
-                      ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  )
+                else
+                  m(
+                    14,
+                    AppCard(
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.stretch,
+                        children: [
+                          Row(
+                            children: [
+                              const AppSvgIcon(
+                                AppIcon.clock,
+                                size: 22,
+                                color: AppColors.blue,
+                              ),
+                              const SizedBox(width: 12),
+                              Expanded(
+                                child: Column(
+                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                  children: [
+                                    Text(
+                                      OfferStrings.noReplyQ,
+                                      style: AppText.strong.copyWith(
+                                        height: AppText.lh(14),
+                                      ),
+                                    ),
+                                    Text.rich(
+                                      TextSpan(
+                                        children: open
+                                            ? const [
+                                                TextSpan(
+                                                  text:
+                                                      OfferStrings.noReplyOpen,
+                                                ),
+                                              ]
+                                            : [
+                                                const TextSpan(
+                                                  text: OfferStrings
+                                                      .noReplyLocked,
+                                                ),
+                                                TextSpan(
+                                                  text: mmss,
+                                                  style: const TextStyle(
+                                                    fontWeight: FontWeight.w600,
+                                                    fontFeatures: [
+                                                      FontFeature.tabularFigures(),
+                                                    ],
+                                                  ),
+                                                ),
+                                              ],
+                                      ),
+                                      style: AppText.muted,
+                                    ),
+                                  ],
+                                ),
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 12),
+                          AppButton(
+                            OfferStrings.noReplyBtn,
+                            variant: open
+                                ? AppButtonVariant.navy
+                                : AppButtonVariant.disabled,
+                            onPressed: _noReply,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                ),
                 m(
                   14,
                   GestureDetector(
@@ -356,33 +431,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
               ],
             ),
           ),
-          if (_noneLeft)
-            Positioned(
-              left: 16,
-              right: 16,
-              bottom: 30,
-              child: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  StateCard(
-                    icon: AppIcon.clock,
-                    tint: AppColors.warnBg,
-                    tone: AppColors.warn,
-                    title: OfferStrings.noneLeftTitle,
-                    body: const TextSpan(text: OfferStrings.noneLeftBody),
-                    action: OfferStrings.repost,
-                    onAction: () => context.go(Routes.post),
-                  ),
-                  const SizedBox(height: 10),
-                  AppButton(
-                    OfferStrings.raisePrice,
-                    variant: AppButtonVariant.ghost,
-                    onPressed: () => context.go(Routes.postDetails),
-                  ),
-                ],
-              ),
-            )
-          else if (_toast != null)
+          if (!_noneLeft && _toast != null)
             Positioned(
               left: 16,
               right: 16,
