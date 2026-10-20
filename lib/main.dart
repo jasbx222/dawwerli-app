@@ -18,6 +18,7 @@ Future<void> main() async {
     // Native plugin mismatch on a stale Android build must not block startup:
     // fall back to in-memory prefs so the app still opens.
     debugPrint('SharedPreferences init failed, using in-memory fallback: $e');
+    // ignore: invalid_use_of_visible_for_testing_member
     SharedPreferences.setMockInitialValues({});
     prefs = await SharedPreferences.getInstance();
   }
