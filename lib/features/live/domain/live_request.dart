@@ -25,6 +25,7 @@ class LiveRequest {
     this.maxOffers = 5,
     required this.widensAt,
     this.cancelled = false,
+    this.expired = false,
     this.widenedTo = const [],
     this.waitedMinutes = 0,
     this.suggestedPrice,
@@ -47,6 +48,9 @@ class LiveRequest {
 
   /// Cancelled by the customer (REQ-14); pages are notified, no charge.
   final bool cancelled;
+
+  /// 24h passed (REQ: CloseNoOffers / Expired).
+  final bool expired;
 
   /// Set once the request was widened (10c sheet).
   final List<String> widenedTo;
@@ -72,4 +76,7 @@ abstract interface class LiveRequestRepository {
   Stream<LiveRequest> watch(String id);
   Future<void> cancel(String id);
   Future<void> raisePrice(String id, int newMax);
+
+  /// Re-posts an expired request; returns the new request id.
+  Future<String> republish(String id);
 }

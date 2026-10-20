@@ -14,7 +14,7 @@ class StateCard extends StatelessWidget {
     required this.tone,
     required this.title,
     required this.body,
-    required this.action,
+    this.action,
     this.actionVariant = AppButtonVariant.primary,
     this.onAction,
   });
@@ -24,7 +24,9 @@ class StateCard extends StatelessWidget {
   final Color tone;
   final String title;
   final InlineSpan body;
-  final String action;
+
+  /// Omit when the screen shows its own buttons below the card.
+  final String? action;
   final AppButtonVariant actionVariant;
   final VoidCallback? onAction;
 
@@ -71,13 +73,15 @@ class StateCard extends StatelessWidget {
               ),
             ],
           ),
-          const SizedBox(height: 12),
-          AppButton(
-            action,
-            variant: actionVariant,
-            compact: true,
-            onPressed: onAction,
-          ),
+          if (action != null) ...[
+            const SizedBox(height: 12),
+            AppButton(
+              action!,
+              variant: actionVariant,
+              compact: true,
+              onPressed: onAction,
+            ),
+          ],
         ],
       ),
     );

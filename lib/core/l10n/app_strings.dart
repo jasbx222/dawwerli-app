@@ -193,6 +193,17 @@ abstract final class AppStrings {
       'انقطع النت؟ نخليه بالمسودة وينرسل وحده لما يرجع';
   static const offlineToast = 'النت فاصل، طلبك انحفظ مسودة وينرسل وحده 📶';
   static const errIncomplete = 'الطلب ناقص';
+  static const errSize = 'القياس ناقص';
+  static const errSizeBody = 'الأحذية والملابس تحتاج قياس. ارجع واختار القياس.';
+  static const cancelledBar = 'انلغى طلبك. الصفحات تبلّغت';
+  static const expiredPill = 'انتهى';
+  static const expiredTitle = 'انتهى وقت طلبك';
+  static const expiredBody =
+      'ما وصلت عروض خلال 24 ساعة. تكدر تعيد نشره أو ترفع السعر.';
+  static const republish = 'أعد النشر';
+  static const raiseSubtitle = 'فوق سعرك يوصل طلبك لصفحات أكثر';
+  static const currentPrice = 'سعرك الحالي ';
+  static const updatePrice = 'حدّث السعر';
   static const errIncompleteBody2 =
       'ضيف صورة، أو اكتب وصف أوضح (10 كلمات على الأقل).';
   static const errProhibited = 'هذا الغرض ممنوع 🚫';

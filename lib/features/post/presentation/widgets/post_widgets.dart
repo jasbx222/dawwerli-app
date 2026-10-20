@@ -185,8 +185,15 @@ class IssueCard extends StatelessWidget {
 
 /// Navy snackbar-style banner (09b offline): pad 13/14, radius 18, 13.5px semibold.
 class OfflineBanner extends StatelessWidget {
-  const OfflineBanner(this.text, {super.key});
+  const OfflineBanner(
+    this.text, {
+    super.key,
+    this.icon = AppIcon.wifiOff,
+    this.iconColor = AppColors.white,
+  });
   final String text;
+  final AppIcon icon;
+  final Color iconColor;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -205,7 +212,7 @@ class OfflineBanner extends StatelessWidget {
     ),
     child: Row(
       children: [
-        const AppSvgIcon(AppIcon.wifiOff, size: 20, color: AppColors.white),
+        AppSvgIcon(icon, size: 20, color: iconColor),
         const SizedBox(width: 10),
         Expanded(
           child: Text(

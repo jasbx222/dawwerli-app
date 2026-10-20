@@ -12,6 +12,9 @@ import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/state_card.dart';
+import '../../home/data/home_notice.dart';
 import '../../home/data/home_providers.dart';
 import '../data/live_providers.dart';
 import '../domain/live_request.dart';
@@ -42,8 +45,8 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
   Future<void> _cancel() async {
     await ref.read(liveRepositoryProvider).cancel(widget.requestId);
     // Home re-reads the store: the cancelled request no longer shows as live.
-    // TODO(uiux): REQ-14 confirmation message after cancelling has no design yet.
     ref.invalidate(homeDataProvider);
+    ref.read(homeNoticeProvider.notifier).show(AppStrings.cancelledBar);
     if (mounted) context.go(Routes.home);
   }
 
@@ -54,10 +57,7 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
     context.push(
       Uri(
         path: Routes.postDetails,
-        queryParameters: {
-          'editPrice': r.id,
-          'price': '${r.suggestedPrice ?? r.maxPrice}',
-        },
+        queryParameters: {'editPrice': r.id, 'price': '${r.maxPrice}'},
       ).toString(),
     );
   }
@@ -81,6 +81,12 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
       onBack: () => context.canPop() ? context.pop() : context.go(Routes.home),
       onCompare: () => context.push(Routes.offers(r.id)),
       onCancel: () => setState(() => _sheet = _Sheet.cancel),
+      onRepublish: () async {
+        final id = await ref.read(liveRepositoryProvider).republish(r.id);
+        ref.invalidate(homeDataProvider);
+        if (context.mounted) context.go(Routes.liveRequest(id));
+      },
+      onRaise: () => _raise(r),
     );
     return PopScope(
       canPop: _sheet == _Sheet.none,
@@ -133,12 +139,16 @@ class _Content extends StatelessWidget {
     required this.onBack,
     required this.onCompare,
     required this.onCancel,
+    required this.onRepublish,
+    required this.onRaise,
   });
 
   final LiveRequest r;
   final VoidCallback onBack;
   final VoidCallback onCompare;
   final VoidCallback onCancel;
+  final VoidCallback onRepublish;
+  final VoidCallback onRaise;
 
   @override
   Widget build(BuildContext context) {
@@ -153,44 +163,78 @@ class _Content extends StatelessWidget {
             below: _Summary(r: r),
           ),
           _m(14, _Stats(r: r)),
-          _m(
-            14,
-            OffersCard(
-              offers: r.offerPrices,
-              maxOffers: r.maxOffers,
-              cheapest: r.cheapestIndex,
-              // Countdown hidden once the request already widened (10c).
-              widensAt: r.widenedTo.isEmpty ? r.widensAt : null,
+          if (r.expired)
+            _m(
+              14,
+              const StateCard(
+                icon: AppIcon.clock,
+                tint: AppColors.warnBg,
+                tone: AppColors.warn,
+                title: AppStrings.expiredTitle,
+                body: TextSpan(text: AppStrings.expiredBody),
+              ),
+            )
+          else
+            _m(
+              14,
+              OffersCard(
+                offers: r.offerPrices,
+                maxOffers: r.maxOffers,
+                cheapest: r.cheapestIndex,
+                // Countdown hidden once the request already widened (10c).
+                widensAt: r.widenedTo.isEmpty ? r.widensAt : null,
+              ),
             ),
-          ),
           if (r.sponsored != null) _m(14, SponsoredCard(page: r.sponsored!)),
           Padding(
             padding: const EdgeInsets.all(16),
-            child: Row(
-              children: [
-                // CSS flex 2:1 splits the space left after the buttons' own
-                // padding, giving 222 / 126 in the design.
-                Expanded(
-                  flex: 222,
-                  child: AppButton(
-                    AppStrings.compareN(n),
-                    variant: n == 0
-                        ? AppButtonVariant.disabled
-                        : AppButtonVariant.navy,
-                    onPressed: onCompare,
+            child: r.expired
+                ? Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      n > 0
+                          ? AppButton(
+                              AppStrings.compareN(n),
+                              variant: AppButtonVariant.navy,
+                              onPressed: onCompare,
+                            )
+                          : AppButton(
+                              AppStrings.republish,
+                              onPressed: onRepublish,
+                            ),
+                      const SizedBox(height: 10),
+                      AppButton(
+                        AppStrings.raisePrice,
+                        variant: AppButtonVariant.ghost,
+                        onPressed: onRaise,
+                      ),
+                    ],
+                  )
+                : Row(
+                    children: [
+                      // CSS flex 2:1 splits the space left after the buttons' own
+                      // padding, giving 222 / 126 in the design.
+                      Expanded(
+                        flex: 222,
+                        child: AppButton(
+                          AppStrings.compareN(n),
+                          variant: n == 0
+                              ? AppButtonVariant.disabled
+                              : AppButtonVariant.navy,
+                          onPressed: onCompare,
+                        ),
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        flex: 126,
+                        child: AppButton(
+                          AppStrings.cancelIt,
+                          variant: AppButtonVariant.ghost,
+                          onPressed: onCancel,
+                        ),
+                      ),
+                    ],
                   ),
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  flex: 126,
-                  child: AppButton(
-                    AppStrings.cancelIt,
-                    variant: AppButtonVariant.ghost,
-                    onPressed: onCancel,
-                  ),
-                ),
-              ],
-            ),
           ),
         ],
       ),
@@ -246,29 +290,33 @@ class _Summary extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: const Color(0xFFCCFBF1),
+          color: r.expired ? const Color(0xFFE7E5E4) : const Color(0xFFCCFBF1),
           borderRadius: BorderRadius.circular(99),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
           children: [
-            Container(
-              width: 5,
-              height: 5,
-              margin: const EdgeInsets.only(top: 2.4),
-              decoration: const BoxDecoration(
-                color: Color(0xFF0B6E66),
-                shape: BoxShape.circle,
+            if (!r.expired) ...[
+              Container(
+                width: 5,
+                height: 5,
+                margin: const EdgeInsets.only(top: 2.4),
+                decoration: const BoxDecoration(
+                  color: Color(0xFF0B6E66),
+                  shape: BoxShape.circle,
+                ),
               ),
-            ),
-            const SizedBox(width: 4),
+              const SizedBox(width: 4),
+            ],
             Text(
-              AppStrings.live,
+              r.expired ? AppStrings.expiredPill : AppStrings.live,
               style: TextStyle(
                 fontSize: 12,
                 height: AppText.lh(12),
                 fontWeight: FontWeight.w700,
-                color: const Color(0xFF0B6E66),
+                color: r.expired
+                    ? const Color(0xFF57534E)
+                    : const Color(0xFF0B6E66),
               ),
             ),
           ],

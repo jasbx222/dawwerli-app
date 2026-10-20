@@ -20,7 +20,10 @@ import 'widgets/post_widgets.dart';
 
 /// 08 · Category details (size/colour/condition), max price, governorate.
 class RequestDetailsScreen extends ConsumerStatefulWidget {
-  const RequestDetailsScreen({super.key, this.editPriceFor});
+  const RequestDetailsScreen({super.key, this.editPriceFor, this.currentPrice});
+
+  /// Price before raising (shown under the field in raise-price mode).
+  final int? currentPrice;
 
   /// Raise-price mode from 10c («ارفع السعر»): saves the new max price to the
   /// live request [editPriceFor] instead of continuing to 09.
@@ -44,6 +47,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
   void initState() {
     super.initState();
     _priceFocus.addListener(() => setState(() {}));
+    if (widget.editPriceFor != null) _priceFocus.requestFocus();
   }
 
   @override
@@ -101,6 +105,10 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
+    final edit = widget.editPriceFor != null;
+    // Raise-price mode: other fields stay visible at .5 and can't be changed.
+    Widget dim(Widget w) =>
+        edit ? IgnorePointer(child: Opacity(opacity: .5, child: w)) : w;
     final draft = ref.watch(draftProvider);
     // REQ-03: shoes can't continue without a size (price edit skips this).
     final canContinue =
@@ -108,15 +116,17 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
         !(PostRules.needsSize(draft) && draft.size == null);
     final notifier = ref.read(draftProvider.notifier);
     final schema = ref.watch(detailSchemaProvider(draft.category ?? '')).value;
-    final priceFocused = _priceFocus.hasFocus || draft.maxPrice != null;
+    final priceFocused = edit || _priceFocus.hasFocus || draft.maxPrice != null;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             AppHeader(
-              title: AppStrings.detailsTitle,
-              subtitle: Text(schema?.hint ?? ''),
+              title: edit ? AppStrings.raisePrice : AppStrings.detailsTitle,
+              subtitle: Text(
+                edit ? AppStrings.raiseSubtitle : schema?.hint ?? '',
+              ),
             ),
             Padding(
               padding: const EdgeInsets.all(16),
@@ -126,47 +136,52 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                   if (schema != null &&
                       (schema.sizes.isNotEmpty ||
                           schema.colors.isNotEmpty)) ...[
-                    Row(
-                      children: [
-                        Expanded(
-                          child: _Dropdown(
-                            label: AppStrings.sizeLabel,
-                            value: draft.size,
-                            // Size is the active field in the flow (`.inp.f`).
-                            focused: _sizeOpen || draft.size != null,
-                            onTap: () => _pick(
-                              schema.sizes,
-                              (v) =>
-                                  notifier.update((d) => d.copyWith(size: v)),
+                    dim(
+                      Row(
+                        children: [
+                          Expanded(
+                            child: _Dropdown(
+                              label: AppStrings.sizeLabel,
+                              value: draft.size,
+                              // Size is the active field in the flow (`.inp.f`).
+                              focused: _sizeOpen || draft.size != null,
+                              onTap: () => _pick(
+                                schema.sizes,
+                                (v) =>
+                                    notifier.update((d) => d.copyWith(size: v)),
+                              ),
                             ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: _Dropdown(
-                            label: AppStrings.colorLabel,
-                            value: draft.color,
-                            onTap: () => _pick(
-                              schema.colors,
-                              (v) =>
-                                  notifier.update((d) => d.copyWith(color: v)),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: _Dropdown(
+                              label: AppStrings.colorLabel,
+                              value: draft.color,
+                              onTap: () => _pick(
+                                schema.colors,
+                                (v) => notifier.update(
+                                  (d) => d.copyWith(color: v),
+                                ),
+                              ),
                             ),
                           ),
-                        ),
-                      ],
+                        ],
+                      ),
                     ),
                     const SizedBox(height: 16),
                   ],
-                  const FieldLabel(AppStrings.conditionLabel),
-                  SegTabs(
-                    labels: const [
-                      AppStrings.condNew,
-                      AppStrings.condUsed,
-                      AppStrings.condAny,
-                    ],
-                    selected: draft.condition.index,
-                    onSelect: (i) => notifier.update(
-                      (d) => d.copyWith(condition: ItemCondition.values[i]),
+                  dim(const FieldLabel(AppStrings.conditionLabel)),
+                  dim(
+                    SegTabs(
+                      labels: const [
+                        AppStrings.condNew,
+                        AppStrings.condUsed,
+                        AppStrings.condAny,
+                      ],
+                      selected: draft.condition.index,
+                      onSelect: (i) => notifier.update(
+                        (d) => d.copyWith(condition: ItemCondition.values[i]),
+                      ),
                     ),
                   ),
                   const SizedBox(height: 16),
@@ -203,13 +218,23 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                       ),
                     ),
                   ),
+                  if (edit && widget.currentPrice != null) ...[
+                    const SizedBox(height: 6),
+                    Text(
+                      '${AppStrings.currentPrice}${thousands(widget.currentPrice!)} ${AppStrings.currency}',
+                      style: AppText.muted,
+                    ),
+                  ],
                   if (schema != null) ...[
                     const SizedBox(height: 8),
                     Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
-                        for (final p in schema.priceSuggestions)
+                        for (final p
+                            in edit
+                                ? const [50000, 55000, 60000]
+                                : schema.priceSuggestions)
                           AppChip(
                             thousands(p),
                             gold: true,
@@ -219,21 +244,23 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                     ),
                   ],
                   const SizedBox(height: 16),
-                  const FieldLabel(AppStrings.govLabel),
-                  InputShell(
-                    child: Row(
-                      mainAxisAlignment: MainAxisAlignment.spaceBetween,
-                      children: [
-                        Text(AppStrings.fromAccount(draft.governorate)),
-                        const AppSvgIcon(
-                          AppIcon.pin,
-                          size: 18,
-                          color: AppColors.blue,
-                        ),
-                      ],
+                  dim(const FieldLabel(AppStrings.govLabel)),
+                  dim(
+                    InputShell(
+                      child: Row(
+                        mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                        children: [
+                          Text(AppStrings.fromAccount(draft.governorate)),
+                          const AppSvgIcon(
+                            AppIcon.pin,
+                            size: 18,
+                            color: AppColors.blue,
+                          ),
+                        ],
+                      ),
                     ),
                   ),
-                  if (draft.removedContactInfo) ...[
+                  if (!edit && draft.removedContactInfo) ...[
                     const SizedBox(height: 16),
                     AppCard(
                       flat: true,
@@ -259,7 +286,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                   ],
                   const SizedBox(height: 18),
                   AppButton(
-                    AppStrings.reviewRequest,
+                    edit ? AppStrings.updatePrice : AppStrings.reviewRequest,
                     variant: canContinue
                         ? AppButtonVariant.primary
                         : AppButtonVariant.disabled,

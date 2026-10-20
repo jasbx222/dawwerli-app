@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -7,7 +9,10 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/page_tile.dart';
+import '../data/home_notice.dart';
 import '../data/home_providers.dart';
+import '../../post/presentation/widgets/post_widgets.dart';
+import '../../../core/widgets/app_icons.dart';
 import '../domain/home_models.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
@@ -52,6 +57,21 @@ class HomeScreen extends ConsumerWidget {
               ),
             ),
           ),
+          if (ref.watch(homeNoticeProvider) case final text?)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 18 + 70 + 12 + MediaQuery.viewPaddingOf(context).bottom,
+              child: _TimedNotice(
+                key: ValueKey(text),
+                onDone: () => ref.read(homeNoticeProvider.notifier).clear(),
+                child: OfflineBanner(
+                  text,
+                  icon: AppIcon.check,
+                  iconColor: AppColors.gold,
+                ),
+              ),
+            ),
           Positioned(
             left: 16,
             right: 16,
@@ -130,4 +150,31 @@ class _Body extends StatelessWidget {
       ],
     );
   }
+}
+
+/// Shows [child] for 3 seconds, then calls [onDone].
+class _TimedNotice extends StatefulWidget {
+  const _TimedNotice({super.key, required this.child, required this.onDone});
+  final Widget child;
+  final VoidCallback onDone;
+  @override
+  State<_TimedNotice> createState() => _TimedNoticeState();
+}
+
+class _TimedNoticeState extends State<_TimedNotice> {
+  late final _t = Timer(const Duration(seconds: 3), widget.onDone);
+  @override
+  void initState() {
+    super.initState();
+    _t;
+  }
+
+  @override
+  void dispose() {
+    _t.cancel();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => widget.child;
 }

@@ -122,13 +122,30 @@ final appRouter = GoRouter(
                   ),
                 ),
               ],
-              child: RequestDetailsScreen(editPriceFor: edit),
+              child: RequestDetailsScreen(
+                editPriceFor: edit,
+                currentPrice: price,
+              ),
             );
           },
         ),
         GoRoute(
           path: 'review',
-          builder: (_, s) => s.uri.queryParameters['preview'] == 'errors'
+          builder: (_, s) => s.uri.queryParameters['preview'] == 'size'
+              ? ProviderScope(
+                  overrides: [
+                    draftProvider.overrideWith(
+                      () => SeededDraftNotifier(sampleDraft.copyWith()),
+                    ),
+                  ],
+                  child: const ReviewScreen(
+                    initialErrors: {
+                      PostError.incomplete,
+                      PostError.sizeMissing,
+                    },
+                  ),
+                )
+              : s.uri.queryParameters['preview'] == 'errors'
               ? ProviderScope(
                   overrides: [
                     draftProvider.overrideWith(
@@ -137,8 +154,9 @@ final appRouter = GoRouter(
                       ),
                     ),
                   ],
-                  child: const ReviewScreen(
-                    initialErrors: {...PostError.values},
+                  child: ReviewScreen(
+                    initialErrors: {...PostError.values}
+                      ..remove(PostError.sizeMissing),
                     initialOffline: true,
                   ),
                 )
@@ -157,6 +175,22 @@ final appRouter = GoRouter(
           requestId: id,
           openCancel: p == 'cancel',
         );
+        if (p == 'expired' || p == 'expired_offers') {
+          MockLiveRequestRepository repo(Ref ref) => MockLiveRequestRepository(
+            ref.watch(mockBackendProvider),
+            expired: true,
+            expiredOffers: p == 'expired_offers',
+          );
+          return ProviderScope(
+            overrides: [
+              liveRepositoryProvider.overrideWith(repo),
+              liveRequestProvider.overrideWith(
+                (ref, id) => repo(ref).watch(id),
+              ),
+            ],
+            child: screen,
+          );
+        }
         return p == 'widened'
             ? ProviderScope(
                 overrides: [

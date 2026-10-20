@@ -107,15 +107,14 @@ class RequestDraft {
 /// Publish rejections shown on 09b (server is the source of truth; the app pre-checks).
 enum PostError {
   incomplete,
+
+  /// REQ-03: shoes/clothes need a size (server re-checks).
+  sizeMissing,
   prohibited,
   contactInfo,
   maxOpen,
   voiceTooLong,
   priceZero,
-
-  /// REQ-03: shoes need a size (server re-checks). No 09b card is designed for
-  /// it, so the app keeps the user on 08 until a size is picked.
-  sizeMissing,
 }
 
 /// Category-specific required fields (08). Shoes need size + colour.
