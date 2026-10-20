@@ -148,7 +148,7 @@ class MockHomeRepository implements HomeRepository {
           deals: 86,
           isAd: true,
         ),
-        PageSummary(id: 'p3', name: 'بيتي', rating: 4.9, deals: 64, isAd: true),
+        PageSummary(id: 'p8', name: 'بيتي', rating: 4.9, deals: 64, isAd: true),
       ],
     );
   }

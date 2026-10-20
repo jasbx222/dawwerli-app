@@ -46,7 +46,7 @@ class FeaturedPagesScreen extends ConsumerWidget {
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: _FeaturedCard(
                   page: p,
-                  onTap: () => context.push(Routes.comingSoon),
+                  onTap: () => context.push(Routes.pageProfile(p.id)),
                 ),
               ),
             const SizedBox(height: 12),

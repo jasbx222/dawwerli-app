@@ -394,25 +394,45 @@ class _BentoTile extends StatelessWidget {
     };
     return GestureDetector(
       onTap: onTap,
-      child: ClipRRect(
-        borderRadius: BorderRadius.circular(20),
+      // Floating tile: shadow + badge drawn above the clip so nothing is cut.
+      child: DecoratedBox(
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(20),
+          boxShadow: const [
+            BoxShadow(
+              color: Color(0x400B1A3F),
+              offset: Offset(0, 10),
+              blurRadius: 22,
+              spreadRadius: -8,
+            ),
+          ],
+        ),
         child: Stack(
           fit: StackFit.expand,
+          clipBehavior: Clip.none,
           children: [
-            // CSS: background-size:cover; background-position:center
-            Image.asset(
-              cat.image,
-              fit: BoxFit.cover,
-              alignment: Alignment.center,
-            ),
-            const DecoratedBox(
-              decoration: BoxDecoration(
-                gradient: LinearGradient(
-                  begin: Alignment.bottomCenter,
-                  end: Alignment.topCenter,
-                  colors: [Color(0xCC0F1E3D), Color(0x000F1E3D)],
-                  stops: [0, .6],
-                ),
+            ClipRRect(
+              borderRadius: BorderRadius.circular(20),
+              child: Stack(
+                fit: StackFit.expand,
+                children: [
+                  // CSS: background-size:cover; background-position:center
+                  Image.asset(
+                    cat.image,
+                    fit: BoxFit.cover,
+                    alignment: Alignment.center,
+                  ),
+                  const DecoratedBox(
+                    decoration: BoxDecoration(
+                      gradient: LinearGradient(
+                        begin: Alignment.bottomCenter,
+                        end: Alignment.topCenter,
+                        colors: [Color(0xCC0F1E3D), Color(0x000F1E3D)],
+                        stops: [0, .6],
+                      ),
+                    ),
+                  ),
+                ],
               ),
             ),
             if (badge != null)
@@ -445,8 +465,12 @@ class _BentoTile extends StatelessWidget {
             Positioned(
               bottom: 10,
               right: 12,
+              left: 8,
               child: Text(
                 cat.name,
+                maxLines: 1,
+                overflow: TextOverflow.visible,
+                softWrap: false,
                 style: TextStyle(
                   fontSize: big ? 18 : 14,
                   height: AppText.lh(big ? 18 : 14),

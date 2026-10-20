@@ -136,7 +136,7 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                         ),
                       AppChip(
                         AppStrings.changeCat,
-                        onTap: () => context.push(Routes.comingSoon),
+                        onTap: () => context.push(Routes.postCategory),
                       ),
                     ],
                   ),

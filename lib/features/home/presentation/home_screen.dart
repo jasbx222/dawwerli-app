@@ -17,6 +17,7 @@ import '../data/home_providers.dart';
 import '../../post/presentation/widgets/post_widgets.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../domain/home_models.dart';
+import '../../more/more_data.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/live_request_card.dart';
@@ -33,7 +34,6 @@ class HomeScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final home = ref.watch(homeDataProvider);
-    void soon() => context.push(Routes.comingSoon);
     return Scaffold(
       body: Stack(
         children: [
@@ -54,14 +54,18 @@ class HomeScreen extends ConsumerWidget {
                       ref,
                       () => context.go(Routes.notifications),
                     ),
-                    onLocation: soon,
-                    onStory: (_) => soon(),
+                    onLocation: () => memberOnly(
+                      context,
+                      ref,
+                      () => context.push(Routes.region),
+                    ),
+                    onStory: (s) =>
+                        context.push(Routes.pageProfile(pageIdByName(s.name))),
                   ),
                   Transform.translate(
                     offset: const Offset(0, -_overlap),
                     child: _Body(
                       data: d,
-                      onSoon: soon,
                       guest: ref.watch(guestProvider),
                       onPost: () => memberOnly(
                         context,
@@ -124,14 +128,8 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({
-    required this.data,
-    required this.onSoon,
-    required this.onPost,
-    this.guest = false,
-  });
+  const _Body({required this.data, required this.onPost, this.guest = false});
   final HomeData data;
-  final VoidCallback onSoon;
   final VoidCallback onPost;
   final bool guest;
 
@@ -157,13 +155,19 @@ class _Body extends StatelessWidget {
         PostRequestCta(onTap: onPost),
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
-        SectionTitle(AppStrings.secTrending, onSeeAll: onSoon),
+        SectionTitle(
+          AppStrings.secTrending,
+          onSeeAll: () => context.push(Routes.categories),
+        ),
         CategoryBento(
           categories: d.categories,
           governorate: d.governorate,
-          onTap: (_) => onSoon(),
+          onTap: (c) => context.push(Routes.category(c.id)),
         ),
-        SectionTitle(AppStrings.secNow, onSeeAll: onSoon),
+        SectionTitle(
+          AppStrings.secNow,
+          onSeeAll: () => context.push(Routes.feed),
+        ),
         LiveFeedCard(items: d.feed),
         if (d.deals.isNotEmpty) ...[
           const SectionTitle(AppStrings.secDeals),
@@ -171,7 +175,10 @@ class _Body extends StatelessWidget {
         ],
         if (d.ad != null) ...[
           const SectionTitle(AppStrings.secAds),
-          SponsoredBanner(ad: d.ad!, onTap: onSoon),
+          SponsoredBanner(
+            ad: d.ad!,
+            onTap: () => context.push(Routes.pageProfile(d.ad!.pageId)),
+          ),
         ],
         SectionTitle(
           AppStrings.secFeatured,
@@ -183,7 +190,11 @@ class _Body extends StatelessWidget {
             children: [
               for (var i = 0; i < d.featuredPages.length; i++) ...[
                 if (i > 0) const SizedBox(height: 10),
-                PageTile(page: d.featuredPages[i], onTap: onSoon),
+                PageTile(
+                  page: d.featuredPages[i],
+                  onTap: () =>
+                      context.push(Routes.pageProfile(d.featuredPages[i].id)),
+                ),
               ],
             ],
           ),
