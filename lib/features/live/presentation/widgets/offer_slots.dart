@@ -73,12 +73,12 @@ class OffersCard extends StatelessWidget {
                   height: 20.94, // 14px line, device-rounded
                   child: Row(
                     children: [
-                      const AppSvgIcon(
+                      AppSvgIcon(
                         AppIcon.clock,
                         size: 15,
                         color: AppColors.grey,
                       ),
-                      const Text(AppStrings.widensIn, style: AppText.muted),
+                      Text(AppStrings.widensIn, style: AppText.muted),
                       const Spacer(),
                       Countdown(
                         until: widensAt!,
@@ -87,7 +87,7 @@ class OffersCard extends StatelessWidget {
                           style: AppText.number.copyWith(
                             fontSize: 14,
                             height: AppText.lh(14),
-                            color: AppColors.navy,
+                            color: AppColors.ink,
                           ),
                         ),
                       ),
@@ -155,27 +155,33 @@ class _Slot extends StatelessWidget {
         width: 1.5,
       ),
     ),
-    child: Column(
-      mainAxisAlignment: MainAxisAlignment.center,
-      children: [
-        Text(
-          thousands(price),
-          style: TextStyle(
-            fontSize: 13.5,
-            height: AppText.lh(13.5),
-            fontWeight: FontWeight.w700,
-            color: cheapest ? AppColors.white : AppColors.navy,
+    padding: const EdgeInsets.symmetric(horizontal: 4),
+    // 39 · large font: prices shrink to fit the slot instead of wrapping.
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      child: Column(
+        mainAxisSize: MainAxisSize.min,
+        mainAxisAlignment: MainAxisAlignment.center,
+        children: [
+          Text(
+            thousands(price),
+            style: TextStyle(
+              fontSize: 13.5,
+              height: AppText.lh(13.5),
+              fontWeight: FontWeight.w700,
+              color: cheapest ? AppColors.white : AppColors.ink,
+            ),
           ),
-        ),
-        Text(
-          AppStrings.currency,
-          style: TextStyle(
-            fontSize: 10,
-            height: AppText.lh(10),
-            color: cheapest ? AppColors.blueRing : AppColors.grey,
+          Text(
+            AppStrings.currency,
+            style: TextStyle(
+              fontSize: 10,
+              height: AppText.lh(10),
+              color: cheapest ? AppColors.blueRing : AppColors.grey,
+            ),
           ),
-        ),
-      ],
+        ],
+      ),
     ),
   );
 }
@@ -210,9 +216,9 @@ class _DashedRRect extends CustomPainter {
       (Offset.zero & size).deflate(.75),
       const Radius.circular(13.25),
     );
-    canvas.drawRRect(rr, Paint()..color = AppColors.white);
+    canvas.drawRRect(rr, Paint()..color = AppColors.surface);
     final p = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = Color(0xFFCBD5E1)
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     for (final m in (Path()..addRRect(rr)).computeMetrics()) {
@@ -223,7 +229,7 @@ class _DashedRRect extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }
 
 /// Paid page card (110px, image + 90° navy gradient), always labelled «إعلان · مُموّل».
@@ -236,7 +242,7 @@ class SponsoredCard extends StatelessWidget {
     height: 110,
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(22),
-      boxShadow: const [
+      boxShadow: [
         BoxShadow(
           color: Color(0x660B1A3F),
           offset: Offset(0, 14),

@@ -72,11 +72,11 @@ class PageTile extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.all(12),
+        padding: EdgeInsets.all(12),
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
-          boxShadow: const [
+          boxShadow: [
             BoxShadow(color: Color(0x0A0F172A), offset: Offset(0, 1)),
             BoxShadow(color: AppColors.cardRing, spreadRadius: 1),
           ],

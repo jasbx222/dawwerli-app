@@ -13,8 +13,11 @@ class ExactLine extends StatelessWidget {
   final Widget child;
 
   @override
-  Widget build(BuildContext context) =>
-      SizedBox(height: AppText.lh(fontSize) * fontSize, child: child);
+  Widget build(BuildContext context) => SizedBox(
+    height:
+        AppText.lh(fontSize) * MediaQuery.textScalerOf(context).scale(fontSize),
+    child: child,
+  );
 }
 
 /// Multi-line variant of [ExactLine]: measures how many lines [text] wraps to
@@ -39,7 +42,7 @@ class ExactText extends StatelessWidget {
       tp.dispose();
       final size = style.fontSize ?? 14;
       return SizedBox(
-        height: lines * AppText.lh(size) * size,
+        height: lines * AppText.lh(size) * scaler.scale(size),
         child: Text(text, style: style),
       );
     },

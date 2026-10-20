@@ -142,7 +142,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                   ),
                 ),
                 const SizedBox(height: 8),
-                const Text(AppStrings.profileAreaHint, style: AppText.muted),
+                Text(AppStrings.profileAreaHint, style: AppText.muted),
                 const SizedBox(height: 22),
                 AppButton(AppStrings.profileDone, onPressed: _save),
               ],

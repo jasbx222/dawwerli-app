@@ -1,6 +1,10 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+
+import '../../../core/settings/display_settings.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
@@ -15,11 +19,13 @@ import '../../live/presentation/widgets/live_sheets.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
 
 /// 28 · «حسابي» tab. Mock profile until the account API lands.
-class AccountScreen extends StatelessWidget {
+class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final display = ref.watch(displaySettingsProvider);
+    final displayCtl = ref.read(displaySettingsProvider.notifier);
     void soon() => context.push(Routes.comingSoon);
     Widget group(List<Widget> rows) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -31,7 +37,7 @@ class AccountScreen extends StatelessWidget {
               Container(
                 decoration: i == rows.length - 1
                     ? null
-                    : const BoxDecoration(
+                    : BoxDecoration(
                         border: Border(
                           bottom: BorderSide(color: AppColors.divider),
                         ),
@@ -115,8 +121,18 @@ class AccountScreen extends StatelessWidget {
                     soon,
                   ),
                   _Item(AppIcon.bell, 'الإشعارات', 'مفعّلة', soon),
-                  _Item(AppIcon.sparkles, 'الوضع الليلي', 'تلقائي', soon),
-                  _Item(AppIcon.text, 'حجم الخط', 'كبير', soon),
+                  _Item(
+                    AppIcon.sparkles,
+                    'الوضع الليلي',
+                    display.night.label,
+                    displayCtl.nextNight,
+                  ),
+                  _Item(
+                    AppIcon.text,
+                    'حجم الخط',
+                    display.font.label,
+                    displayCtl.nextFont,
+                  ),
                 ]),
                 group([
                   _Item(AppIcon.lock, 'الصفحات المحظورة', '2', soon),
@@ -145,7 +161,7 @@ class AccountScreen extends StatelessWidget {
                   ),
                 ]),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   'دوّرلي v1.0.0',
                   textAlign: TextAlign.center,
                   style: AppText.muted,
@@ -207,7 +223,7 @@ class _Item extends StatelessWidget {
               label,
               style: AppText.body.copyWith(
                 fontWeight: FontWeight.w600,
-                color: danger ? AppColors.danger : AppColors.navy,
+                color: danger ? AppColors.danger : AppColors.ink,
               ),
             ),
           ),
@@ -215,11 +231,7 @@ class _Item extends StatelessWidget {
             Text(value, style: AppText.muted),
             const SizedBox(width: 12),
           ],
-          const AppSvgIcon(
-            AppIcon.chevronLeft,
-            color: AppColors.checkOff,
-            size: 18,
-          ),
+          AppSvgIcon(AppIcon.chevronLeft, color: AppColors.checkOff, size: 18),
         ],
       ),
     ),
@@ -268,7 +280,7 @@ class PrivacyScreen extends StatelessWidget {
                     ),
                     Text(
                       b,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 13.5,
                         height: 1.85,
                         color: AppColors.grey,
@@ -319,7 +331,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: GestureDetector(
                   onTap: () => setState(() => sheet = true),
-                  child: const AppCard(
+                  child: AppCard(
                     child: Column(
                       crossAxisAlignment: CrossAxisAlignment.start,
                       children: [
@@ -378,7 +390,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   ),
                 ),
                 const SizedBox(height: 6),
-                const Text(
+                Text(
                   'ما نكدر نرجعه. لازم تسكر طلبك المفتوح أول.',
                   textAlign: TextAlign.center,
                   style: AppText.muted,
@@ -398,7 +410,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const Text('اكتب كود التأكيد اللي وصلك', style: AppText.label),
+                Text('اكتب كود التأكيد اللي وصلك', style: AppText.label),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -406,7 +418,7 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                     vertical: 13,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.blue, width: 1.5),
                     boxShadow: const [

@@ -174,7 +174,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                 else if (noItems)
                   _Message(
                     icon: AppIcon.clipboard,
-                    color: AppColors.navy,
+                    color: AppColors.ink,
                     opacity: .3,
                     title: 'ما عندك طلبات بعد',
                     text: 'اكتب شتريد وخلي الصفحات تتسابق عليك',
@@ -238,7 +238,7 @@ class _Row extends StatelessWidget {
   Widget build(BuildContext context) {
     final pill = switch (item.kind) {
       _Kind.live => const _LiveDotPill(),
-      _Kind.waiting => const Pill(
+      _Kind.waiting => Pill(
         'بانتظار عروض',
         bg: AppColors.blueTint,
         fg: AppColors.blue,
@@ -248,7 +248,7 @@ class _Row extends StatelessWidget {
         bg: AppColors.warnBg,
         fg: AppColors.warn,
       ),
-      _Kind.expired => const Pill(
+      _Kind.expired => Pill(
         'انتهى · ما لكينا',
         bg: AppColors.tabTrack,
         fg: AppColors.tabText,

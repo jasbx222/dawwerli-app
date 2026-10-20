@@ -46,7 +46,7 @@ class SegTabs extends StatelessWidget {
                   alignment: Alignment.center,
                   decoration: i == selected
                       ? BoxDecoration(
-                          color: AppColors.white,
+                          color: AppColors.surface,
                           borderRadius: BorderRadius.circular(12),
                           boxShadow: const [
                             BoxShadow(

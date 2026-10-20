@@ -27,7 +27,7 @@ class GuestCard extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.all(18),
     decoration: BoxDecoration(
-      color: AppColors.white,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(26),
       boxShadow: const [
         BoxShadow(
@@ -46,7 +46,7 @@ class GuestCard extends StatelessWidget {
           style: AppText.strong.copyWith(fontSize: 17, height: AppText.lh(17)),
         ),
         const SizedBox(height: 6),
-        const Text(
+        Text(
           AppStrings.guestSub,
           textAlign: TextAlign.center,
           style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.grey),
@@ -69,7 +69,7 @@ Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
         style: AppText.strong.copyWith(fontSize: 19, height: AppText.lh(19)),
       ),
       const SizedBox(height: 6),
-      const Text(
+      Text(
         AppStrings.guestSheetBody,
         style: TextStyle(fontSize: 13, height: 1.5, color: AppColors.grey),
       ),
@@ -82,11 +82,11 @@ Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(16),
             border: Border.all(color: AppColors.blue, width: 1.5),
           ),
-          child: const Text(
+          child: Text(
             '+964  770 123 4567',
             textDirection: TextDirection.ltr,
             style: TextStyle(

@@ -28,7 +28,7 @@ class OfferDetailsScreen extends ConsumerWidget {
     final board = ref.watch(offersProvider(requestId)).value;
     final o = board?.byId(offerId);
     if (board == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -40,7 +40,7 @@ class OfferDetailsScreen extends ConsumerWidget {
           );
     if (o == null) {
       WidgetsBinding.instance.addPostFrameCallback((_) => back());
-      return const Scaffold();
+      return Scaffold();
     }
     Widget m(double top, Widget child) =>
         Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
@@ -49,7 +49,7 @@ class OfferDetailsScreen extends ConsumerWidget {
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 100),
+            padding: EdgeInsets.only(bottom: 100),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -72,7 +72,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                               borderRadius: BorderRadius.circular(14),
                             ),
                             alignment: Alignment.center,
-                            child: const AppSvgIcon(
+                            child: AppSvgIcon(
                               AppIcon.back,
                               size: 20,
                               color: AppColors.white,
@@ -84,7 +84,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                         bottom: 14,
                         left: 14,
                         child: Container(
-                          padding: const EdgeInsets.symmetric(
+                          padding: EdgeInsets.symmetric(
                             horizontal: 10,
                             vertical: 5,
                           ),
@@ -115,13 +115,13 @@ class OfferDetailsScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const Positioned(
+                      Positioned(
                         bottom: 14,
                         right: 14,
                         child: Pill(
                           OfferStrings.liveCamera,
                           bg: AppColors.white,
-                          fg: AppColors.navy,
+                          fg: AppColors.ink,
                           icon: AppIcon.camera,
                         ),
                       ),
@@ -129,7 +129,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                   ),
                 ),
                 Transform.translate(
-                  offset: const Offset(0, -30),
+                  offset: Offset(0, -30),
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
@@ -146,7 +146,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                                       text: OfferStrings.pageVerified(
                                         o.pageName,
                                       ),
-                                      children: [checkSpan(18, AppColors.navy)],
+                                      children: [checkSpan(18, AppColors.ink)],
                                     ),
                                     style: AppText.strong.copyWith(
                                       fontSize: 18,
@@ -170,9 +170,9 @@ class OfferDetailsScreen extends ConsumerWidget {
                                   ),
                                 ],
                               ),
-                              const Spacer(),
+                              Spacer(),
                               if (o.trusted)
-                                const Pill(
+                                Pill(
                                   OfferStrings.trusted,
                                   bg: AppColors.blueTint,
                                   fg: AppColors.blue,
@@ -189,7 +189,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                             children: [
                               Row(
                                 children: [
-                                  const Text.rich(
+                                  Text.rich(
                                     TextSpan(
                                       children: [
                                         WidgetSpan(
@@ -222,7 +222,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                               ),
                               Container(
                                 margin: const EdgeInsets.only(top: 8),
-                                decoration: const BoxDecoration(
+                                decoration: BoxDecoration(
                                   border: Border(
                                     top: BorderSide(color: AppColors.divider),
                                   ),
@@ -312,12 +312,12 @@ class OfferDetailsScreen extends ConsumerWidget {
                     Text(
                       OfferStrings.want,
                       style: AppText.button.copyWith(
-                        color: AppColors.navy,
+                        color: AppColors.ink,
                         height: AppText.lh(16),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    OfferIcon.target.of(AppColors.navy, 18),
+                    OfferIcon.target.of(AppColors.ink, 18),
                   ],
                 ),
               ),

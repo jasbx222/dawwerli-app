@@ -81,7 +81,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
     setState(() => _sizeOpen = true);
     final v = await showModalBottomSheet<String>(
       context: context,
-      backgroundColor: AppColors.white,
+      backgroundColor: AppColors.surface,
       shape: const RoundedRectangleBorder(
         borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       ),
@@ -207,7 +207,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                               style: AppText.number.copyWith(
                                 fontSize: 20,
                                 height: 29.86 / 20,
-                                color: AppColors.navy,
+                                color: AppColors.ink,
                               ),
                               onChanged: (s) {
                                 final v = int.tryParse(
@@ -219,7 +219,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                               },
                             ),
                           ),
-                          const Text(AppStrings.currency, style: AppText.muted),
+                          Text(AppStrings.currency, style: AppText.muted),
                         ],
                       ),
                     ),

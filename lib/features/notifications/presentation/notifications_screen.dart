@@ -153,13 +153,17 @@ class _Row extends StatelessWidget {
       behavior: HitTestBehavior.opaque,
       onTap: n.route == null ? null : () => context.push(n.route!),
       child: Container(
-        color: n.unread ? const Color(0xFFF2F6FF) : null,
+        color: n.unread
+            ? (AppColors.dark
+                  ? const Color(0xFF16264A)
+                  : const Color(0xFFF2F6FF))
+            : null,
         padding: const EdgeInsets.symmetric(horizontal: 16),
         child: Container(
           padding: const EdgeInsets.symmetric(vertical: 13),
           decoration: BoxDecoration(
             border: !last && (divider || n.unread)
-                ? const Border(bottom: BorderSide(color: AppColors.divider))
+                ? Border(bottom: BorderSide(color: AppColors.divider))
                 : null,
           ),
           child: IntrinsicHeight(
@@ -191,7 +195,7 @@ class _Row extends StatelessWidget {
                                 alignment: PlaceholderAlignment.middle,
                                 child: AppSvgIcon(
                                   n.titleIcon!,
-                                  color: AppColors.navy,
+                                  color: AppColors.ink,
                                   size: 15,
                                   strokeWidth: 2.1,
                                 ),

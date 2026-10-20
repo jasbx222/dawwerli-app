@@ -98,14 +98,12 @@ class SmallGhostButton extends StatelessWidget {
   Widget build(BuildContext context) => GestureDetector(
     onTap: onPressed,
     child: Container(
-      padding: const EdgeInsets.all(15),
+      padding: EdgeInsets.all(15),
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.button),
-        boxShadow: const [
-          BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5),
-        ],
+        boxShadow: [BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5)],
       ),
       child: Text(
         label,

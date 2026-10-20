@@ -87,15 +87,13 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
-            padding: const EdgeInsets.only(bottom: 34),
+            padding: EdgeInsets.only(bottom: 34),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppHeader(
                   title: AppStrings.reviewTitle,
-                  subtitle: hasErrors
-                      ? const Text(AppStrings.reviewErrorsSub)
-                      : null,
+                  subtitle: hasErrors ? Text(AppStrings.reviewErrorsSub) : null,
                   trailing: hasErrors
                       ? null
                       : SmallPill(
@@ -115,8 +113,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                   _m(14, _PrivacyCard(draft: draft)),
                   _m(14, _OpenCountCard(open: open)),
                   _m(20, publish),
-                  const SizedBox(height: 10),
-                  const Text(
+                  SizedBox(height: 10),
+                  Text(
                     AppStrings.offlineDraftNote,
                     textAlign: TextAlign.center,
                     style: AppText.muted,
@@ -141,32 +139,32 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
 
   static Widget _issue(PostError e) => switch (e) {
-    PostError.incomplete => const IssueCard(
+    PostError.incomplete => IssueCard(
       title: AppStrings.errIncomplete,
       body: AppStrings.errIncompleteBody2,
     ),
-    PostError.prohibited => const IssueCard(
+    PostError.prohibited => IssueCard(
       title: AppStrings.errProhibited,
       body: AppStrings.errProhibitedBody,
     ),
-    PostError.contactInfo => const IssueCard(
+    PostError.contactInfo => IssueCard(
       title: AppStrings.errContact,
       body: AppStrings.errContactBody,
     ),
-    PostError.maxOpen => const IssueCard(
+    PostError.maxOpen => IssueCard(
       title: AppStrings.errMaxOpen,
       body: AppStrings.errMaxOpenBody,
     ),
-    PostError.voiceTooLong => const IssueCard(
+    PostError.voiceTooLong => IssueCard(
       title: AppStrings.errVoice,
       body: AppStrings.errVoiceBody,
       warning: true,
     ),
-    PostError.priceZero => const IssueCard(
+    PostError.priceZero => IssueCard(
       title: AppStrings.errPrice,
       body: AppStrings.errPriceBody,
     ),
-    PostError.sizeMissing => const IssueCard(
+    PostError.sizeMissing => IssueCard(
       title: AppStrings.errSize,
       body: AppStrings.errSizeBody,
     ),
@@ -203,7 +201,7 @@ class _SummaryCard extends StatelessWidget {
                   width: 76,
                   height: 76,
                   child: draft.photo == null
-                      ? const ColoredBox(color: AppColors.slotBg)
+                      ? ColoredBox(color: AppColors.slotBg)
                       : Image.asset(
                           draft.photo!,
                           fit: BoxFit.cover,
@@ -211,7 +209,7 @@ class _SummaryCard extends StatelessWidget {
                         ),
                 ),
               ),
-              const SizedBox(width: 12),
+              SizedBox(width: 12),
               Expanded(
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
@@ -267,7 +265,7 @@ class _Line extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const rule = BorderSide(color: AppColors.divider);
+    final rule = BorderSide(color: AppColors.divider);
     return Container(
       padding: const EdgeInsets.symmetric(vertical: 13),
       decoration: BoxDecoration(
@@ -289,7 +287,7 @@ class _Line extends StatelessWidget {
               fontFeatures: number
                   ? const [FontFeature.tabularFigures()]
                   : null,
-              color: AppColors.navy,
+              color: AppColors.ink,
             ),
           ),
         ],
@@ -338,7 +336,7 @@ class _ReadyCard extends StatelessWidget {
                     : null,
               ),
               const SizedBox(width: 12),
-              const Text(AppStrings.ready48, style: AppText.strong),
+              Text(AppStrings.ready48, style: AppText.strong),
             ],
           ),
           const SizedBox(height: 6),

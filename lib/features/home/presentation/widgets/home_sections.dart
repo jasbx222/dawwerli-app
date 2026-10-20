@@ -10,7 +10,7 @@ import '../../../../core/widgets/app_icons.dart';
 import '../../domain/home_models.dart';
 import 'ticker_marquee.dart';
 
-const _ring = BoxShadow(color: AppColors.cardRing, spreadRadius: 1);
+final _ring = BoxShadow(color: AppColors.cardRing, spreadRadius: 1);
 
 class SectionTitle extends StatelessWidget {
   const SectionTitle(this.title, {super.key, this.onSeeAll});
@@ -200,16 +200,16 @@ class StatsRow extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     final deco = BoxDecoration(
-      color: AppColors.white,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(16),
-      boxShadow: const [_ring],
+      boxShadow: [_ring],
     );
     if (stats.isEmpty) {
       return Container(
         margin: const EdgeInsets.fromLTRB(16, 14, 16, 0),
         padding: const EdgeInsets.all(10),
         decoration: deco,
-        child: const Row(
+        child: Row(
           children: [
             SizedBox(
               width: 26,
@@ -284,7 +284,7 @@ class StatsRow extends StatelessWidget {
                     ),
                     Text(
                       cells[i].$2,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         height: 23.8333 / 11,
                         color: AppColors.grey,
@@ -432,11 +432,11 @@ class _BentoTile extends StatelessWidget {
                     ),
                     child: EmojiText(
                       badge.$1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         height: 1.510101,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navy,
+                        color: AppColors.ink,
                       ),
                     ),
                   ),
@@ -471,9 +471,9 @@ class LiveFeedCard extends StatelessWidget {
     margin: const EdgeInsets.symmetric(horizontal: 16),
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 4),
     decoration: BoxDecoration(
-      color: AppColors.white,
+      color: AppColors.surface,
       borderRadius: BorderRadius.circular(20),
-      boxShadow: const [_ring],
+      boxShadow: [_ring],
     ),
     child: Column(
       children: [
@@ -514,7 +514,7 @@ class LiveFeedCard extends StatelessWidget {
                     ),
                     Text(
                       items[i].governorate,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         height: 19.5000 / 12,
                         color: AppColors.grey,
@@ -568,7 +568,7 @@ class DealsStrip extends StatelessWidget {
           width: 150,
           clipBehavior: Clip.antiAlias,
           decoration: BoxDecoration(
-            color: AppColors.white,
+            color: AppColors.surface,
             borderRadius: BorderRadius.circular(18),
             border: Border.all(color: AppColors.cardRing),
           ),
@@ -615,7 +615,7 @@ class DealsStrip extends StatelessWidget {
                         ],
                       ),
                       maxLines: 1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 11,
                         height: 23.8333 / 11,
                         color: AppColors.grey,
@@ -753,7 +753,7 @@ class SponsoredBanner extends StatelessWidget {
                   vertical: 6,
                 ),
                 decoration: BoxDecoration(
-                  color: AppColors.white,
+                  color: AppColors.surface,
                   borderRadius: BorderRadius.circular(10),
                 ),
                 child: const Text(

@@ -224,11 +224,11 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                               maxLines: null,
                               expands: true,
                               textAlignVertical: TextAlignVertical.top,
-                              style: const TextStyle(
+                              style: TextStyle(
                                 fontFamily: AppText.family,
                                 fontSize: 15,
                                 height: 1.492593,
-                                color: AppColors.navy,
+                                color: AppColors.ink,
                               ),
                               decoration: const InputDecoration.collapsed(
                                 hintText: '',
@@ -238,7 +238,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                         ),
                       ),
                       const SizedBox(height: 10),
-                      const Text(OrderStrings.oneRating, style: AppText.muted),
+                      Text(OrderStrings.oneRating, style: AppText.muted),
                       const SizedBox(height: 20),
                       LabelIconButton(
                         label: rated ? OrderStrings.rated : OrderStrings.send,

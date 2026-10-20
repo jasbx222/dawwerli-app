@@ -52,7 +52,7 @@ class FullStateScreen extends StatelessWidget {
                     height: 120,
                     child: IshtarBackground(
                       borderRadius: BorderRadius.circular(40),
-                      gradient: const LinearGradient(
+                      gradient: LinearGradient(
                         begin: Alignment.topLeft,
                         end: Alignment.bottomRight,
                         colors: [AppColors.blue, AppColors.navy],
@@ -79,7 +79,7 @@ class FullStateScreen extends StatelessWidget {
                           child: AppSvgIcon(
                             titleIcon!,
                             size: 23,
-                            color: AppColors.navy,
+                            color: AppColors.ink,
                             strokeWidth: 2.1,
                           ),
                         ),
@@ -93,7 +93,7 @@ class FullStateScreen extends StatelessWidget {
                 Text(
                   body,
                   textAlign: TextAlign.center,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 14.5,
                     height: 1.7,
                     color: AppColors.grey,

@@ -9,7 +9,7 @@ import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../domain/offer.dart';
 
-const _deg7 = -7 * 3.141592653589793 / 180;
+final _deg7 = -7 * 3.141592653589793 / 180;
 
 /// Icons only used in this flow (24×24, stroke 2, from 14/14b).
 enum OfferIcon {
@@ -79,7 +79,7 @@ class Pill extends StatelessWidget {
       children: [
         if (icon != null) ...[
           AppSvgIcon(icon!, size: 14, color: fg),
-          const SizedBox(width: 6),
+          SizedBox(width: 6),
         ],
         Text(
           label,
@@ -112,11 +112,11 @@ class Sticker extends StatelessWidget {
   Widget build(BuildContext context) => Transform.rotate(
     angle: _deg7,
     child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 4),
+      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
       decoration: BoxDecoration(
         color: AppColors.sticker,
         borderRadius: BorderRadius.circular(10),
-        boxShadow: const [
+        boxShadow: [
           BoxShadow(
             color: Color(0xB3FF7A59),
             offset: Offset(0, 4),
@@ -138,7 +138,7 @@ class Sticker extends StatelessWidget {
   );
 }
 
-const cardShadow = BoxShadow(
+final cardShadow = BoxShadow(
   color: Color(0x660B1A3F),
   offset: Offset(0, 14),
   blurRadius: 30,
@@ -176,9 +176,9 @@ class OfferCard extends StatelessWidget {
         clipBehavior: Clip.none,
         children: [
           Container(
-            padding: const EdgeInsets.all(16),
+            padding: EdgeInsets.all(16),
             decoration: BoxDecoration(
-              color: AppColors.white,
+              color: AppColors.surface,
               borderRadius: BorderRadius.circular(AppRadius.card),
               boxShadow: [
                 cardShadow,
@@ -199,7 +199,7 @@ class OfferCard extends StatelessWidget {
                     fit: BoxFit.cover,
                   ),
                 ),
-                const SizedBox(width: 12),
+                SizedBox(width: 12),
                 Expanded(
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
@@ -228,7 +228,7 @@ class OfferCard extends StatelessWidget {
                       ),
                       // Chrome wraps the inline «موثوقة ✓» pill onto its own line here.
                       if (o.trusted)
-                        const Text.rich(
+                        Text.rich(
                           WidgetSpan(
                             alignment: PlaceholderAlignment.baseline,
                             baseline: TextBaseline.alphabetic,
@@ -272,7 +272,7 @@ class OfferCard extends StatelessWidget {
                         color: AppColors.blue,
                       ),
                     ),
-                    const Text(OfferStrings.iqd, style: AppText.muted),
+                    Text(OfferStrings.iqd, style: AppText.muted),
                   ],
                 ),
               ],
@@ -318,7 +318,7 @@ class InfoRow extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(vertical: 13),
     decoration: divider
-        ? const BoxDecoration(
+        ? BoxDecoration(
             border: Border(bottom: BorderSide(color: AppColors.divider)),
           )
         : null,

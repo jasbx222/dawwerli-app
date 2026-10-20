@@ -10,52 +10,52 @@ abstract final class AppText {
   /// Matches CSS `line-height: normal` of the font (typo ascender+descender = 1.5em).
   static const lineHeight = 1.5;
 
-  static const body = TextStyle(
+  static TextStyle get body => TextStyle(
     fontFamily: family,
     height: 1.496032,
     fontSize: 14,
-    color: AppColors.navy,
+    color: AppColors.ink,
   );
-  static const title = TextStyle(
+  static TextStyle get title => TextStyle(
     fontFamily: family,
     height: 1.496032,
     fontSize: 21,
     fontWeight: FontWeight.w700,
   );
-  static const big = TextStyle(
+  static TextStyle get big => TextStyle(
     fontFamily: family,
     height: 1.493687,
     fontSize: 22,
     fontWeight: FontWeight.w700,
-    color: AppColors.navy,
+    color: AppColors.ink,
   );
-  static const label = TextStyle(
+  static TextStyle get label => TextStyle(
     fontFamily: family,
     height: 1.500000,
     fontSize: 13,
     fontWeight: FontWeight.w700,
-    color: AppColors.navy,
+    color: AppColors.ink,
   );
-  static const muted = TextStyle(
+  static TextStyle get muted => TextStyle(
     fontFamily: family,
     height: 1.502222,
     fontSize: 12.5,
     color: AppColors.grey,
   );
-  static const button = TextStyle(
+  static TextStyle get button => TextStyle(
     fontFamily: family,
     height: 1.489583,
     fontSize: 16,
     fontWeight: FontWeight.w700,
   );
-  static const strong = TextStyle(
+  static TextStyle get strong => TextStyle(
     fontFamily: family,
     height: 1.496032,
     fontSize: 14,
     fontWeight: FontWeight.w700,
-    color: AppColors.navy,
+    color: AppColors.ink,
   );
-  static const number = TextStyle(
+  static TextStyle get number => TextStyle(
     fontFamily: family,
     height: lineHeight,
     fontWeight: FontWeight.w600,

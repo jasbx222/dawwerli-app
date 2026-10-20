@@ -21,7 +21,7 @@ class LiveRequestCard extends StatelessWidget {
     return Container(
       padding: const EdgeInsets.all(18),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -64,7 +64,7 @@ class LiveRequestCard extends StatelessWidget {
                     ),
                     Text(
                       AppStrings.reachedPages(r.reachedPages, r.governorate),
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12,
                         height: 1.504630,
                         color: AppColors.grey,
@@ -171,7 +171,7 @@ class LiveRequestCard extends StatelessWidget {
                         text: hhmm(left),
                         style: AppText.number.copyWith(
                           fontWeight: FontWeight.w700,
-                          color: AppColors.navy,
+                          color: AppColors.ink,
                         ),
                       ),
                     ],
@@ -269,7 +269,7 @@ class _Slot extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final fg = cheapest ? AppColors.white : AppColors.navy;
+    final fg = cheapest ? AppColors.white : AppColors.ink;
     return Stack(
       clipBehavior: Clip.none,
       alignment: Alignment.topCenter,
@@ -284,27 +284,33 @@ class _Slot extends StatelessWidget {
               width: 1.5,
             ),
           ),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: [
-              Text(
-                thousands(price),
-                style: TextStyle(
-                  fontSize: 14,
-                  height: 1.496032,
-                  fontWeight: FontWeight.w700,
-                  color: fg,
+          padding: const EdgeInsets.symmetric(horizontal: 4),
+          // 39 · large font: prices shrink to fit the slot instead of wrapping.
+          child: FittedBox(
+            fit: BoxFit.scaleDown,
+            child: Column(
+              mainAxisSize: MainAxisSize.min,
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: [
+                Text(
+                  thousands(price),
+                  style: TextStyle(
+                    fontSize: 14,
+                    height: 1.496032,
+                    fontWeight: FontWeight.w700,
+                    color: fg,
+                  ),
                 ),
-              ),
-              Text(
-                AppStrings.currency,
-                style: TextStyle(
-                  fontSize: 10,
-                  height: 1.480556,
-                  color: cheapest ? AppColors.blueRing : AppColors.grey,
+                Text(
+                  AppStrings.currency,
+                  style: TextStyle(
+                    fontSize: 10,
+                    height: 1.480556,
+                    color: cheapest ? AppColors.blueRing : AppColors.grey,
+                  ),
                 ),
-              ),
-            ],
+              ],
+            ),
           ),
         ),
         if (cheapest)
@@ -316,13 +322,13 @@ class _Slot extends StatelessWidget {
                 color: AppColors.gold,
                 borderRadius: BorderRadius.circular(99),
               ),
-              child: const Text(
+              child: Text(
                 AppStrings.cheapest,
                 style: TextStyle(
                   fontSize: 10,
                   height: 1.480556,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.navy,
+                  color: AppColors.ink,
                 ),
               ),
             ),
@@ -361,7 +367,7 @@ class _DashedRRect extends CustomPainter {
       (Offset.zero & size).deflate(.75),
       const Radius.circular(14),
     );
-    canvas.drawRRect(rr, Paint()..color = AppColors.white);
+    canvas.drawRRect(rr, Paint()..color = AppColors.surface);
     final p = Paint()
       ..color = const Color(0xFFCBD5E1)
       ..style = PaintingStyle.stroke
@@ -374,5 +380,5 @@ class _DashedRRect extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+  bool shouldRepaint(covariant CustomPainter oldDelegate) => true;
 }

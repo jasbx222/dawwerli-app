@@ -59,7 +59,9 @@ class OnboardingScreen extends StatelessWidget {
                 const SizedBox(height: 14),
                 GestureDetector(
                   onTap: () {
-                    ProviderScope.containerOf(context).read(guestProvider.notifier).set(true);
+                    ProviderScope.containerOf(context)
+                        .read(guestProvider.notifier)
+                        .set(true);
                     context.go(Routes.home);
                   },
                   child: Text(
@@ -83,7 +85,7 @@ class _Hero extends StatelessWidget {
   Widget build(BuildContext context) {
     return IshtarBackground(
       borderRadius: const BorderRadius.vertical(bottom: Radius.circular(40)),
-      gradient: const LinearGradient(
+      gradient: LinearGradient(
         // CSS 160deg
         begin: Alignment(-0.342, -0.94),
         end: Alignment(0.342, 0.94),
@@ -178,7 +180,7 @@ class _OffersCard extends StatelessWidget {
       width: 230,
       padding: const EdgeInsets.all(14),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(20),
         boxShadow: const [
           BoxShadow(
@@ -191,7 +193,7 @@ class _OffersCard extends StatelessWidget {
       child: Column(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [
-          const Text(AppStrings.onbOffersArrived, style: AppText.muted),
+          Text(AppStrings.onbOffersArrived, style: AppText.muted),
           const SizedBox(height: 8),
           Row(
             children: [
@@ -236,7 +238,7 @@ class _Slot extends StatelessWidget {
               fontSize: 13.5,
               height: AppText.lh(13.5),
               fontWeight: FontWeight.w700,
-              color: chosen ? AppColors.white : AppColors.navy,
+              color: chosen ? AppColors.white : AppColors.ink,
             ),
           ),
           Text(

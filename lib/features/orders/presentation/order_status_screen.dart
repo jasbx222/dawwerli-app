@@ -75,7 +75,7 @@ class OrderStatusScreen extends ConsumerWidget {
                           ),
                         ),
                       ),
-                      const ExactLine(
+                      ExactLine(
                         fontSize: 12.5,
                         child: Text(OrderStrings.inspect, style: AppText.muted),
                       ),
@@ -159,7 +159,7 @@ class OrderStatusScreen extends ConsumerWidget {
               ),
             if (o.answer == null) ...[
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 OrderStrings.askAgain,
                 textAlign: TextAlign.center,
                 style: AppText.muted,
@@ -194,7 +194,7 @@ class _Step extends StatelessWidget {
           height: 26,
           decoration: BoxDecoration(
             shape: BoxShape.circle,
-            color: step.done ? AppColors.blue : AppColors.white,
+            color: step.done ? AppColors.blue : AppColors.surface,
             boxShadow: const [
               BoxShadow(color: AppColors.blue, spreadRadius: 2),
             ],

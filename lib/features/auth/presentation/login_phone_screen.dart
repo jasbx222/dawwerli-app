@@ -100,7 +100,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                               style: AppText.number.copyWith(
                                 fontSize: 18,
                                 height: AppText.lh(18),
-                                color: AppColors.navy,
+                                color: AppColors.ink,
                               ),
                             ),
                             const SizedBox(width: 9),
@@ -113,7 +113,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                                 style: AppText.number.copyWith(
                                   fontSize: 18,
                                   height: AppText.lh(18),
-                                  color: AppColors.navy,
+                                  color: AppColors.ink,
                                 ),
                                 onChanged: (_) => _errors.isEmpty
                                     ? null
@@ -126,7 +126,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                       ),
                     ),
                     const SizedBox(height: 8),
-                    const Text(AppStrings.loginHint, style: AppText.muted),
+                    Text(AppStrings.loginHint, style: AppText.muted),
                   ],
                 ),
               ),

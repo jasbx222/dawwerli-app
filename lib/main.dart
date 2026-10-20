@@ -6,7 +6,9 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 import 'core/router/app_router.dart';
+import 'core/settings/display_settings.dart';
 import 'core/storage/prefs.dart';
+import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
 
 Future<void> main() async {
@@ -30,12 +32,26 @@ Future<void> main() async {
   );
 }
 
-class DawwerliApp extends StatelessWidget {
+class DawwerliApp extends ConsumerWidget {
   const DawwerliApp({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final display = ref.watch(displaySettingsProvider);
+    final systemDark =
+        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
+    AppColors.dark =
+        display.night == NightMode.on ||
+        (display.night == NightMode.auto && systemDark);
     return MaterialApp.router(
+      builder: (context, child) => RebuildOnChange(
+        token: (AppColors.dark, display.font),
+        child: MediaQuery(
+          data: MediaQuery.of(context)
+              .copyWith(textScaler: TextScaler.linear(display.font.scale)),
+          child: child!,
+        ),
+      ),
       debugShowCheckedModeBanner: false,
       title: 'دوّرلي',
       theme: AppTheme.light,

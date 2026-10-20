@@ -46,7 +46,7 @@ class _SplashScreenState extends State<SplashScreen> {
           rx: 1,
           ry: .7,
           at: const Offset(.5, .3),
-          colors: const [AppColors.blueLight, AppColors.blue, AppColors.navy],
+          colors: [AppColors.blueLight, AppColors.blue, AppColors.navy],
           stops: const [0, .5, 1],
         ),
         child: SizedBox.expand(

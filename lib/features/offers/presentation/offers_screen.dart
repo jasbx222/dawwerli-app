@@ -202,7 +202,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                   ),
                   child: Row(
                     children: [
-                      const AppSvgIcon(
+                      AppSvgIcon(
                         AppIcon.check,
                         size: 18,
                         color: AppColors.infoText,
@@ -265,7 +265,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
               ),
             if (_hidden.isEmpty && list.any((o) => o.sponsored)) ...[
               const SizedBox(height: 12),
-              const Text(
+              Text(
                 OfferStrings.sponsoredNote,
                 textAlign: TextAlign.center,
                 style: AppText.muted,
@@ -358,7 +358,7 @@ class ConfirmSheet extends StatelessWidget {
     Widget point(Widget icon, String text) => Container(
       padding: const EdgeInsets.symmetric(vertical: 13),
       // Every `.li` keeps its rule: the buttons follow, so none is :last-child.
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         border: Border(bottom: BorderSide(color: AppColors.divider)),
       ),
       child: Row(

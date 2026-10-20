@@ -17,15 +17,15 @@ abstract final class AppTheme {
     textTheme: Typography.material2021().black
         .apply(fontFamily: AppText.family)
         .copyWith(
-          bodyMedium: const TextStyle(
+          bodyMedium: TextStyle(
             height: AppText.lineHeight,
             fontSize: 14,
-            color: AppColors.navy,
+            color: AppColors.ink,
           ),
-          bodyLarge: const TextStyle(
+          bodyLarge: TextStyle(
             height: AppText.lineHeight,
             fontSize: 16,
-            color: AppColors.navy,
+            color: AppColors.ink,
           ),
         ),
     textSelectionTheme: const TextSelectionThemeData(

@@ -49,7 +49,7 @@ class AppBottomNav extends StatelessWidget {
     return Container(
       height: 70,
       decoration: BoxDecoration(
-        color: AppColors.white.withValues(alpha: .92),
+        color: AppColors.surface.withValues(alpha: .92),
         borderRadius: BorderRadius.circular(24),
         boxShadow: const [
           BoxShadow(
@@ -85,9 +85,9 @@ class AppBottomNav extends StatelessWidget {
                   ],
                 ),
                 alignment: Alignment.center,
-                child: const AppSvgIcon(
+                child: AppSvgIcon(
                   AppIcon.plus,
-                  color: AppColors.navy,
+                  color: AppColors.ink,
                   size: 26,
                   strokeWidth: 2.6,
                 ),

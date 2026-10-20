@@ -46,9 +46,9 @@ class AppButton extends StatelessWidget {
       ),
       AppButtonVariant.navy => (AppColors.navy, AppColors.white, <BoxShadow>[]),
       AppButtonVariant.ghost => (
-        AppColors.white,
+        AppColors.surface,
         AppColors.blue,
-        [const BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5)],
+        [BoxShadow(color: AppColors.blueRing, spreadRadius: 1.5)],
       ),
       AppButtonVariant.whatsapp => (
         AppColors.whatsapp,

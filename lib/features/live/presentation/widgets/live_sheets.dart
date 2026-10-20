@@ -20,8 +20,8 @@ class AppSheet extends StatelessWidget {
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.fromLTRB(20, 14, 20, 34),
-    decoration: const BoxDecoration(
-      color: AppColors.white,
+    decoration: BoxDecoration(
+      color: AppColors.surface,
       borderRadius: BorderRadius.vertical(top: Radius.circular(28)),
       boxShadow: [
         BoxShadow(
@@ -56,7 +56,7 @@ TextStyle get _sheetTitle => TextStyle(
   fontSize: 18,
   height: AppText.lh(18),
   fontWeight: FontWeight.w700,
-  color: AppColors.navy,
+  color: AppColors.ink,
 );
 
 /// 10b
@@ -74,7 +74,7 @@ class CancelSheet extends StatelessWidget {
     children: [
       Text(AppStrings.cancelTitle, style: _sheetTitle),
       const SizedBox(height: 6),
-      const Text(AppStrings.cancelBody, style: AppText.muted),
+      Text(AppStrings.cancelBody, style: AppText.muted),
       const SizedBox(height: 16),
       AppButton(
         AppStrings.cancelYes,
@@ -117,7 +117,7 @@ class WidenedSheet extends StatelessWidget {
             height: 64,
             child: IshtarBackground(
               borderRadius: BorderRadius.circular(22),
-              gradient: const LinearGradient(
+              gradient: LinearGradient(
                 begin: Alignment.topLeft,
                 end: Alignment.bottomRight,
                 colors: [AppColors.blue, AppColors.navy],

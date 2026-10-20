@@ -127,7 +127,7 @@ class RecoverOffersScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 14),
-            const Text(
+            Text(
               'بعد 48 ساعة تختفي هالعروض نهائياً',
               textAlign: TextAlign.center,
               style: AppText.muted,

@@ -184,9 +184,9 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                                   TextSpan(
                                     text:
                                         '${thousands(s.offer.price)} ${OfferStrings.iqd}',
-                                    style: const TextStyle(
+                                    style: TextStyle(
                                       fontWeight: FontWeight.w600,
-                                      color: AppColors.navy,
+                                      color: AppColors.ink,
                                       fontFeatures: [
                                         FontFeature.tabularFigures(),
                                       ],
@@ -402,10 +402,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                         children: [
                           OfferIcon.alert.of(AppColors.danger, 20),
                           const SizedBox(width: 12),
-                          const Text(
-                            OfferStrings.priceChanged,
-                            style: AppText.body,
-                          ),
+                          Text(OfferStrings.priceChanged, style: AppText.body),
                           const Spacer(),
                           const Text(
                             OfferStrings.report,

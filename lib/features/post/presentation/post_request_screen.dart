@@ -27,7 +27,7 @@ class PostRequestScreen extends ConsumerStatefulWidget {
 }
 
 class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
-  static const _samplePhoto = 'assets/images/mock/cat_shoes_1.webp';
+  static final _samplePhoto = 'assets/images/mock/cat_shoes_1.webp';
   late final _desc = TextEditingController(
     text: ref.read(draftProvider).description,
   )..addListener(_saveDesc);
@@ -60,36 +60,36 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
   Widget build(BuildContext context) {
     final draft = ref.watch(draftProvider);
     final notifier = ref.read(draftProvider.notifier);
-    final cats = ref.watch(suggestedCategoriesProvider).value ?? const [];
+    final cats = ref.watch(suggestedCategoriesProvider).value ?? [];
     final voice = draft.voiceSeconds;
     return Scaffold(
       body: SingleChildScrollView(
         child: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const AppHeader(
+            AppHeader(
               title: AppStrings.postTitle,
               subtitle: Text(AppStrings.postSub),
             ),
             Padding(
-              padding: const EdgeInsets.all(16),
+              padding: EdgeInsets.all(16),
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
                   SegTabs(
-                    labels: const [
+                    labels: [
                       AppStrings.modePhoto,
                       AppStrings.modeText,
                       AppStrings.modeVoice,
                     ],
-                    icons: const [AppIcon.camera, AppIcon.text, AppIcon.mic],
+                    icons: [AppIcon.camera, AppIcon.text, AppIcon.mic],
                     selected: draft.mode.index,
                     onSelect: (i) => notifier.update(
                       (d) => d.copyWith(mode: InputMode.values[i]),
                     ),
                   ),
                   if (draft.mode == InputMode.photo) ...[
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _PhotoBox(
                       photo: draft.photo,
                       // Mock picker: real app opens camera/gallery (image_picker).
@@ -98,8 +98,8 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                       ),
                     ),
                   ],
-                  const SizedBox(height: 14),
-                  const FieldLabel(AppStrings.shortDesc),
+                  SizedBox(height: 14),
+                  FieldLabel(AppStrings.shortDesc),
                   SizedBox(
                     height: 70,
                     child: InputShell(
@@ -112,15 +112,15 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                     ),
                   ),
                   if (voice != null || draft.mode == InputMode.voice) ...[
-                    const SizedBox(height: 14),
+                    SizedBox(height: 14),
                     _VoiceCard(
                       seconds: voice ?? 0,
                       onRecord: () =>
                           notifier.update((d) => d.copyWith(voiceSeconds: 24)),
                     ),
                   ],
-                  const SizedBox(height: 16),
-                  const FieldLabel(AppStrings.suggestedCat),
+                  SizedBox(height: 16),
+                  FieldLabel(AppStrings.suggestedCat),
                   Wrap(
                     spacing: 8,
                     runSpacing: 8,
@@ -140,7 +140,7 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                       ),
                     ],
                   ),
-                  const SizedBox(height: 18),
+                  SizedBox(height: 18),
                   AppButton(
                     AppStrings.next,
                     onPressed: () {
@@ -186,7 +186,7 @@ class _PhotoBox extends StatelessWidget {
                   alignment: Alignment.center,
                 )
               else
-                const ColoredBox(color: AppColors.slotBg),
+                ColoredBox(color: AppColors.slotBg),
               PositionedDirectional(
                 bottom: 12,
                 start: 12,
@@ -213,7 +213,7 @@ class _VoiceCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    const muted = TextStyle(
+    final muted = TextStyle(
       fontSize: 12.5,
       height: 1.502222,
       color: AppColors.grey,
@@ -235,7 +235,7 @@ class _VoiceCard extends StatelessWidget {
                     shape: BoxShape.circle,
                   ),
                   alignment: Alignment.center,
-                  child: const AppSvgIcon(
+                  child: AppSvgIcon(
                     AppIcon.mic,
                     size: 20,
                     color: AppColors.navy,
@@ -258,13 +258,13 @@ class _VoiceCard extends StatelessWidget {
                 style: AppText.number.copyWith(
                   fontSize: 14,
                   height: AppText.lh(14),
-                  color: AppColors.navy,
+                  color: AppColors.ink,
                 ),
               ),
             ],
           ),
           const SizedBox(height: 6),
-          const Text(AppStrings.voiceNote, style: muted),
+          Text(AppStrings.voiceNote, style: muted),
           const SizedBox(height: 6),
           const EmojiText(
             AppStrings.voiceWarn,

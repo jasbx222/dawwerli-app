@@ -44,7 +44,7 @@ class OtpScreen extends ConsumerStatefulWidget {
 }
 
 class _OtpScreenState extends ConsumerState<OtpScreen> {
-  static const _len = 6;
+  static final _len = 6;
   late final _ctrl = TextEditingController(text: widget.initialCode);
   final _focus = FocusNode();
   Timer? _tick;
@@ -58,7 +58,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   void initState() {
     super.initState();
     if (!widget.frozenClock) {
-      _tick = Timer.periodic(const Duration(seconds: 1), (_) => _onTick());
+      _tick = Timer.periodic(Duration(seconds: 1), (_) => _onTick());
       WidgetsBinding.instance.addPostFrameCallback(
         (_) => _focus.requestFocus(),
       );
@@ -66,7 +66,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   void _onTick() {
-    const s = Duration(seconds: 1);
+    final s = Duration(seconds: 1);
     setState(() {
       if (_expires > Duration.zero) _expires -= s;
       if (_expires <= Duration.zero) _expired = true;
@@ -149,7 +149,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 ),
                 onBack: () => context.go(Routes.login),
               ),
-              const SizedBox(height: 28),
+              SizedBox(height: 28),
               GestureDetector(
                 onTap: () => _focus.requestFocus(),
                 child: Stack(
@@ -166,7 +166,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                           focusNode: _focus,
                           enabled: _locked == null,
                           keyboardType: TextInputType.number,
-                          autofillHints: const [AutofillHints.oneTimeCode],
+                          autofillHints: [AutofillHints.oneTimeCode],
                           inputFormatters: [
                             FilteringTextInputFormatter.digitsOnly,
                             LengthLimitingTextInputFormatter(_len),
@@ -193,16 +193,16 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                   ],
                 ),
               ),
-              const SizedBox(height: 18),
+              SizedBox(height: 18),
               Text.rich(
                 TextSpan(
                   children: [
-                    const TextSpan(text: AppStrings.otpExpiresIn),
+                    TextSpan(text: AppStrings.otpExpiresIn),
                     TextSpan(
                       text: mmss(_expires),
                       style: AppText.number.copyWith(
                         fontWeight: FontWeight.w700,
-                        color: AppColors.navy,
+                        color: AppColors.ink,
                       ),
                     ),
                   ],
@@ -211,7 +211,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 style: AppText.muted,
               ),
               Padding(
-                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                padding: EdgeInsets.fromLTRB(16, 14, 16, 0),
                 child: _resend > Duration.zero
                     ? AppButton(
                         '${AppStrings.otpResendIn}${mmss(_resend)}',
@@ -240,7 +240,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                     }),
                   )
                 else
-                  const AppCard(
+                  AppCard(
                     child: Row(
                       children: [
                         AppSvgIcon(AppIcon.whatsapp, color: AppColors.whatsapp),
@@ -297,7 +297,7 @@ class _Box extends StatelessWidget {
       height: 58,
       alignment: Alignment.center,
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         boxShadow: [
           BoxShadow(
@@ -311,7 +311,7 @@ class _Box extends StatelessWidget {
         style: AppText.number.copyWith(
           fontSize: 24,
           height: AppText.lh(24),
-          color: AppColors.navy,
+          color: AppColors.ink,
         ),
       ),
     );

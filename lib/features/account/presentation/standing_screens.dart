@@ -96,13 +96,13 @@ class StandingScreen extends StatelessWidget {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
-                      const Text('ليش؟', style: AppText.strong),
+                      Text('ليش؟', style: AppText.strong),
                       for (var i = 0; i < _strikes.length; i++)
                         Container(
                           padding: const EdgeInsets.symmetric(vertical: 13),
                           decoration: i == _strikes.length - 1
                               ? null
-                              : const BoxDecoration(
+                              : BoxDecoration(
                                   border: Border(
                                     bottom: BorderSide(
                                       color: AppColors.divider,
@@ -174,7 +174,7 @@ class StandingScreen extends StatelessWidget {
                                   fg: AppColors.warn,
                                 ),
                                 const SizedBox(width: 12),
-                                const Text('اعتراضك', style: AppText.muted),
+                                Text('اعتراضك', style: AppText.muted),
                                 const Spacer(),
                                 Text(
                                   'APL-5102',
@@ -186,10 +186,7 @@ class StandingScreen extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            const Text(
-                              'القرار خلال 48 ساعة',
-                              style: AppText.muted,
-                            ),
+                            Text('القرار خلال 48 ساعة', style: AppText.muted),
                           ],
                         ),
                       ),
@@ -263,7 +260,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const Text('نوع الاعتراض', style: AppText.label),
+                Text('نوع الاعتراض', style: AppText.label),
                 const SizedBox(height: 8),
                 for (var i = 0; i < _types.length; i++)
                   Padding(
@@ -275,7 +272,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                     ),
                   ),
                 const SizedBox(height: 10),
-                const Text('احجيلنا شصار', style: AppText.label),
+                Text('احجيلنا شصار', style: AppText.label),
                 const SizedBox(height: 8),
                 Container(
                   height: 90,
@@ -284,7 +281,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                     vertical: 13,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.white,
+                    color: AppColors.surface,
                     borderRadius: BorderRadius.circular(16),
                     border: Border.all(color: AppColors.border, width: 1.5),
                   ),
@@ -300,7 +297,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                   ),
                 ),
                 const SizedBox(height: 12),
-                const Text('صور (اختياري)', style: AppText.label),
+                Text('صور (اختياري)', style: AppText.label),
                 const SizedBox(height: 8),
                 const Align(
                   alignment: AlignmentDirectional.centerStart,
@@ -346,7 +343,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                   ),
                 ),
                 const SizedBox(height: 14),
-                const AppCard(
+                AppCard(
                   flat: true,
                   color: AppColors.blueTint,
                   child: Text(
@@ -388,7 +385,7 @@ class DisputeStatusScreen extends StatelessWidget {
             height: 26,
             decoration: BoxDecoration(
               shape: BoxShape.circle,
-              color: done ? AppColors.blue : AppColors.white,
+              color: done ? AppColors.blue : AppColors.surface,
               border: Border.all(color: AppColors.blue, width: 2),
             ),
             alignment: Alignment.center,
@@ -481,7 +478,7 @@ class DisputeStatusScreen extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const Text('القرار', style: AppText.strong),
+                    Text('القرار', style: AppText.strong),
                     const SizedBox(height: 10),
                     const Wrap(
                       spacing: 8,
@@ -502,10 +499,7 @@ class DisputeStatusScreen extends StatelessWidget {
                       ],
                     ),
                     const SizedBox(height: 8),
-                    const Text(
-                      'نبلغك بإشعار أول ما ينحسم',
-                      style: AppText.muted,
-                    ),
+                    Text('نبلغك بإشعار أول ما ينحسم', style: AppText.muted),
                   ],
                 ),
               ),

@@ -46,7 +46,7 @@ class AppHeader extends StatelessWidget {
         rx: 1.2,
         ry: .9,
         at: const Offset(1, 0),
-        colors: const [AppColors.blueLight, AppColors.blue, AppColors.navy],
+        colors: [AppColors.blueLight, AppColors.blue, AppColors.navy],
         stops: const [0, .45, 1],
       ),
       child: Stack(

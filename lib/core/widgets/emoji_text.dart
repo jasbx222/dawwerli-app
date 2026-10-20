@@ -63,6 +63,16 @@ class EmojiText extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    if (!_re.hasMatch(data)) {
+      return Text(
+        data,
+        style: style,
+        textAlign: textAlign,
+        maxLines: maxLines,
+        overflow: overflow,
+        strutStyle: strutStyle,
+      );
+    }
     final s = DefaultTextStyle.of(context).style.merge(style);
     return Text.rich(
       TextSpan(

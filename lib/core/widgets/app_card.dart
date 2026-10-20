@@ -29,11 +29,11 @@ class AppCard extends StatelessWidget {
       width: double.infinity,
       padding: insets ?? EdgeInsets.all(padding),
       decoration: BoxDecoration(
-        color: color ?? AppColors.white,
+        color: color ?? AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.card),
         boxShadow: flat
             ? null
-            : const [
+            : [
                 BoxShadow(
                   color: Color(0x660B1A3F),
                   offset: Offset(0, 14),

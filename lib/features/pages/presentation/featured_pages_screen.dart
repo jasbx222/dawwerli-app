@@ -50,7 +50,7 @@ class FeaturedPagesScreen extends ConsumerWidget {
                 ),
               ),
             const SizedBox(height: 12),
-            const Text(
+            Text(
               AppStrings.featuredFoot,
               textAlign: TextAlign.center,
               style: AppText.muted,
@@ -97,9 +97,9 @@ class _FeaturedCard extends StatelessWidget {
                     children: [
                       Text(page.name, style: AppText.strong),
                       const SizedBox(width: 4),
-                      const AppSvgIcon(
+                      AppSvgIcon(
                         AppIcon.check,
-                        color: AppColors.navy,
+                        color: AppColors.ink,
                         size: 14.7,
                         strokeWidth: 2.1,
                       ),

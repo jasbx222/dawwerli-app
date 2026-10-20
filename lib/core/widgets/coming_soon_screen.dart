@@ -20,7 +20,7 @@ class ComingSoonScreen extends StatelessWidget {
           onBack: () =>
               context.canPop() ? context.pop() : context.go(Routes.home),
         ),
-        const Expanded(
+        Expanded(
           child: Center(child: Text(AppStrings.comingSoon, style: AppText.big)),
         ),
       ],

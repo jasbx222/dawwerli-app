@@ -66,7 +66,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const Text(ReportStrings.what, style: AppText.label),
+                      Text(ReportStrings.what, style: AppText.label),
                       const SizedBox(height: 8),
                       for (var i = 0; i < ReportStrings.reasons.length; i++)
                         Padding(
@@ -78,7 +78,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                           ),
                         ),
                       const SizedBox(height: 12),
-                      const Text(ReportStrings.addPhoto, style: AppText.label),
+                      Text(ReportStrings.addPhoto, style: AppText.label),
                       const SizedBox(height: 8),
                       Row(
                         children: [
@@ -110,7 +110,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         ],
                       ),
                       const SizedBox(height: 14),
-                      const AppCard(
+                      AppCard(
                         flat: true,
                         color: AppColors.blueTint,
                         child: Text(
@@ -204,11 +204,11 @@ class BlockSheet extends StatelessWidget {
           fontSize: 18,
           height: AppText.lh(18),
           fontWeight: FontWeight.w700,
-          color: AppColors.navy,
+          color: AppColors.ink,
         ),
       ),
       const SizedBox(height: 6),
-      const Text(ReportStrings.blockBody, style: AppText.muted),
+      Text(ReportStrings.blockBody, style: AppText.muted),
       const SizedBox(height: 16),
       AppButton(
         ReportStrings.blockYes,
@@ -244,7 +244,7 @@ class ReportRadio extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(16),
         border: Border.all(
           color: on ? AppColors.blue : AppColors.border,
@@ -293,8 +293,8 @@ class _Toggle extends StatelessWidget {
     child: Container(
       width: 20,
       height: 20,
-      decoration: const BoxDecoration(
-        color: AppColors.white,
+      decoration: BoxDecoration(
+        color: AppColors.surface,
         shape: BoxShape.circle,
       ),
     ),
@@ -328,7 +328,7 @@ class ReportSentScreen extends ConsumerWidget {
                   height: 120,
                   child: IshtarBackground(
                     borderRadius: BorderRadius.circular(40),
-                    gradient: const LinearGradient(
+                    gradient: LinearGradient(
                       begin: Alignment.topLeft,
                       end: Alignment.bottomRight,
                       colors: [AppColors.blue, AppColors.navy],
@@ -343,7 +343,7 @@ class ReportSentScreen extends ConsumerWidget {
                   ),
                 ),
                 const SizedBox(height: 20),
-                const Text(ReportStrings.trackLabel, style: AppText.big),
+                Text(ReportStrings.trackLabel, style: AppText.big),
                 Text(
                   // Mock tracking number until the complaints API lands.
                   'CMP-30917',
@@ -351,7 +351,7 @@ class ReportSentScreen extends ConsumerWidget {
                   style: AppText.big.copyWith(color: AppColors.blue),
                 ),
                 const SizedBox(height: 10),
-                const Text(
+                Text(
                   ReportStrings.sentBody,
                   textAlign: TextAlign.center,
                   style: TextStyle(

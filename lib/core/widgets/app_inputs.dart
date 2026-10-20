@@ -44,7 +44,7 @@ class InputShell extends StatelessWidget {
         vertical: focused ? 12.5 : 13,
       ),
       decoration: BoxDecoration(
-        color: AppColors.white,
+        color: AppColors.surface,
         borderRadius: BorderRadius.circular(AppRadius.input),
         border: Border.all(
           color: focused ? AppColors.blue : AppColors.border,
@@ -61,11 +61,7 @@ class InputShell extends StatelessWidget {
             : null,
       ),
       child: DefaultTextStyle.merge(
-        style: const TextStyle(
-          fontSize: 15,
-          height: 1.492593,
-          color: AppColors.navy,
-        ),
+        style: TextStyle(fontSize: 15, height: 1.492593, color: AppColors.ink),
         child: exactLine ? ExactLine(fontSize: 15, child: child) : child,
       ),
     );
@@ -105,11 +101,11 @@ class BareTextField extends StatelessWidget {
       onChanged: onChanged,
       style:
           style ??
-          const TextStyle(
+          TextStyle(
             fontFamily: AppText.family,
             fontSize: 15,
             height: 1.492593,
-            color: AppColors.navy,
+            color: AppColors.ink,
           ),
       decoration: const InputDecoration.collapsed(hintText: ''),
     );
@@ -140,15 +136,15 @@ class AppChip extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
+        padding: EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
           color: selected
               ? AppColors.blue
-              : (gold ? AppColors.warnBg : AppColors.white),
+              : (gold ? AppColors.warnBg : AppColors.surface),
           borderRadius: BorderRadius.circular(AppRadius.chip),
           boxShadow: selected || gold
               ? null
-              : const [BoxShadow(color: AppColors.border, spreadRadius: 1.5)],
+              : [BoxShadow(color: AppColors.border, spreadRadius: 1.5)],
         ),
         child: ExactLine(
           fontSize: 13,
@@ -160,7 +156,7 @@ class AppChip extends StatelessWidget {
               fontWeight: FontWeight.w600,
               color: selected
                   ? AppColors.white
-                  : (gold ? AppColors.warn : AppColors.navy),
+                  : (gold ? AppColors.warn : AppColors.ink),
             ),
           ),
         ),
