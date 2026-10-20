@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../guest/guest.dart';
+
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -93,6 +96,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     if (!mounted) return;
     switch (r) {
       case OtpOk(:final needsProfile):
+        ref.read(guestProvider.notifier).set(false);
         context.go(needsProfile ? Routes.profileSetup : Routes.home);
       case OtpWrong(:final attemptsLeft):
         setState(() => _attemptsLeft = attemptsLeft);

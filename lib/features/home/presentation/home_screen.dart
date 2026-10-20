@@ -1,6 +1,9 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../guest/guest.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -45,13 +48,27 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   HomeHeader(
                     data: d,
-                    onBell: () => context.go(Routes.notifications),
+                    guest: ref.watch(guestProvider),
+                    onBell: () => memberOnly(
+                      context,
+                      ref,
+                      () => context.go(Routes.notifications),
+                    ),
                     onLocation: soon,
                     onStory: (_) => soon(),
                   ),
                   Transform.translate(
                     offset: const Offset(0, -_overlap),
-                    child: _Body(data: d, onSoon: soon),
+                    child: _Body(
+                      data: d,
+                      onSoon: soon,
+                      guest: ref.watch(guestProvider),
+                      onPost: () => memberOnly(
+                        context,
+                        ref,
+                        () => context.push(Routes.post),
+                      ),
+                    ),
                   ),
                 ],
               ),
@@ -80,11 +97,24 @@ class HomeScreen extends ConsumerWidget {
               current: NavTab.home,
               onTab: (t) => switch (t) {
                 NavTab.home => null,
-                NavTab.requests => context.go(Routes.myRequests),
-                NavTab.notifications => context.go(Routes.notifications),
-                NavTab.account => context.go(Routes.account),
+                NavTab.requests => memberOnly(
+                  context,
+                  ref,
+                  () => context.go(Routes.myRequests),
+                ),
+                NavTab.notifications => memberOnly(
+                  context,
+                  ref,
+                  () => context.go(Routes.notifications),
+                ),
+                NavTab.account => memberOnly(
+                  context,
+                  ref,
+                  () => context.go(Routes.account),
+                ),
               },
-              onPost: () => context.push(Routes.post),
+              onPost: () =>
+                  memberOnly(context, ref, () => context.push(Routes.post)),
             ),
           ),
         ],
@@ -94,9 +124,16 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.data, required this.onSoon});
+  const _Body({
+    required this.data,
+    required this.onSoon,
+    required this.onPost,
+    this.guest = false,
+  });
   final HomeData data;
   final VoidCallback onSoon;
+  final VoidCallback onPost;
+  final bool guest;
 
   @override
   Widget build(BuildContext context) {
@@ -104,7 +141,12 @@ class _Body extends StatelessWidget {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        if (d.liveRequest != null)
+        if (guest)
+          const Padding(
+            padding: EdgeInsets.symmetric(horizontal: 16),
+            child: GuestCard(),
+          )
+        else if (d.liveRequest != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: LiveRequestCard(
@@ -112,7 +154,7 @@ class _Body extends StatelessWidget {
               onCompare: () => context.push(Routes.offers(d.liveRequest!.id)),
             ),
           ),
-        PostRequestCta(onTap: () => context.push(Routes.post)),
+        PostRequestCta(onTap: onPost),
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(AppStrings.secTrending, onSeeAll: onSoon),

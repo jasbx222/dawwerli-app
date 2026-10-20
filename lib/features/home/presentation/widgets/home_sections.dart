@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -147,7 +149,16 @@ class ActivityTicker extends StatelessWidget {
                           child: Text.rich(
                             TextSpan(
                               children: [
-                                const TextSpan(text: '⚡ '),
+                                const WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: AppSvgIcon(
+                                    AppIcon.zap,
+                                    color: AppColors.goldSoft,
+                                    size: 13,
+                                    strokeWidth: 2.1,
+                                  ),
+                                ),
+                                const TextSpan(text: ' '),
                                 TextSpan(
                                   text: f.category,
                                   style: const TextStyle(
@@ -419,7 +430,7 @@ class _BentoTile extends StatelessWidget {
                       color: badge.$2,
                       borderRadius: BorderRadius.circular(99),
                     ),
-                    child: Text(
+                    child: EmojiText(
                       badge.$1,
                       style: const TextStyle(
                         fontSize: 11,

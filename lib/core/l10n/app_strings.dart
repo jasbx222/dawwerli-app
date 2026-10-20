@@ -16,6 +16,14 @@ abstract final class AppStrings {
   static const onbBody =
       'صوّر الغرض أو اكتبه أو احجيه. أول 5 صفحات موثقة تنطيك سعر ثابت، وإنت تختار. الدفع عند الاستلام.';
   static const onbStart = 'يلا نبلش';
+  static const helloGuest = 'هلا بيك 👋 (زائر)';
+  static const guestTitle = 'كول شتريد، والصفحات تجيك بعروضها 🔥';
+  static const guestSub = 'تكدر تتصفح هسه، والتسجيل بس من تنشر';
+  static const guestSheetTitle = 'سجّل حتى تنشر طلبك ✍️';
+  static const guestSheetBody =
+      'مسودتك محفوظة. نرسلك كود على رقمك، ورقمك ما ينكشف إلا للصفحة اللي تختارها.';
+  static const guestSend = 'دزلي الكود';
+  static const guestKeepBrowsing = 'أكمل تصفح';
   static const onbBrowse = 'تصفح بدون حساب';
 
   // Login (phone)

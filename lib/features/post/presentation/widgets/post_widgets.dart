@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/widgets/exact_line.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -159,7 +161,7 @@ class IssueCard extends StatelessWidget {
         children: [
           ExactLine(
             fontSize: 14,
-            child: Text(
+            child: EmojiText(
               title,
               style: TextStyle(
                 fontSize: 14,

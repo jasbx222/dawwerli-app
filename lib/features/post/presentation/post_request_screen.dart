@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -263,7 +266,7 @@ class _VoiceCard extends StatelessWidget {
           const SizedBox(height: 6),
           const Text(AppStrings.voiceNote, style: muted),
           const SizedBox(height: 6),
-          const Text(
+          const EmojiText(
             AppStrings.voiceWarn,
             style: TextStyle(
               fontSize: 12.5,

@@ -1,4 +1,10 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../guest/guest.dart';
+
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_strings.dart';
@@ -52,7 +58,10 @@ class OnboardingScreen extends StatelessWidget {
                 ),
                 const SizedBox(height: 14),
                 GestureDetector(
-                  onTap: () => context.go(Routes.home),
+                  onTap: () {
+                    ProviderScope.containerOf(context).read(guestProvider.notifier).set(true);
+                    context.go(Routes.home);
+                  },
                   child: Text(
                     AppStrings.onbBrowse,
                     style: AppText.strong.copyWith(color: AppColors.blue),
@@ -140,7 +149,7 @@ class _Hero extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Text(
+                child: EmojiText(
                   AppStrings.onbSticker,
                   style: AppText.body.copyWith(
                     fontSize: 12,

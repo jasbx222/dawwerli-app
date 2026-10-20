@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/widgets/app_icons.dart';
@@ -15,7 +17,11 @@ class HomeHeader extends StatelessWidget {
     this.onLocation,
     this.onBell,
     this.onStory,
+    this.guest = false,
   });
+
+  /// 51 · «هلا بيك (زائر)».
+  final bool guest;
 
   final HomeData data;
   final VoidCallback? onLocation;
@@ -159,8 +165,10 @@ class HomeHeader extends StatelessWidget {
                       children: [
                         Opacity(
                           opacity: .85,
-                          child: Text(
-                            AppStrings.hello(data.firstName),
+                          child: EmojiText(
+                            guest
+                                ? AppStrings.helloGuest
+                                : AppStrings.hello(data.firstName),
                             style: const TextStyle(fontSize: 14),
                           ),
                         ),

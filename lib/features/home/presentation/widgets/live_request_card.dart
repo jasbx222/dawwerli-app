@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -77,7 +79,7 @@ class LiveRequestCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              Text(
+              EmojiText(
                 AppStrings.pagesCompeting(r.offerPrices.length),
                 style: const TextStyle(
                   fontSize: 13,
@@ -136,7 +138,7 @@ class LiveRequestCard extends StatelessWidget {
                           ),
                         ],
                       ),
-                      child: const Text(
+                      child: const EmojiText(
                         AppStrings.goodOffer,
                         style: TextStyle(
                           fontSize: 11,

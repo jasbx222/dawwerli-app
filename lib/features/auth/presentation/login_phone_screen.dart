@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -76,7 +79,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
             children: [
               AppHeader(
                 title: AppStrings.loginTitle,
-                subtitle: const Text(AppStrings.loginSub),
+                subtitle: const EmojiText(AppStrings.loginSub),
                 onBack: () => context.go(Routes.onboarding),
               ),
               Padding(

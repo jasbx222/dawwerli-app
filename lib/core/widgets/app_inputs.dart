@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'emoji_text.dart';
+
 import 'exact_line.dart';
 
 import '../theme/app_colors.dart';
@@ -150,7 +152,7 @@ class AppChip extends StatelessWidget {
         ),
         child: ExactLine(
           fontSize: 13,
-          child: Text(
+          child: EmojiText(
             label,
             style: TextStyle(
               fontSize: 13,

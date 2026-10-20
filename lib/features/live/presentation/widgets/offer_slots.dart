@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -37,7 +39,7 @@ class OffersCard extends StatelessWidget {
             children: [
               Row(
                 children: [
-                  Text(
+                  EmojiText(
                     n == 0
                         ? AppStrings.noOffersYet
                         : AppStrings.pagesFighting(n),
@@ -120,7 +122,7 @@ class OffersCard extends StatelessWidget {
                     ),
                   ],
                 ),
-                child: Text(
+                child: EmojiText(
                   AppStrings.goodOffer,
                   style: TextStyle(
                     fontSize: 12,

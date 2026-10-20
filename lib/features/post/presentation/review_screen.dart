@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -222,7 +225,7 @@ class _SummaryCard extends StatelessWidget {
                     ),
                     Text(meta, style: AppText.muted),
                     if (draft.voiceSeconds != null)
-                      Text(
+                      EmojiText(
                         AppStrings.voiceLen(mss(draft.voiceSeconds!)),
                         style: AppText.muted,
                       ),

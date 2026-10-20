@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'package:dawwerli/core/widgets/emoji_text.dart';
+
 import '../../../../core/l10n/app_strings.dart';
 import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
@@ -131,7 +133,7 @@ class WidenedSheet extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 12),
-        Text(
+        EmojiText(
           AppStrings.widenedTitle,
           textAlign: TextAlign.center,
           style: _sheetTitle,
@@ -148,7 +150,7 @@ class WidenedSheet extends StatelessWidget {
             flat: true,
             color: AppColors.warnBg,
             padding: 12,
-            child: Text(
+            child: EmojiText(
               AppStrings.raiseTip(thousands(request.suggestedPrice!)),
               style: AppText.muted.copyWith(color: AppColors.warnText),
             ),
