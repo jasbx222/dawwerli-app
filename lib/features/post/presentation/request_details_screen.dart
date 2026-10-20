@@ -284,9 +284,11 @@ class _Dropdown extends StatelessWidget {
               Padding(
                 padding: const EdgeInsets.only(top: 8.4),
                 child: SvgPicture.string(
-                  '<svg width="72" height="67" viewBox="0 0 72 67"><path d="M0 0H72L36 67Z" fill="#0F1E3D"/></svg>',
-                  width: 6.5,
-                  height: 7.5,
+                  '<svg viewBox="0 0 10 10" preserveAspectRatio="none"><path d="M0 0H10L5 10Z" fill="#0F1E3D"/></svg>',
+                  width: 7.5,
+                  height: 7.6,
+                  // Box chosen so the antialiased ink matches the design's 6.8×6.9.
+                  fit: BoxFit.fill,
                 ),
               ),
             ],
