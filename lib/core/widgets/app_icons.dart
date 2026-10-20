@@ -54,6 +54,9 @@ enum AppIcon {
     '<path d="M3 3v18h18"/><path d="M18 17V9"/><path d="M13 17V5"/><path d="M8 17v-3"/>',
   ),
   filter('<path d="M22 3H2l8 9.46V19l4 2v-8.54z"/>'),
+  flag(
+    '<path d="M4 22V4s1-1 4-1 5 2 8 2 4-1 4-1v12s-1 1-4 1-5-2-8-2-4 1-4 1"/>',
+  ),
   star(
     '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14 3 9.27l6.91-1.01z"/>',
     filled: true,

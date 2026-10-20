@@ -32,6 +32,7 @@ import '../../features/orders/domain/order.dart';
 import '../../features/orders/presentation/order_status_screen.dart';
 import '../../features/orders/presentation/rating_screen.dart';
 import '../../features/orders/presentation/my_requests_screen.dart';
+import '../../features/report/presentation/report_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -291,6 +292,23 @@ final appRouter = GoRouter(
         return OrderStatusScreen(orderId: s.pathParameters['id']!);
       },
       routes: [
+        // 27 · `?reason=` preselects (0-based); `?preview=block` opens 27c.
+        GoRoute(
+          path: 'report',
+          builder: (_, s) => ReportScreen(
+            orderId: s.pathParameters['id']!,
+            initialReason:
+                int.tryParse(s.uri.queryParameters['reason'] ?? '') ?? 1,
+            openBlock: s.uri.queryParameters['preview'] == 'block',
+          ),
+          routes: [
+            GoRoute(
+              path: 'sent',
+              builder: (_, s) =>
+                  ReportSentScreen(orderId: s.pathParameters['id']!),
+            ),
+          ],
+        ),
         GoRoute(
           path: 'rate',
           builder: (context, s) {

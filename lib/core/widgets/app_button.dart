@@ -3,6 +3,7 @@ import 'package:flutter/material.dart';
 import 'exact_line.dart';
 
 import '../theme/app_colors.dart';
+import 'app_icons.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
@@ -15,7 +16,11 @@ class AppButton extends StatelessWidget {
     this.onPressed,
     this.variant = AppButtonVariant.primary,
     this.compact = false,
+    this.icon,
   });
+
+  /// Leading SVG icon (8px gap), e.g. the lock on «احظر».
+  final AppIcon? icon;
 
   final String label;
   final VoidCallback? onPressed;
@@ -74,16 +79,25 @@ class AppButton extends StatelessWidget {
             boxShadow: shadows,
           ),
           alignment: Alignment.center,
-          child: ExactLine(
-            fontSize: compact ? 14.5 : 16,
-            child: Text(
-              label,
-              style: AppText.button.copyWith(
-                color: fg,
+          child: Row(
+            mainAxisSize: MainAxisSize.min,
+            children: [
+              if (icon != null) ...[
+                AppSvgIcon(icon!, color: fg, size: 18),
+                const SizedBox(width: 8),
+              ],
+              ExactLine(
                 fontSize: compact ? 14.5 : 16,
-                height: AppText.lh(compact ? 14.5 : 16),
+                child: Text(
+                  label,
+                  style: AppText.button.copyWith(
+                    color: fg,
+                    fontSize: compact ? 14.5 : 16,
+                    height: AppText.lh(compact ? 14.5 : 16),
+                  ),
+                ),
               ),
-            ),
+            ],
           ),
         ),
       ),

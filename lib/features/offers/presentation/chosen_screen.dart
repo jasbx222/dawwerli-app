@@ -394,7 +394,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                 m(
                   14,
                   GestureDetector(
-                    onTap: () => context.push(Routes.comingSoon),
+                    onTap: () => context.push(Routes.report('o1', reason: 2)),
                     child: AppCard(
                       child: Row(
                         children: [
