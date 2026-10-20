@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_svg/flutter_svg.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -250,6 +251,8 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
 }
 
 class _Dropdown extends StatelessWidget {
+  static const _gap = 3.6;
+
   const _Dropdown({
     required this.label,
     required this.value,
@@ -271,7 +274,23 @@ class _Dropdown extends StatelessWidget {
         onTap: onTap,
         child: InputShell(
           focused: focused,
-          child: Text('${value ?? ''} ▾', maxLines: 1),
+          // Design `43 ▾`: filled navy triangle, ink 6.8×6.9 on the hi-res render,
+          // 22.7px below the box's outer top, 4.7px ink gap to the value.
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              Text(value ?? '', maxLines: 1),
+              const SizedBox(width: _gap),
+              Padding(
+                padding: const EdgeInsets.only(top: 8.4),
+                child: SvgPicture.string(
+                  '<svg width="72" height="67" viewBox="0 0 72 67"><path d="M0 0H72L36 67Z" fill="#0F1E3D"/></svg>',
+                  width: 6.5,
+                  height: 7.5,
+                ),
+              ),
+            ],
+          ),
         ),
       ),
     ],
