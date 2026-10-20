@@ -9,6 +9,7 @@ import '../../../core/widgets/app_icons.dart';
 /// Icons only used in this group (24×24, stroke 2).
 enum OrderIcon {
   box('<path d="M21 8 12 3 3 8v8l9 5 9-5z"/><path d="M3 8l9 5 9-5M12 13v8"/>'),
+  alert('<circle cx="12" cy="12" r="9"/><path d="M12 7.5v5.5M12 16.5h.01"/>'),
   ok('<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9.5"/>');
 
   const OrderIcon(this.body);
@@ -34,7 +35,7 @@ class LabelIconButton extends StatelessWidget {
   const LabelIconButton({
     super.key,
     required this.label,
-    required this.icon,
+    this.icon,
     required this.bg,
     required this.fg,
     this.shadow = false,

@@ -22,7 +22,11 @@ class RatingScreen extends ConsumerStatefulWidget {
     this.initialStars = 0,
     this.initialTags = const {},
     this.initialComment = '',
+    this.initialFailed = false,
   });
+
+  /// Design QA: show the send-failed toast.
+  final bool initialFailed;
   final String orderId;
   final int initialStars;
   final Set<String> initialTags;
@@ -39,6 +43,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
 
   /// Saved rating already applied to the form.
   bool _toast = false;
+  late bool _failed = widget.initialFailed;
 
   @override
   void dispose() {
@@ -57,7 +62,12 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
           );
     } on AlreadyRated {
       // falls through to the 16b state
+    } catch (_) {
+      // Keep the written rating; button stays active for a retry.
+      if (mounted) setState(() => _failed = true);
+      return;
     }
+    if (mounted) setState(() => _failed = false);
     ref.invalidate(orderProvider(widget.orderId));
   }
 
@@ -79,8 +89,11 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
         ..addAll(saved.tags);
       _comment.text = saved.comment;
     }
-    final showToast = rated;
-    final tags = ref.read(ordersRepositoryProvider).ratingTags;
+    final showToast = rated || _failed;
+    final off = rated || _stars == 0;
+    final repo = ref.read(ordersRepositoryProvider);
+    final low = _stars > 0 && _stars <= 2;
+    final tags = low ? repo.lowRatingTags : repo.ratingTags;
     final locked = rated;
     return Scaffold(
       body: Stack(
@@ -123,7 +136,13 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                                 GestureDetector(
                                   onTap: locked
                                       ? null
-                                      : () => setState(() => _stars = i),
+                                      : () => setState(() {
+                                          if ((i <= 2) !=
+                                              (_stars > 0 && _stars <= 2)) {
+                                            _tags.clear();
+                                          }
+                                          _stars = i;
+                                        }),
                                   child: AppSvgIcon(
                                     AppIcon.star,
                                     size: 44,
@@ -136,22 +155,30 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                             ],
                           ),
                         ),
-                        // Only the 4-star label is designed («خوش صفحة»).
-                        if (_stars == 4) ...[
-                          const SizedBox(height: 8),
-                          Text.rich(
-                            TextSpan(
-                              text: '${OrderStrings.goodPage} ',
-                              children: [
-                                svgSpan(OrderIcon.ok.of(AppColors.gold, 18)),
-                              ],
-                            ),
-                            style: AppText.strong.copyWith(
-                              fontSize: 17,
-                              height: AppText.lh(17),
-                            ),
+                        const SizedBox(height: 8),
+                        Text.rich(
+                          _stars == 0
+                              ? const TextSpan(text: OrderStrings.pickStars)
+                              : TextSpan(
+                                  text:
+                                      '${OrderStrings.starLabels[_stars - 1]} ',
+                                  children: [
+                                    svgSpan(
+                                      _stars >= 3
+                                          ? OrderIcon.ok.of(AppColors.gold, 18)
+                                          : OrderIcon.alert.of(
+                                              const Color(0xFFA8A29E),
+                                              18,
+                                            ),
+                                    ),
+                                  ],
+                                ),
+                          style: AppText.strong.copyWith(
+                            fontSize: 17,
+                            height: AppText.lh(17),
+                            color: _stars == 0 ? AppColors.grey : null,
                           ),
-                        ],
+                        ),
                       ],
                     ),
                   ),
@@ -161,7 +188,9 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                   child: Column(
                     crossAxisAlignment: CrossAxisAlignment.stretch,
                     children: [
-                      const FieldLabel(OrderStrings.liked),
+                      FieldLabel(
+                        low ? OrderStrings.disliked : OrderStrings.liked,
+                      ),
                       Wrap(
                         spacing: 8,
                         runSpacing: 8,
@@ -214,10 +243,10 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                       LabelIconButton(
                         label: rated ? OrderStrings.rated : OrderStrings.send,
                         icon: rated ? AppIcon.check : null,
-                        bg: rated ? AppColors.disabledBg : AppColors.gold,
-                        fg: rated ? AppColors.disabledText : AppColors.navy,
-                        shadow: !rated,
-                        onPressed: rated ? null : _send,
+                        bg: off ? AppColors.disabledBg : AppColors.gold,
+                        fg: off ? AppColors.disabledText : AppColors.navy,
+                        shadow: !off,
+                        onPressed: off ? null : _send,
                       ),
                     ],
                   ),
@@ -250,28 +279,35 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                   ),
                   child: Row(
                     children: [
-                      const AppSvgIcon(
-                        AppIcon.verified,
-                        size: 20,
-                        color: AppColors.white,
-                      ),
+                      if (rated)
+                        const AppSvgIcon(
+                          AppIcon.verified,
+                          size: 20,
+                          color: AppColors.white,
+                        )
+                      else
+                        OrderIcon.alert.of(const Color(0xFFDC2626), 20),
                       const SizedBox(width: 10),
                       Expanded(
                         child: Text.rich(
-                          TextSpan(
-                            text: '${OrderStrings.ratedBefore} ',
-                            children: [
-                              svgSpan(
-                                const AppSvgIcon(
-                                  AppIcon.check,
-                                  size: 13,
-                                  color: AppColors.white,
-                                  strokeWidth: 3,
+                          !rated
+                              ? const TextSpan(text: OrderStrings.sendFailed)
+                              : TextSpan(
+                                  text: '${OrderStrings.ratedBefore} ',
+                                  children: [
+                                    svgSpan(
+                                      const AppSvgIcon(
+                                        AppIcon.check,
+                                        size: 13,
+                                        color: AppColors.white,
+                                        strokeWidth: 3,
+                                      ),
+                                    ),
+                                    const TextSpan(
+                                      text: ' ${OrderStrings.oneOnly}',
+                                    ),
+                                  ],
                                 ),
-                              ),
-                              const TextSpan(text: ' ${OrderStrings.oneOnly}'),
-                            ],
-                          ),
                           style: TextStyle(
                             fontSize: 13.5,
                             height: AppText.lh(13.5),

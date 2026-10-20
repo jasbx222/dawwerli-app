@@ -17,6 +17,7 @@ class OrderStatus {
     required this.steps,
     this.received = false,
     this.rating,
+    this.answer,
   });
   final String id;
   final String orderNo;
@@ -25,6 +26,7 @@ class OrderStatus {
   final List<OrderStep> steps;
   final bool received;
   final Rating? rating;
+  final DeliveryAnswer? answer;
   bool get rated => rating != null;
 }
 
@@ -46,4 +48,7 @@ abstract interface class OrdersRepository {
   Future<void> answer(String id, DeliveryAnswer a);
   Future<void> rate(String id, Rating r);
   List<String> get ratingTags;
+
+  /// Tags offered at ≤ 2 stars.
+  List<String> get lowRatingTags;
 }

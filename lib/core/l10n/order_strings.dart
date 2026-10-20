@@ -11,7 +11,21 @@ abstract final class OrderStrings {
 
   static String rateTitle(String page) => 'قيّم $page';
   static const rateSub = 'تقييمك يساعد غيرك يختار صح';
-  static const goodPage = 'خوش صفحة';
+  static const starLabels = [
+    'ما عجبني',
+    'مو زين',
+    'عادي',
+    'خوش صفحة',
+    'ممتازة',
+  ];
+  static const pickStars = 'اختار عدد النجوم';
+  static const disliked = 'شنو ما عجبك؟';
+  static const sendFailed = 'ما انرسل، تأكد من النت وجرّب مرة ثانية';
+  static const receivedTitle = 'وصلك الطلب';
+  static const rateNow = 'قيّم هسه';
+  static const reportedTitle = 'بلّغت عن مشكلة';
+  static const reportedBody = 'راح نتابعها ويا الصفحة وانرد عليك خلال 24 ساعة';
+  static const viewReport = 'شوف البلاغ';
   static const liked = 'شنو عجبك؟';
   static const comment = 'تعليق (اختياري)';
   static const oneRating = 'تقييم واحد لكل طلب، وبس بعد ما تأكد الاستلام.';

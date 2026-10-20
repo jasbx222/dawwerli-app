@@ -272,7 +272,23 @@ final appRouter = GoRouter(
     // `=rated` is 16b).
     GoRoute(
       path: '/orders/:id',
-      builder: (_, s) => OrderStatusScreen(orderId: s.pathParameters['id']!),
+      // `?preview=received` / `reported` = 15 after the delivery answer.
+      builder: (context, s) {
+        final p = s.uri.queryParameters['preview'];
+        final repo = ProviderScope.containerOf(context)
+            .read(ordersRepositoryProvider);
+        if (repo is MockOrdersRepository &&
+            (p == 'received' || p == 'reported')) {
+          repo.seed(
+            answer: p == 'received'
+                ? DeliveryAnswer.received
+                : DeliveryAnswer.notReceived,
+          );
+          ProviderScope.containerOf(context)
+              .invalidate(orderProvider(s.pathParameters['id']!));
+        }
+        return OrderStatusScreen(orderId: s.pathParameters['id']!);
+      },
       routes: [
         GoRoute(
           path: 'rate',
@@ -290,6 +306,25 @@ final appRouter = GoRouter(
               // 15 underneath already loaded the order; reload it seeded.
               ProviderScope.containerOf(context)
                   .invalidate(orderProvider(s.pathParameters['id']!));
+            }
+            if (p == 'fail' && repo is MockOrdersRepository) {
+              repo.failNext = true;
+            }
+            if (p == 'low') {
+              return RatingScreen(
+                orderId: s.pathParameters['id']!,
+                initialStars: 2,
+                initialTags: const {'تأخر'},
+              );
+            }
+            if (p == 'fail') {
+              return RatingScreen(
+                orderId: s.pathParameters['id']!,
+                initialStars: sample.stars,
+                initialTags: sample.tags,
+                initialComment: sample.comment,
+                initialFailed: true,
+              );
             }
             return p == '1'
                 ? RatingScreen(

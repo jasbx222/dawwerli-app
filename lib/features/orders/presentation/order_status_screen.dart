@@ -6,6 +6,7 @@ import '../../../core/l10n/order_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -30,13 +31,6 @@ class OrderStatusScreen extends ConsumerWidget {
     Future<void> answer(DeliveryAnswer a) async {
       await ref.read(ordersRepositoryProvider).answer(orderId, a);
       ref.invalidate(orderProvider(orderId));
-      if (!context.mounted) return;
-      // Complaint flow (27) is a later group.
-      context.push(
-        a == DeliveryAnswer.received
-            ? Routes.rateOrder(orderId)
-            : Routes.comingSoon,
-      );
     }
 
     return Scaffold(
@@ -59,74 +53,131 @@ class OrderStatusScreen extends ConsumerWidget {
                 ),
               ),
             ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: AppCard(
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  children: [
-                    ExactLine(
-                      fontSize: 17,
-                      child: Text.rich(
-                        TextSpan(
-                          text: '${OrderStrings.arrivedQ} ',
-                          children: [
-                            svgSpan(OrderIcon.box.of(AppColors.gold, 16)),
-                          ],
-                        ),
-                        style: AppText.strong.copyWith(
-                          fontSize: 17,
-                          height: AppText.lh(17),
+            if (o.answer == null)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      ExactLine(
+                        fontSize: 17,
+                        child: Text.rich(
+                          TextSpan(
+                            text: '${OrderStrings.arrivedQ} ',
+                            children: [
+                              svgSpan(OrderIcon.box.of(AppColors.gold, 16)),
+                            ],
+                          ),
+                          style: AppText.strong.copyWith(
+                            fontSize: 17,
+                            height: AppText.lh(17),
+                          ),
                         ),
                       ),
-                    ),
-                    const ExactLine(
-                      fontSize: 12.5,
-                      child: Text(OrderStrings.inspect, style: AppText.muted),
-                    ),
-                    const SizedBox(height: 14),
-                    LabelIconButton(
-                      label: OrderStrings.yesReceived,
-                      icon: AppIcon.check,
-                      bg: AppColors.gold,
-                      fg: AppColors.navy,
-                      shadow: true,
-                      onPressed: () => answer(DeliveryAnswer.received),
-                    ),
-                    const SizedBox(height: 10),
-                    Row(
-                      children: [
-                        Expanded(
-                          child: SmallGhostButton(
-                            OrderStrings.notArrived,
-                            onPressed: () => answer(DeliveryAnswer.notReceived),
+                      const ExactLine(
+                        fontSize: 12.5,
+                        child: Text(OrderStrings.inspect, style: AppText.muted),
+                      ),
+                      const SizedBox(height: 14),
+                      LabelIconButton(
+                        label: OrderStrings.yesReceived,
+                        icon: AppIcon.check,
+                        bg: AppColors.gold,
+                        fg: AppColors.navy,
+                        shadow: true,
+                        onPressed: () => answer(DeliveryAnswer.received),
+                      ),
+                      const SizedBox(height: 10),
+                      Row(
+                        children: [
+                          Expanded(
+                            child: SmallGhostButton(
+                              OrderStrings.notArrived,
+                              onPressed: () =>
+                                  answer(DeliveryAnswer.notReceived),
+                            ),
                           ),
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: SmallGhostButton(
-                            OrderStrings.mismatch,
-                            onPressed: () => answer(DeliveryAnswer.mismatch),
+                          const SizedBox(width: 10),
+                          Expanded(
+                            child: SmallGhostButton(
+                              OrderStrings.mismatch,
+                              onPressed: () => answer(DeliveryAnswer.mismatch),
+                            ),
                           ),
-                        ),
-                      ],
-                    ),
-                  ],
+                        ],
+                      ),
+                    ],
+                  ),
+                ),
+              )
+            else
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: AppCard(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: o.answer == DeliveryAnswer.received
+                        ? [
+                            _title(OrderStrings.receivedTitle),
+                            ExactLine(
+                              fontSize: 12.5,
+                              child: Text(
+                                OrderStrings.rateTitle(o.pageName),
+                                style: AppText.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            LabelIconButton(
+                              label: OrderStrings.rateNow,
+                              bg: AppColors.gold,
+                              fg: AppColors.navy,
+                              shadow: true,
+                              onPressed: () =>
+                                  context.push(Routes.rateOrder(orderId)),
+                            ),
+                          ]
+                        : [
+                            _title(OrderStrings.reportedTitle),
+                            ExactLine(
+                              fontSize: 12.5,
+                              child: Text(
+                                OrderStrings.reportedBody,
+                                style: AppText.muted,
+                              ),
+                            ),
+                            const SizedBox(height: 14),
+                            AppButton(
+                              OrderStrings.viewReport,
+                              variant: AppButtonVariant.ghost,
+                              onPressed: () => context.push(Routes.comingSoon),
+                            ),
+                          ],
+                  ),
                 ),
               ),
-            ),
-            const SizedBox(height: 12),
-            const Text(
-              OrderStrings.askAgain,
-              textAlign: TextAlign.center,
-              style: AppText.muted,
-            ),
+            if (o.answer == null) ...[
+              const SizedBox(height: 12),
+              const Text(
+                OrderStrings.askAgain,
+                textAlign: TextAlign.center,
+                style: AppText.muted,
+              ),
+            ],
           ],
         ),
       ),
     );
   }
 }
+
+Widget _title(String t) => ExactLine(
+  fontSize: 17,
+  child: Text(
+    t,
+    style: AppText.strong.copyWith(fontSize: 17, height: AppText.lh(17)),
+  ),
+);
 
 class _Step extends StatelessWidget {
   const _Step({required this.step});
