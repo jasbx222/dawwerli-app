@@ -9,11 +9,20 @@ import 'stripe.dart';
 
 /// Blue Ishtar header (`.top` in the designs): back button, title, subtitle, gold stripe.
 class AppHeader extends StatelessWidget {
-  const AppHeader({super.key, required this.title, this.subtitle, this.onBack});
+  const AppHeader({
+    super.key,
+    required this.title,
+    this.subtitle,
+    this.onBack,
+    this.trailing,
+  });
 
   final String title;
   final Widget? subtitle;
   final VoidCallback? onBack;
+
+  /// Pushed to the far (left) end of the title row, e.g. a status pill (`.sp` spacer).
+  final Widget? trailing;
 
   @override
   Widget build(BuildContext context) {
@@ -61,6 +70,7 @@ class AppHeader extends StatelessWidget {
                       title,
                       style: AppText.title.copyWith(color: AppColors.white),
                     ),
+                    if (trailing != null) ...[const Spacer(), trailing!],
                   ],
                 ),
                 if (subtitle != null) ...[

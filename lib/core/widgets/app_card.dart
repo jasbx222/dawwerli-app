@@ -10,11 +10,15 @@ class AppCard extends StatelessWidget {
     this.color,
     this.padding = 16,
     this.flat = false,
+    this.insets,
   });
 
   final Widget child;
   final Color? color;
   final double padding;
+
+  /// Overrides [padding] when the design uses asymmetric padding (e.g. `12px 14px`).
+  final EdgeInsets? insets;
 
   /// Flat cards (tinted alerts) have no shadow/ring.
   final bool flat;
@@ -23,7 +27,7 @@ class AppCard extends StatelessWidget {
   Widget build(BuildContext context) {
     return Container(
       width: double.infinity,
-      padding: EdgeInsets.all(padding),
+      padding: insets ?? EdgeInsets.all(padding),
       decoration: BoxDecoration(
         color: color ?? AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.card),

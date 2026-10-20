@@ -34,4 +34,10 @@ abstract final class AppColors {
   static const sticker = Color(0xFFFF7A59);
   static const stickerText = Color(0xFF3A0E02);
   static const slotBg = Color(0xFFEEF3FF);
+  static const tabTrack = Color(0xFFEEEAE0);
+  static const tabText = Color(0xFF4B4537);
+  static const divider = Color(0xFFF1ECE0);
+  static const checkOff = Color(0xFF9AA3B5);
+  static const infoText = Color(0xFF1F3B73);
+  static const warnText = Color(0xFF5C3F00);
 }

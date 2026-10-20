@@ -13,7 +13,7 @@ class MockHomeRepository implements HomeRepository {
     return HomeData(
       firstName: 'أبو علي',
       area: 'الكرادة',
-      governorate: 'بغداد',
+      governorate: governorate,
       hasUnreadNotifications: true,
       stories: const [
         StoryPage(name: 'ستايل بغداد', image: '$_img/shoe.jpg'),
@@ -45,8 +45,8 @@ class MockHomeRepository implements HomeRepository {
         FeedItem(category: 'ملابس', governorate: 'بابل', offers: 4, image: ''),
       ],
       stats: withData
-          ? const HomeStats(
-              verifiedPages: 1240,
+          ? HomeStats(
+              verifiedPages: _pagesByGov[governorate] ?? 120,
               governorates: 18,
               avgFirstOfferMinutes: 7,
             )
@@ -80,7 +80,8 @@ class MockHomeRepository implements HomeRepository {
           image: '$_img/lamp.jpg',
         ),
       ],
-      feed: const [
+      // Local-first: requests from the chosen governorate rank first.
+      feed: _localFirst(governorate, const [
         FeedItem(
           category: 'موبايلات',
           governorate: 'بغداد',
@@ -99,7 +100,7 @@ class MockHomeRepository implements HomeRepository {
           offers: 5,
           image: '$_img/perfume.jpg',
         ),
-      ],
+      ]),
       deals: withData
           ? const [
               Deal(
@@ -147,4 +148,20 @@ class MockHomeRepository implements HomeRepository {
       ],
     );
   }
+
+  /// Mock verified-page counts per governorate (real: GET /v1/home/stats?gov=).
+  static const _pagesByGov = {
+    'بغداد': 1240,
+    'البصرة': 410,
+    'أربيل': 380,
+    'نينوى': 260,
+    'النجف': 210,
+    'كربلاء': 190,
+    'بابل': 150,
+  };
+
+  static List<FeedItem> _localFirst(String gov, List<FeedItem> items) => [
+    ...items.where((f) => f.governorate == gov),
+    ...items.where((f) => f.governorate != gov),
+  ];
 }

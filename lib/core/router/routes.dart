@@ -7,5 +7,8 @@ abstract final class Routes {
   static const profileSetup = '/profile/setup';
   static const home = '/home';
   static const featuredPages = '/pages/featured';
+  static const post = '/post';
+  static const postDetails = '/post/details';
+  static const postReview = '/post/review';
   static const comingSoon = '/soon';
 }

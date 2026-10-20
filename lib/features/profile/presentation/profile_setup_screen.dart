@@ -61,6 +61,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           governorate: _gov,
           area: _area.text.trim(),
         );
+    ref.invalidate(profileProvider);
     if (mounted) context.go(Routes.home);
   }
 

@@ -111,5 +111,16 @@ class MockAuthRepository implements AuthRepository {
     required String name,
     required String governorate,
     required String area,
-  }) async {}
+  }) async =>
+      _profile = UserProfile(name: name, governorate: governorate, area: area);
+
+  /// Mock seed: a signed-in Baghdad user until 05 saves a real profile.
+  UserProfile? _profile = const UserProfile(
+    name: 'أبو علي',
+    governorate: 'بغداد',
+    area: 'الكرادة',
+  );
+
+  @override
+  Future<UserProfile?> profile() async => _profile;
 }

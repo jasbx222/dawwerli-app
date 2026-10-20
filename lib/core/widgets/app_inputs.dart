@@ -101,10 +101,19 @@ class BareTextField extends StatelessWidget {
 }
 
 class AppChip extends StatelessWidget {
-  const AppChip(this.label, {super.key, this.selected = false, this.onTap});
+  const AppChip(
+    this.label, {
+    super.key,
+    this.selected = false,
+    this.gold = false,
+    this.onTap,
+  });
 
   final String label;
   final bool selected;
+
+  /// `.chip.g`: soft gold suggestion chip (no ring).
+  final bool gold;
   final VoidCallback? onTap;
 
   @override
@@ -114,9 +123,11 @@ class AppChip extends StatelessWidget {
       child: Container(
         padding: const EdgeInsets.symmetric(horizontal: 13, vertical: 8),
         decoration: BoxDecoration(
-          color: selected ? AppColors.blue : AppColors.white,
+          color: selected
+              ? AppColors.blue
+              : (gold ? AppColors.warnBg : AppColors.white),
           borderRadius: BorderRadius.circular(AppRadius.chip),
-          boxShadow: selected
+          boxShadow: selected || gold
               ? null
               : const [BoxShadow(color: AppColors.border, spreadRadius: 1.5)],
         ),
@@ -126,7 +137,9 @@ class AppChip extends StatelessWidget {
             fontSize: 13,
             height: 1.4615,
             fontWeight: FontWeight.w600,
-            color: selected ? AppColors.white : AppColors.navy,
+            color: selected
+                ? AppColors.white
+                : (gold ? AppColors.warn : AppColors.navy),
           ),
         ),
       ),

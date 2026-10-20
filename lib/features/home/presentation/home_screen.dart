@@ -9,6 +9,7 @@ import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/page_tile.dart';
 import '../data/home_providers.dart';
 import '../domain/home_models.dart';
+import 'widgets/governorate_sheet.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/live_request_card.dart';
@@ -27,6 +28,7 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         children: [
           home.when(
+            skipLoadingOnReload: true,
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.blue),
             ),
@@ -38,7 +40,7 @@ class HomeScreen extends ConsumerWidget {
                   HomeHeader(
                     data: d,
                     onBell: soon,
-                    onLocation: soon,
+                    onLocation: () => showGovernorateSheet(context, ref),
                     onStory: (_) => soon(),
                   ),
                   Transform.translate(
@@ -56,7 +58,7 @@ class HomeScreen extends ConsumerWidget {
             child: AppBottomNav(
               current: NavTab.home,
               onTab: (t) => t == NavTab.home ? null : soon(),
-              onPost: soon,
+              onPost: () => context.push(Routes.post),
             ),
           ),
         ],
@@ -81,7 +83,7 @@ class _Body extends StatelessWidget {
             padding: const EdgeInsets.symmetric(horizontal: 16),
             child: LiveRequestCard(request: d.liveRequest!, onCompare: onSoon),
           ),
-        PostRequestCta(onTap: onSoon),
+        PostRequestCta(onTap: () => context.push(Routes.post)),
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(AppStrings.secTrending, onSeeAll: onSoon),

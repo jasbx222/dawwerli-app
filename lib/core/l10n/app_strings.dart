@@ -140,4 +140,74 @@ abstract final class AppStrings {
   static String inAppDeals(int n) => '$n صفقة بالتطبيق';
   static const featuredFoot =
       'الصفحات المعلّمة «إعلان» مدفوعة، الباقي حسب التقييم';
+
+  // Post request (07)
+  static const postTitle = 'شتدوّر؟';
+  static const postSub = 'صوّر أو اكتب أو احجي، اللي يريحك';
+  static const modePhoto = 'صورة';
+  static const modeText = 'نص';
+  static const modeVoice = 'صوت';
+  static const changePhoto = 'بدّل الصورة';
+  static const addPhoto = 'ضيف صورة';
+  static const shortDesc = 'وصف قصير';
+  static String voiceProgress(String a, String b) => '$a / $b';
+  static const voiceNote = 'الصوت يوصل للصفحات كتسجيل بس، أقصاه دقيقة';
+  static const voiceWarn = '⚠️ لا تذكر رقمك أو حسابك بالتسجيل';
+  static const suggestedCat = 'الصنف (اقترحناه إلك) ';
+  static const changeCat = 'غيّر';
+  static const next = 'التالي';
+
+  // Details (08)
+  static const detailsTitle = 'التفاصيل';
+  static const sizeLabel = 'القياس *';
+  static const colorLabel = 'اللون *';
+  static const conditionLabel = 'الحالة';
+  static const condNew = 'جديد';
+  static const condUsed = 'مستعمل';
+  static const condAny = 'ما يفرق';
+  static const maxPriceLabel = 'أعلى سعر تدفعه (يشمل التوصيل)';
+  static const govLabel = 'المحافظة';
+  static String fromAccount(String gov) => '$gov (من حسابك)';
+  static const removedPhoneTitle = 'شلنا رقم التلفون من الوصف';
+  static const removedPhoneBody =
+      'الأرقام والروابط و@الحسابات ممنوعة، الصفحة تتواصل وياك بعد ما تختارها.';
+  static const reviewRequest = 'راجع الطلب';
+
+  // Review (09 / 09b)
+  static const reviewTitle = 'راجع طلبك';
+  static const draftSaved = 'مسودة محفوظة ✓';
+  static const reviewErrorsSub = 'حالات الرفض';
+  static String voiceLen(String t) => '🎙️ تسجيل $t';
+  static const maxPrice = 'أعلى سعر';
+  static const ready48 = 'جاهز أشتري خلال 48 ساعة';
+  static const ready48Body =
+      'ضروري حتى تثق بيك الصفحات. اللي يختار ويختفي ياخذ إنذار.';
+  static const ready48Tick = 'أشّر حتى ينفتح زر «انشر»';
+  static String privacyNote(String cat, String gov) =>
+      'رقمك مخفي. يوصل الطلب بس للصفحات الموثقة اللي تبيع $cat وتوصل ل$gov.';
+  static const openPrefix = 'عندك ';
+  static String openOf(int n, int max) => '$n من $max';
+  static const openSuffix = ' طلبات مفتوحة';
+  static const publish = 'انشر 🚀';
+  static const offlineDraftNote =
+      'انقطع النت؟ نخليه بالمسودة وينرسل وحده لما يرجع';
+  static const offlineToast = 'النت فاصل، طلبك انحفظ مسودة وينرسل وحده 📶';
+  static const errIncomplete = 'الطلب ناقص';
+  static const errIncompleteBody2 =
+      'ضيف صورة، أو اكتب وصف أوضح (10 كلمات على الأقل).';
+  static const errProhibited = 'هذا الغرض ممنوع 🚫';
+  static const errProhibitedBody =
+      'ما نكدر ننشر طلبات سلاح أو أدوية أو مواد ممنوعة.';
+  static const errContact = 'شيل الرقم أو الرابط';
+  static const errContactBody =
+      'لا تكتب تلفون أو رابط أو @حساب بالوصف، حتى لو بأرقام عربية أو مفرّقة.';
+  static const errMaxOpen = 'عندك 3 طلبات مفتوحة';
+  static const errMaxOpenBody = 'سكّر واحد أو اختار عرض حتى تنشر الرابع.';
+  static const errVoice = 'التسجيل وكف عند دقيقة 🎙️';
+  static const errVoiceBody = 'أقصى طول للصوت 60 ثانية.';
+  static const errPrice = 'السعر لازم يكون أكثر من صفر';
+  static const errPriceBody = 'اكتب أعلى سعر تدفعه بالدينار.';
+
+  // Governorate picker (home header)
+  static const pickGovernorate = 'اختار المحافظة';
 }

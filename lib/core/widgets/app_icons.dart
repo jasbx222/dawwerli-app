@@ -37,6 +37,19 @@ enum AppIcon {
   chevronLeft('<path d="m15 18-6-6 6-6"/>'),
   verified('<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>'),
   check('<path d="M5 12.5l4.5 4.5L19 7"/>'),
+  camera(
+    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  ),
+  text('<path d="M4 7V4h16v3M9 20h6M12 4v16"/>'),
+  mic(
+    '<rect x="9" y="2" width="6" height="12" rx="3"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/>',
+  ),
+  shield(
+    '<path d="M12 22s8-4 8-10V5l-8-3-8 3v7c0 6 8 10 8 10z"/><path d="m9 12 2 2 4-4"/>',
+  ),
+  wifiOff(
+    '<path d="M2 2l20 20M8.5 16.5a5 5 0 0 1 7 0M5 12.9a10 10 0 0 1 5.2-2.8M19 12.9a10 10 0 0 0-2-1.5M2 8.8a15 15 0 0 1 4.2-2.7M22 8.8A15 15 0 0 0 11 5"/><circle cx="12" cy="20" r="1"/>',
+  ),
   star(
     '<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14 3 9.27l6.91-1.01z"/>',
     filled: true,
