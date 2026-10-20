@@ -102,7 +102,7 @@ class _Body extends StatelessWidget {
         if (d.liveRequest != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: LiveRequestCard(request: d.liveRequest!, onCompare: onSoon),
+            child: LiveRequestCard(request: d.liveRequest!, onCompare: () => context.push(Routes.offers(d.liveRequest!.id))),
           ),
         PostRequestCta(onTap: () => context.push(Routes.post)),
         ActivityTicker(items: d.ticker),
