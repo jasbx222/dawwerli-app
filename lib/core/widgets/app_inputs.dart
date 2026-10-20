@@ -31,7 +31,8 @@ class InputShell extends StatelessWidget {
         borderRadius: BorderRadius.circular(AppRadius.input),
         border: Border.all(color: focused ? AppColors.blue : AppColors.border, width: focused ? 2 : 1.5),
         boxShadow: focused
-            ? [BoxShadow(color: AppColors.blue.withValues(alpha: .10), blurRadius: 6, offset: const Offset(0, 2))]
+            // CSS: box-shadow 0 0 0 4px rgba(31,78,156,.12)
+            ? [BoxShadow(color: AppColors.blue.withValues(alpha: .12), spreadRadius: 4)]
             : null,
       ),
       child: DefaultTextStyle.merge(style: const TextStyle(fontSize: 15, height: 1.4667, color: AppColors.navy), child: child),
