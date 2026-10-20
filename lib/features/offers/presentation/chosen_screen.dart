@@ -14,6 +14,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/state_card.dart';
 import '../data/offers_providers.dart';
 import '../domain/offer.dart';
 import 'widgets/offer_widgets.dart';
@@ -25,7 +26,11 @@ class ChosenScreen extends ConsumerStatefulWidget {
     required this.requestId,
     this.frozenElapsed,
     this.toast,
+    this.noneLeft = false,
   });
+
+  /// Design QA: show the «ما بقت عروض ثانية» card.
+  final bool noneLeft;
 
   final String requestId;
 
@@ -42,6 +47,7 @@ class ChosenScreen extends ConsumerStatefulWidget {
 class _ChosenScreenState extends ConsumerState<ChosenScreen> {
   Timer? _tick;
   late String? _toast = widget.toast;
+  late bool _noneLeft = widget.noneLeft;
   bool _busy = false;
 
   @override
@@ -81,7 +87,12 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
         .noReply(widget.requestId);
     ref.invalidate(offersProvider(widget.requestId));
     if (!mounted) return;
-    if (next != null) {
+    if (next == null) {
+      setState(() => _noneLeft = true);
+      _busy = false;
+      return;
+    }
+    {
       setState(
         () => _toast = OfferStrings.backToOffers(
           next.pageName,
@@ -345,7 +356,33 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
               ],
             ),
           ),
-          if (_toast != null)
+          if (_noneLeft)
+            Positioned(
+              left: 16,
+              right: 16,
+              bottom: 30,
+              child: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  StateCard(
+                    icon: AppIcon.clock,
+                    tint: AppColors.warnBg,
+                    tone: AppColors.warn,
+                    title: OfferStrings.noneLeftTitle,
+                    body: const TextSpan(text: OfferStrings.noneLeftBody),
+                    action: OfferStrings.repost,
+                    onAction: () => context.go(Routes.post),
+                  ),
+                  const SizedBox(height: 10),
+                  AppButton(
+                    OfferStrings.raisePrice,
+                    variant: AppButtonVariant.ghost,
+                    onPressed: () => context.go(Routes.postDetails),
+                  ),
+                ],
+              ),
+            )
+          else if (_toast != null)
             Positioned(
               left: 16,
               right: 16,

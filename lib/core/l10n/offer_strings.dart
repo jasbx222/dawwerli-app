@@ -11,7 +11,7 @@ abstract final class OfferStrings {
   static const sortFastest = 'الأسرع';
   static const sponsored = 'مُموّل';
   static const cheapest = 'الأرخص';
-  static const trustedCheck = 'موثوقة ✓';
+  static const trustedCheck = 'موثوقة ';
   static const trusted = 'موثوقة';
   static String ratingDeals(String r, int d, {bool more = false}) =>
       ' $r · $d صفقة${more ? ' ·' : ''}';
@@ -24,7 +24,7 @@ abstract final class OfferStrings {
 
   // 12
   static const liveCamera = 'صورة كاميرا حية';
-  static String pageVerified(String name) => '$name ✓';
+  static String pageVerified(String name) => '$name ';
   static String detailStats(String r, int d, int m) =>
       ' $r · $d صفقة بالتطبيق · يرد بـ $m د';
   static const finalLocked = ' السعر النهائي، مقفول';
@@ -65,6 +65,14 @@ abstract final class OfferStrings {
   static const noReplyBtn = 'ما ردت، شوفلي غيرها';
   static const priceChanged = 'تغيّر السعر بالواتساب؟';
   static const report = 'بلّغ';
+  static String alreadyChose(String name) =>
+      'اخترت $name. تكدر تتواصل وياهم من الواتساب';
+  static const backToWhatsapp = 'ارجع للواتساب';
+  static const noneLeftTitle = 'ما بقت عروض ثانية';
+  static const noneLeftBody =
+      'تكدر تعيد نشر طلبك أو ترفع السعر حتى توصل لصفحات أكثر';
+  static const repost = 'أعد النشر';
+  static const raisePrice = 'ارفع السعر';
   static String backToOffers(String name, String price) =>
       'رجعناك للعروض: $name $price د.ع جاهزة 👌';
 }

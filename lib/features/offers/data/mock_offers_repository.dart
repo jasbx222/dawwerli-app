@@ -67,8 +67,12 @@ class MockOffersRepository implements OffersRepository {
   ];
 
   /// Design QA (`?preview=` on 14/14b): pretend [offerId] was chosen [ago].
-  void seedSelection(String offerId, Duration ago) {
-    _dropped.remove(offerId);
+  void seedSelection(String offerId, Duration ago, {bool onlyThis = false}) {
+    _dropped
+      ..clear()
+      ..addAll(
+        onlyThis ? all.map((o) => o.id).where((i) => i != offerId) : const [],
+      );
     _selected = offerId;
     _selectedAt = DateTime.now().subtract(ago);
   }

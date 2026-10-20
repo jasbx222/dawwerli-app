@@ -42,12 +42,16 @@ class Pill extends StatelessWidget {
     required this.fg,
     this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     this.icon,
+    this.check = false,
   });
   final String label;
   final Color bg;
   final Color fg;
   final EdgeInsets padding;
   final AppIcon? icon;
+
+  /// Trailing check drawn as SVG (replaces the ✓ glyph).
+  final bool check;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -72,10 +76,18 @@ class Pill extends StatelessWidget {
             color: fg,
           ),
         ),
+        if (check)
+          AppSvgIcon(AppIcon.check, size: 11, color: fg, strokeWidth: 3),
       ],
     ),
   );
 }
+
+/// SVG ✓ sized like the glyph at [size] font size, baseline-aligned.
+WidgetSpan checkSpan(double size, Color c) => WidgetSpan(
+  alignment: PlaceholderAlignment.middle,
+  child: AppSvgIcon(AppIcon.check, size: size * .8, color: c, strokeWidth: 3),
+);
 
 /// `.stk`: coral sticker rotated −7°.
 class Sticker extends StatelessWidget {
@@ -208,6 +220,7 @@ class OfferCard extends StatelessWidget {
                             baseline: TextBaseline.alphabetic,
                             child: Pill(
                               OfferStrings.trustedCheck,
+                              check: true,
                               bg: AppColors.blueTint,
                               fg: AppColors.blue,
                               padding: EdgeInsets.symmetric(

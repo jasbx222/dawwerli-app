@@ -11,6 +11,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
@@ -69,15 +70,19 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
+    final chosen = ref.watch(selectionProvider(widget.requestId)).value;
     final cheapest = board.cheapest?.id;
     final confirm = _confirm == null ? null : board.byId(_confirm!);
     final list = board.sorted(_sort);
     Widget card(Offer o) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: OfferCard(
-        offer: o,
-        cheapest: o.id == cheapest,
-        onTap: confirm == null ? () => _open(o) : null,
+      child: Opacity(
+        opacity: chosen != null && chosen.offer.id != o.id ? .5 : 1,
+        child: OfferCard(
+          offer: o,
+          cheapest: o.id == cheapest,
+          onTap: confirm == null && chosen == null ? () => _open(o) : null,
+        ),
       ),
     );
 
@@ -113,6 +118,45 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                 ],
               ),
             ),
+            if (chosen != null) ...[
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: AppCard(
+                  flat: true,
+                  color: AppColors.blueTint,
+                  insets: const EdgeInsets.symmetric(
+                    horizontal: 14,
+                    vertical: 12,
+                  ),
+                  child: Row(
+                    children: [
+                      const AppSvgIcon(
+                        AppIcon.check,
+                        size: 18,
+                        color: AppColors.infoText,
+                      ),
+                      const SizedBox(width: 10),
+                      Expanded(
+                        child: Text(
+                          OfferStrings.alreadyChose(chosen.offer.pageName),
+                          style: AppText.muted.copyWith(
+                            color: AppColors.infoText,
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: AppButton(
+                  OfferStrings.backToWhatsapp,
+                  variant: AppButtonVariant.navy,
+                  onPressed: () => context.go(Routes.chosen(widget.requestId)),
+                ),
+              ),
+            ],
             const SizedBox(height: 8),
             for (final o in list) card(o),
             if (left > 0)

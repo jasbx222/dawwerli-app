@@ -182,12 +182,15 @@ final appRouter = GoRouter(
     // 11 · `?preview=confirm` opens 13 for the cheapest offer; 12 under `/:offerId`.
     GoRoute(
       path: '/requests/:id/offers',
-      builder: (_, s) => OffersScreen(
-        requestId: s.pathParameters['id']!,
-        confirmId: s.uri.queryParameters['preview'] == 'confirm'
-            ? 'o1'
-            : s.uri.queryParameters['confirm'],
-      ),
+      builder: (context, s) {
+        _seedChosen(context, s);
+        return OffersScreen(
+          requestId: s.pathParameters['id']!,
+          confirmId: s.uri.queryParameters['preview'] == 'confirm'
+              ? 'o1'
+              : s.uri.queryParameters['confirm'],
+        );
+      },
       routes: [
         GoRoute(
           path: ':offerId',
@@ -205,18 +208,22 @@ final appRouter = GoRouter(
         final id = s.pathParameters['id']!;
         final p = s.uri.queryParameters['preview'];
         if (p == null) return ChosenScreen(requestId: id);
-        final noReply = p == 'noreply';
+        final none = p == 'nooffers';
+        final noReply = p == 'noreply' || none;
         final elapsed = noReply
             ? const Duration(hours: 1, minutes: 2)
             : const Duration(minutes: 17, seconds: 50);
         // Seed the app-wide mock so «ما ردت» → 11 continues on the same data.
         final repo = ProviderScope.containerOf(context)
             .read(offersRepositoryProvider);
-        if (repo is MockOffersRepository) repo.seedSelection('o1', elapsed);
+        if (repo is MockOffersRepository) {
+          repo.seedSelection('o1', elapsed, onlyThis: none);
+        }
         return ChosenScreen(
           requestId: id,
           frozenElapsed: elapsed,
-          toast: noReply
+          noneLeft: none,
+          toast: noReply && !none
               ? OfferStrings.backToOffers('رياضة الكرادة', '39,000')
               : null,
         );
@@ -228,6 +235,14 @@ final appRouter = GoRouter(
     ),
   ],
 );
+
+/// `/offers?preview=chosen`: ستايل بغداد already selected (11 «اخترت…» state).
+void _seedChosen(BuildContext context, GoRouterState s) {
+  if (s.uri.queryParameters['preview'] != 'chosen') return;
+  final repo = ProviderScope.containerOf(context)
+      .read(offersRepositoryProvider);
+  if (repo is MockOffersRepository) repo.seedSelection('o1', Duration.zero);
+}
 
 Widget _seeded(GoRouterState s, Widget child) => _preview(s)
     ? ProviderScope(

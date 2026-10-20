@@ -130,8 +130,13 @@ class OfferDetailsScreen extends ConsumerWidget {
                               Column(
                                 crossAxisAlignment: CrossAxisAlignment.start,
                                 children: [
-                                  Text(
-                                    OfferStrings.pageVerified(o.pageName),
+                                  Text.rich(
+                                    TextSpan(
+                                      text: OfferStrings.pageVerified(
+                                        o.pageName,
+                                      ),
+                                      children: [checkSpan(18, AppColors.navy)],
+                                    ),
                                     style: AppText.strong.copyWith(
                                       fontSize: 18,
                                       height: AppText.lh(18),
