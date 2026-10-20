@@ -51,18 +51,6 @@ class OtpVerifyLocked extends OtpVerifyResult {
 }
 
 /// Contract mirrors POST /v1/auth/otp/request, /v1/auth/otp/verify, PUT /v1/me (API comes later).
-/// Profile saved on 05 (GET /v1/me).
-class UserProfile {
-  const UserProfile({
-    required this.name,
-    required this.governorate,
-    required this.area,
-  });
-  final String name;
-  final String governorate;
-  final String area;
-}
-
 abstract interface class AuthRepository {
   /// [smsNotReceived] = the user is resending because the previous SMS never arrived
   /// (counts as a failed delivery, alongside provider delivery-failure reports).
@@ -77,5 +65,4 @@ abstract interface class AuthRepository {
     required String governorate,
     required String area,
   });
-  Future<UserProfile?> profile();
 }

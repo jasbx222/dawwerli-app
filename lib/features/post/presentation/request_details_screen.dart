@@ -12,7 +12,6 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
-import '../../auth/data/auth_providers.dart';
 import '../data/post_providers.dart';
 import '../domain/request_draft.dart';
 import 'widgets/post_widgets.dart';
@@ -39,14 +38,6 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
   void initState() {
     super.initState();
     _priceFocus.addListener(() => setState(() {}));
-    // Governorate defaults to the one saved on the profile (05).
-    ref.read(userGovernorateProvider.future).then((g) {
-      if (mounted) {
-        ref
-            .read(draftProvider.notifier)
-            .update((d) => d.copyWith(governorate: g));
-      }
-    });
   }
 
   @override

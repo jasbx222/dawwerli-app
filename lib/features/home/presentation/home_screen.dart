@@ -9,7 +9,6 @@ import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/page_tile.dart';
 import '../data/home_providers.dart';
 import '../domain/home_models.dart';
-import 'widgets/governorate_sheet.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/live_request_card.dart';
@@ -28,7 +27,6 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         children: [
           home.when(
-            skipLoadingOnReload: true,
             loading: () => const Center(
               child: CircularProgressIndicator(color: AppColors.blue),
             ),
@@ -40,7 +38,7 @@ class HomeScreen extends ConsumerWidget {
                   HomeHeader(
                     data: d,
                     onBell: soon,
-                    onLocation: () => showGovernorateSheet(context, ref),
+                    onLocation: soon,
                     onStory: (_) => soon(),
                   ),
                   Transform.translate(

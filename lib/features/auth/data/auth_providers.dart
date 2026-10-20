@@ -23,14 +23,3 @@ class PendingPhone extends Notifier<PhoneNumber?> {
 final governoratesProvider = FutureProvider<List<String>>(
   (ref) => ref.watch(authRepositoryProvider).governorates(),
 );
-
-/// Current user's profile; invalidate after [AuthRepository.saveProfile].
-final profileProvider = FutureProvider<UserProfile?>(
-  (ref) => ref.watch(authRepositoryProvider).profile(),
-);
-
-/// Governorate from the profile (05); used to scope home feed, pages and requests.
-final userGovernorateProvider = FutureProvider<String>(
-  (ref) async =>
-      (await ref.watch(profileProvider.future))?.governorate ?? 'بغداد',
-);

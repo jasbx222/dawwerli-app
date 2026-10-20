@@ -207,7 +207,4 @@ abstract final class AppStrings {
   static const errVoiceBody = 'أقصى طول للصوت 60 ثانية.';
   static const errPrice = 'السعر لازم يكون أكثر من صفر';
   static const errPriceBody = 'اكتب أعلى سعر تدفعه بالدينار.';
-
-  // Governorate picker (home header)
-  static const pickGovernorate = 'اختار المحافظة';
 }

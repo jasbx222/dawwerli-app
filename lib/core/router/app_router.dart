@@ -77,11 +77,9 @@ final appRouter = GoRouter(
           ? ProviderScope(
               overrides: [
                 homeDataProvider.overrideWith(
-                  (ref) async => const MockHomeRepository(withData: true).load(
-                    governorate: await ref.watch(
-                      homeGovernorateProvider.future,
-                    ),
-                  ),
+                  (ref) =>
+                      const MockHomeRepository(withData: true)
+                          .load(governorate: 'بغداد'),
                 ),
               ],
               child: const HomeScreen(),
