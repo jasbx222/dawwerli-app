@@ -197,7 +197,7 @@ class SellerController extends Notifier<SellerState> {
     try {
       me = await _api.get<Map<String, dynamic>>('/api/v1/pages/me');
     } on ApiException catch (e) {
-      if (e.status != _notFound) rethrow;
+      if (e.status != _notFound && e.code != 'page.required') rethrow;
       state = SellerState(config: config);
       return state.status;
     }
