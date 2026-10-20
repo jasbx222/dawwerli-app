@@ -13,6 +13,10 @@ const _deg7 = -7 * 3.141592653589793 / 180;
 
 /// Icons only used in this flow (24×24, stroke 2, from 14/14b).
 enum OfferIcon {
+  target(
+    '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
+  ),
+  ban('<circle cx="12" cy="12" r="9"/><path d="m5.6 5.6 12.8 12.8"/>'),
   refresh('<path d="M21 12a9 9 0 1 1-3-6.7L21 8M21 3v5h-5"/>'),
   alert(
     '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
@@ -395,4 +399,32 @@ class _Dashed extends CustomPainter {
 
   @override
   bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
+}
+
+/// «🚫 لا تحوّل…» card with the ban emoji drawn as a red SVG.
+class NoPrepayText extends StatelessWidget {
+  const NoPrepayText({super.key});
+
+  @override
+  Widget build(BuildContext context) => Text.rich(
+    TextSpan(
+      children: [
+        WidgetSpan(
+          alignment: PlaceholderAlignment.middle,
+          child: OfferIcon.ban.of(const Color(0xFFD92D20), 16),
+        ),
+        TextSpan(text: OfferStrings.noPrepay.replaceFirst('🚫', '')),
+      ],
+    ),
+    strutStyle: const StrutStyle(
+      fontFamily: AppText.family,
+      fontSize: 14,
+      height: 1.5,
+      forceStrutHeight: true,
+    ),
+    style: const TextStyle(
+      fontWeight: FontWeight.w700,
+      color: AppColors.dangerText,
+    ),
+  );
 }

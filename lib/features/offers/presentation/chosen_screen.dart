@@ -138,7 +138,8 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppHeader(
-                  title: OfferStrings.foundIt,
+                  title: OfferStrings.foundIt.replaceAll(' 🎯', ''),
+                  titleIcon: OfferIcon.target.of(AppColors.gold, 22),
                   subtitle: Text(OfferStrings.orderWaiting(s.orderNo)),
                   onBack: () => context.go(Routes.home),
                 ),
@@ -235,19 +236,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                       horizontal: 14,
                       vertical: 12,
                     ),
-                    child: const Text(
-                      OfferStrings.noPrepay,
-                      strutStyle: StrutStyle(
-                        fontFamily: AppText.family,
-                        fontSize: 14,
-                        height: 1.5,
-                        forceStrutHeight: true,
-                      ),
-                      style: TextStyle(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.dangerText,
-                      ),
-                    ),
+                    child: const NoPrepayText(),
                   ),
                 ),
                 Padding(

@@ -13,6 +13,7 @@ class AppHeader extends StatelessWidget {
     super.key,
     required this.title,
     this.subtitle,
+    this.titleIcon,
     this.onBack,
     this.trailing,
     this.below,
@@ -27,6 +28,9 @@ class AppHeader extends StatelessWidget {
 
   /// Extra content under the title row (14px gap), e.g. the request summary on 10.
   final Widget? below;
+
+  /// Icon after the title (replaces a trailing emoji, 6px gap).
+  final Widget? titleIcon;
 
   @override
   Widget build(BuildContext context) {
@@ -74,6 +78,10 @@ class AppHeader extends StatelessWidget {
                       title,
                       style: AppText.title.copyWith(color: AppColors.white),
                     ),
+                    if (titleIcon != null) ...[
+                      const SizedBox(width: 6),
+                      titleIcon!,
+                    ],
                     if (trailing != null) ...[const Spacer(), trailing!],
                   ],
                 ),
