@@ -11,11 +11,11 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
-import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_inputs.dart';
 import '../data/auth_providers.dart';
 import '../domain/phone_number.dart';
+import 'phone_field.dart';
 
 class LoginPhoneScreen extends ConsumerStatefulWidget {
   const LoginPhoneScreen({
@@ -73,6 +73,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
   @override
   Widget build(BuildContext context) {
     final focused = _focus.hasFocus || widget.initialPhone.isNotEmpty;
+    final reset = ref.watch(authFlowProvider) == AuthFlow.reset;
     return Scaffold(
       resizeToAvoidBottomInset: false,
       body: Stack(
@@ -81,9 +82,11 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               AppHeader(
-                title: AppStrings.loginTitle,
-                subtitle: const EmojiText(AppStrings.loginSub),
-                onBack: () => context.go(Routes.onboarding),
+                title: reset ? AppStrings.resetTitle : AppStrings.loginTitle,
+                subtitle: EmojiText(
+                  reset ? AppStrings.resetSub : AppStrings.loginSub,
+                ),
+                onBack: () => context.go(Routes.login),
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 22, 16, 0),
@@ -91,42 +94,12 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
                     const FieldLabel(AppStrings.loginPhoneLabel),
-                    InputShell(
+                    PhoneField(
+                      controller: _ctrl,
+                      focusNode: _focus,
                       focused: focused,
-                      exactLine: false,
-                      child: Directionality(
-                        textDirection: TextDirection.ltr,
-                        child: Row(
-                          children: [
-                            Text(
-                              AppStrings.countryCode,
-                              style: AppText.number.copyWith(
-                                fontSize: 18,
-                                height: AppText.lh(18),
-                                color: AppColors.ink,
-                              ),
-                            ),
-                            const SizedBox(width: 9),
-                            Expanded(
-                              child: BareTextField(
-                                controller: _ctrl,
-                                focusNode: _focus,
-                                keyboardType: TextInputType.phone,
-                                textDirection: TextDirection.ltr,
-                                style: AppText.number.copyWith(
-                                  fontSize: 18,
-                                  height: AppText.lh(18),
-                                  color: AppColors.ink,
-                                ),
-                                onChanged: (_) => _errors.isEmpty
-                                    ? null
-                                    : setState(() => _errors = {}),
-                              ),
-                            ),
-                            const Text('🇮🇶', style: TextStyle(fontSize: 15)),
-                          ],
-                        ),
-                      ),
+                      onChanged: (_) =>
+                          _errors.isEmpty ? null : setState(() => _errors = {}),
                     ),
                     const SizedBox(height: 8),
                     Text(AppStrings.loginHint, style: AppText.muted),
@@ -142,17 +115,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
-                if (_errors.contains(PhoneError.incomplete))
-                  const AlertCard(
-                    title: AppStrings.errIncompleteTitle,
-                    body: AppStrings.errIncompleteBody,
-                  ),
-                if (_errors.length > 1) const SizedBox(height: 10),
-                if (_errors.contains(PhoneError.notIraqi))
-                  const AlertCard(
-                    title: AppStrings.errNotIraqiTitle,
-                    body: AppStrings.errNotIraqiBody,
-                  ),
+                PhoneErrorCards(_errors),
                 if (_errors.isNotEmpty) const SizedBox(height: 24),
                 AppButton(
                   AppStrings.loginSend,
@@ -163,17 +126,17 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                 GestureDetector(
                   onLongPress: () => ServerUrlSheet.show(context),
                   child: Text.rich(
-                  const TextSpan(
-                    children: [
-                      TextSpan(text: AppStrings.termsPrefix),
-                      TextSpan(text: AppStrings.privacy, style: _link),
-                      TextSpan(text: AppStrings.and),
-                      TextSpan(text: AppStrings.terms, style: _link),
-                    ],
+                    const TextSpan(
+                      children: [
+                        TextSpan(text: AppStrings.termsPrefix),
+                        TextSpan(text: AppStrings.privacy, style: _link),
+                        TextSpan(text: AppStrings.and),
+                        TextSpan(text: AppStrings.terms, style: _link),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    style: AppText.muted,
                   ),
-                  textAlign: TextAlign.center,
-                  style: AppText.muted,
-                ),
                 ),
               ],
             ),

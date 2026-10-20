@@ -43,6 +43,36 @@ abstract final class AppStrings {
   static const and = ' و';
   static const terms = 'الشروط';
 
+  // Login (phone + password)
+  static const signInTitle = 'سجّل دخولك';
+  static const signInSub = 'برقمك والرمز السري';
+  static const passwordLabel = 'الرمز السري';
+  static const signIn = 'دخول';
+  static const forgotPassword = 'نسيت الرمز';
+  static const noAccount = 'ما عندك حساب؟ ';
+  static const createAccount = 'سوّي حساب';
+  static const wrongCredsTitle = 'الرقم أو الرمز غلط';
+  static const wrongCredsBody = 'تأكد منهم وجرب مرة ثانية، أو اضغط «نسيت الرمز»';
+  static const loginLockedTitle = 'انقفل الدخول مؤقتاً';
+  static const loginLockedBody = 'محاولات غلط هواية. جرب بعد ';
+  static const minutes = ' دقيقة';
+  static const resetTitle = 'نسيت الرمز';
+  static const resetSub = 'اكتب رقمك ونرسلك كود حتى تسوي رمز جديد';
+  static const setPasswordTitle = 'سوّي رمز سري';
+  static const setPasswordSub = 'حتى تدخل بعدين برقمك والرمز بدون كود';
+  static const newPasswordTitle = 'رمز سري جديد';
+  static const confirmPasswordLabel = 'أعد كتابة الرمز';
+  static const passwordHint = 'على الأقل 8 حروف أو أرقام';
+  static const passwordShortTitle = 'الرمز قصير';
+  static const passwordShortBody = 'لازم يكون 8 حروف أو أرقام على الأقل';
+  static const passwordMismatchTitle = 'الرمزين مو نفس الشي';
+  static const passwordMismatchBody = 'اكتب نفس الرمز بالخانتين';
+  static const codeInvalidTitle = 'الكود غلط أو انتهى';
+  static const codeInvalidBody = 'ارجع واطلب كود جديد';
+  static const savePassword = 'احفظ الرمز';
+  static const genericErrorTitle = 'صار خطأ';
+  static const genericErrorBody = 'تأكد من الاتصال وجرب مرة ثانية';
+
   // OTP
   static const otpTitle = 'اكتب الكود';
   static const otpSentTo = 'دزيناه على ';

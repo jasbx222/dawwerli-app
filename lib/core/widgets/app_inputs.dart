@@ -78,8 +78,12 @@ class BareTextField extends StatelessWidget {
     this.keyboardType,
     this.textDirection,
     this.onChanged,
+    this.obscureText = false,
+    this.onSubmitted,
   });
 
+  final bool obscureText;
+  final ValueChanged<String>? onSubmitted;
   final TextEditingController controller;
   final FocusNode? focusNode;
   final TextStyle? style;
@@ -99,6 +103,8 @@ class BareTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textDirection: textDirection,
       onChanged: onChanged,
+      onSubmitted: onSubmitted,
+      obscureText: obscureText,
       style:
           style ??
           TextStyle(

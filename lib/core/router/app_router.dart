@@ -4,6 +4,8 @@ import 'package:go_router/go_router.dart';
 import '../../features/auth/data/auth_providers.dart';
 import '../../features/auth/presentation/login_phone_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
+import '../../features/auth/presentation/password_login_screen.dart';
+import '../../features/auth/presentation/set_password_screen.dart';
 import '../../features/auth/presentation/otp_states_screen.dart';
 import '../../features/home/presentation/home_screen.dart';
 import '../../features/live/presentation/live_waiting_screen.dart';
@@ -48,13 +50,18 @@ final appRouter = GoRouter(
     ),
     GoRoute(
       path: Routes.login,
-      builder: (_, _) => const LoginPhoneScreen(),
+      builder: (_, _) => const PasswordLoginScreen(),
       routes: [
+        GoRoute(path: 'phone', builder: (_, _) => const LoginPhoneScreen()),
+        GoRoute(path: 'password', builder: (_, _) => const SetPasswordScreen()),
         GoRoute(
           path: 'otp',
-          redirect: (context, s) => s.uri.path == Routes.otp &&
-                  ProviderScope.containerOf(context).read(pendingPhoneProvider) == null
-              ? Routes.login
+          redirect: (context, s) =>
+              s.uri.path == Routes.otp &&
+                  ProviderScope.containerOf(context)
+                          .read(pendingPhoneProvider) ==
+                      null
+              ? Routes.loginPhone
               : null,
           builder: (_, _) => const OtpScreen(),
           routes: [
@@ -168,10 +175,7 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
         // 46 · strikes / ban state.
-        GoRoute(
-          path: 'standing',
-          builder: (_, _) => const StandingScreen(),
-        ),
+        GoRoute(path: 'standing', builder: (_, _) => const StandingScreen()),
         // 49 new dispute; 50 its status.
         GoRoute(
           path: 'dispute',

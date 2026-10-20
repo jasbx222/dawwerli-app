@@ -2,6 +2,8 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/role/app_role.dart';
 import '../../seller/data/seller_controller.dart';
+import '../../../core/router/routes.dart';
+import '../../guest/guest.dart';
 import 'auth_providers.dart';
 
 /// Server role names for [AppRole].
@@ -23,3 +25,12 @@ Future<void> signOut(WidgetRef ref) async {
   ref.read(sellerProvider.notifier).reset();
 }
 
+/// Where to go once tokens are saved (OTP, password login or reset).
+/// Sellers without a page land on page sign-up (no `page.required` errors).
+Future<String> afterSignIn(WidgetRef ref, {required bool needsProfile}) async {
+  ref.read(guestProvider.notifier).set(false);
+  if (ref.read(appRoleProvider) == AppRole.seller) {
+    return sellerEntryRoute(await ref.read(sellerProvider.notifier).refresh());
+  }
+  return needsProfile ? Routes.profileSetup : Routes.home;
+}

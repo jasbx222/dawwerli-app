@@ -37,3 +37,34 @@ class PendingPhone extends Notifier<PhoneNumber?> {
 final governoratesProvider = FutureProvider<List<String>>(
   (ref) => ref.watch(authRepositoryProvider).governorates(),
 );
+
+/// Why the phone + OTP screens are open: new account, or «نسيت الرمز».
+enum AuthFlow { signUp, reset }
+
+final authFlowProvider = NotifierProvider<AuthFlowNotifier, AuthFlow>(
+  AuthFlowNotifier.new,
+);
+
+class AuthFlowNotifier extends Notifier<AuthFlow> {
+  @override
+  AuthFlow build() => AuthFlow.signUp;
+  void set(AuthFlow v) => state = v;
+}
+
+/// Reset flow only: the code typed on the OTP screen, sent with the new password.
+final resetCodeProvider = NotifierProvider<ResetCode, String?>(ResetCode.new);
+
+class ResetCode extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? v) => state = v;
+}
+
+/// Sign-up only: `needsProfile` from OTP verify, used after the password is set.
+final postSignUpProvider = NotifierProvider<PostSignUp, bool>(PostSignUp.new);
+
+class PostSignUp extends Notifier<bool> {
+  @override
+  bool build() => true;
+  void set(bool needsProfile) => state = needsProfile;
+}

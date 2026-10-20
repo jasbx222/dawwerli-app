@@ -2,11 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/role/app_role.dart';
-import '../../seller/data/seller_controller.dart';
-
-import '../../guest/guest.dart';
-
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -98,18 +93,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   Future<void> _onChanged(String v) async {
     setState(() {});
     if (v.length < _len || _locked != null) return;
+    // «نسيت الرمز»: the code is checked together with the new password.
+    if (ref.read(authFlowProvider) == AuthFlow.reset) {
+      ref.read(resetCodeProvider.notifier).set(v);
+      context.go(Routes.setPassword);
+      return;
+    }
     final r = await ref.read(authRepositoryProvider).verifyOtp(_phone!, v);
     if (!mounted) return;
     switch (r) {
       case OtpOk(:final needsProfile):
-        ref.read(guestProvider.notifier).set(false);
-        if (ref.read(appRoleProvider) == AppRole.seller) {
-          final status = await ref.read(sellerProvider.notifier).refresh();
-          if (!mounted) return;
-          context.go(sellerEntryRoute(status));
-        } else {
-          context.go(needsProfile ? Routes.profileSetup : Routes.home);
-        }
+        ref.read(postSignUpProvider.notifier).set(needsProfile);
+        context.go(Routes.setPassword);
       case OtpWrong(:final attemptsLeft):
         setState(() => _attemptsLeft = attemptsLeft);
       case OtpExpired():
@@ -171,7 +166,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 subtitle: Text(
                   '${AppStrings.otpSentTo}${phone.pretty} \u202A${AppStrings.countryCode}\u202C',
                 ),
-                onBack: () => context.go(Routes.login),
+                onBack: () => context.go(Routes.loginPhone),
               ),
               SizedBox(height: 28),
               GestureDetector(
@@ -248,7 +243,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
                 child: code.length == _len && _locked == null
                     ? AppButton(AppStrings.next, onPressed: _onNext)
-                    : AppButton(AppStrings.next, variant: AppButtonVariant.disabled),
+                    : AppButton(
+                        AppStrings.next,
+                        variant: AppButtonVariant.disabled,
+                      ),
               ),
             ],
           ),
@@ -262,7 +260,10 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                 if (ref.watch(devOtpCodeProvider) case final code?)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: Text('$_devCodeLabel $code', textAlign: TextAlign.center),
+                    child: Text(
+                      '$_devCodeLabel $code',
+                      textAlign: TextAlign.center,
+                    ),
                   ),
                 if (_expired)
                   OtpExpiredCard(onResend: _resendCode)

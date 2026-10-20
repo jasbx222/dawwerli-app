@@ -8,7 +8,13 @@ import '../domain/phone_number.dart';
 
 /// OTP login against `/api/v1/auth/*`; tokens go to [TokenStore].
 class ApiAuthRepository implements AuthRepository {
-  ApiAuthRepository(this.api, this.tokens, this.catalog, this.role, this.onDevCode);
+  ApiAuthRepository(
+    this.api,
+    this.tokens,
+    this.catalog,
+    this.role,
+    this.onDevCode,
+  );
 
   final ApiClient api;
   final TokenStore tokens;
@@ -21,15 +27,20 @@ class ApiAuthRepository implements AuthRepository {
   final void Function(String?) onDevCode;
 
   @override
-  Future<OtpRequestResult> requestOtp(PhoneNumber phone, {bool smsNotReceived = false}) async {
+  Future<OtpRequestResult> requestOtp(
+    PhoneNumber phone, {
+    bool smsNotReceived = false,
+  }) async {
     try {
-      final r = await api.post<Map<String, dynamic>>('/api/v1/auth/otp/request', {
-        'phone': phone.e164,
-        'smsNotReceived': smsNotReceived,
-      });
+      final r = await api.post<Map<String, dynamic>>(
+        '/api/v1/auth/otp/request',
+        {'phone': phone.e164, 'smsNotReceived': smsNotReceived},
+      );
       onDevCode(r.os('devCode'));
       return OtpSent(
-        channel: r.s('channel') == 'whatsApp' ? OtpChannel.whatsapp : OtpChannel.sms,
+        channel: r.s('channel') == 'whatsApp'
+            ? OtpChannel.whatsapp
+            : OtpChannel.sms,
         expiresIn: Duration(seconds: r.i('expiresIn')),
         resendIn: Duration(seconds: r.i('resendIn')),
       );
@@ -44,12 +55,15 @@ class ApiAuthRepository implements AuthRepository {
   @override
   Future<OtpVerifyResult> verifyOtp(PhoneNumber phone, String code) async {
     try {
-      final r = await api.post<Map<String, dynamic>>('/api/v1/auth/otp/verify', {
-        'phone': phone.e164,
-        'code': code,
-        'role': role(),
-        'deviceId': await tokens.device(newId),
-      });
+      final r = await api.post<Map<String, dynamic>>(
+        '/api/v1/auth/otp/verify',
+        {
+          'phone': phone.e164,
+          'code': code,
+          'role': role(),
+          'deviceId': await tokens.device(newId),
+        },
+      );
       await tokens.save(r.s('accessToken'), r.s('refreshToken'));
       onDevCode(null);
       return OtpOk(needsProfile: r.b('needsProfile'));
@@ -64,12 +78,77 @@ class ApiAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<List<String>> governorates() async => [for (final g in (await catalog()).governorates) g.name];
+  Future<PasswordLoginResult> login(PhoneNumber phone, String password) =>
+      _session('/api/v1/auth/login', {
+        'phone': phone.e164,
+        'password': password,
+      });
 
   @override
-  Future<void> saveProfile({required String name, required String governorate, required String area}) async {
+  Future<PasswordError?> setPassword(String password) async {
+    try {
+      await api.post<void>('/api/v1/auth/password', {'password': password});
+      return null;
+    } on ApiException catch (e) {
+      if (e.code == 'password.too_short') return PasswordError.tooShort;
+      rethrow;
+    }
+  }
+
+  @override
+  Future<PasswordLoginResult> resetPassword(
+    PhoneNumber phone,
+    String code,
+    String password,
+  ) => _session('/api/v1/auth/password/reset', {
+    'phone': phone.e164,
+    'code': code,
+    'password': password,
+  });
+
+  /// Both login and reset return the same token payload as OTP verify.
+  Future<PasswordLoginResult> _session(
+    String path,
+    Map<String, Object?> body,
+  ) async {
+    try {
+      final r = await api.post<Map<String, dynamic>>(path, {
+        ...body,
+        'role': role(),
+        'deviceId': await tokens.device(newId),
+      });
+      await tokens.save(r.s('accessToken'), r.s('refreshToken'));
+      onDevCode(null);
+      return LoginOk(needsProfile: r.b('needsProfile'));
+    } on ApiException catch (e) {
+      return switch (e.code) {
+        'auth.credentials' => const LoginWrong(),
+        'auth.locked' => LoginLocked(Duration(seconds: e.retryIn ?? 0)),
+        'otp.wrong' ||
+        'otp.expired' ||
+        'otp.locked' => const LoginCodeInvalid(),
+        _ => throw e,
+      };
+    }
+  }
+
+  @override
+  Future<List<String>> governorates() async => [
+    for (final g in (await catalog()).governorates) g.name,
+  ];
+
+  @override
+  Future<void> saveProfile({
+    required String name,
+    required String governorate,
+    required String area,
+  }) async {
     final id = (await catalog()).governorateId(governorate);
-    await api.put<void>('/api/v1/me/profile', {'name': name, 'governorateId': id, 'area': area});
+    await api.put<void>('/api/v1/me/profile', {
+      'name': name,
+      'governorateId': id,
+      'area': area,
+    });
   }
 
   /// Re-issues tokens for the other side of the app (buyer ⇄ seller), same phone account.
@@ -102,4 +181,6 @@ class DevOtpCode extends Notifier<String?> {
   void set(String? v) => state = v;
 }
 
-final devOtpCodeProvider = NotifierProvider<DevOtpCode, String?>(DevOtpCode.new);
+final devOtpCodeProvider = NotifierProvider<DevOtpCode, String?>(
+  DevOtpCode.new,
+);

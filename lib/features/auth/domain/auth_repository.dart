@@ -50,6 +50,33 @@ class OtpVerifyLocked extends OtpVerifyResult {
   final Duration retryIn;
 }
 
+/// Phone + password sign-in (POST /v1/auth/login) and OTP reset results.
+sealed class PasswordLoginResult {
+  const PasswordLoginResult();
+}
+
+class LoginOk extends PasswordLoginResult {
+  const LoginOk({required this.needsProfile});
+  final bool needsProfile;
+}
+
+class LoginWrong extends PasswordLoginResult {
+  const LoginWrong();
+}
+
+class LoginLocked extends PasswordLoginResult {
+  const LoginLocked(this.retryIn);
+  final Duration retryIn;
+}
+
+/// Reset rejected because the OTP was wrong or expired.
+class LoginCodeInvalid extends PasswordLoginResult {
+  const LoginCodeInvalid();
+}
+
+/// Why the server refused a new password.
+enum PasswordError { tooShort, mismatch }
+
 /// Contract mirrors POST /v1/auth/otp/request, /v1/auth/otp/verify, PUT /v1/me (API comes later).
 abstract interface class AuthRepository {
   /// [smsNotReceived] = the user is resending because the previous SMS never arrived
@@ -59,6 +86,17 @@ abstract interface class AuthRepository {
     bool smsNotReceived = false,
   });
   Future<OtpVerifyResult> verifyOtp(PhoneNumber phone, String code);
+  Future<PasswordLoginResult> login(PhoneNumber phone, String password);
+
+  /// Signed-in user (right after OTP sign-up) sets a password.
+  Future<PasswordError?> setPassword(String password);
+
+  /// Forgot password: [code] comes from [requestOtp] for the same phone.
+  Future<PasswordLoginResult> resetPassword(
+    PhoneNumber phone,
+    String code,
+    String password,
+  );
   Future<List<String>> governorates();
   Future<void> saveProfile({
     required String name,
