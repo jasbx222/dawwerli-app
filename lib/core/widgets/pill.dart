@@ -52,3 +52,19 @@ class Pill extends StatelessWidget {
     ),
   );
 }
+
+/// Design pill tones: `.pl-t` teal, `.pl-b` blue, `.pl-g` gold, `.pl-r` red, `.pl-s` stone.
+enum PillTone {
+  teal(Color(0xFFCCFBF1), Color(0xFF0B6E66)),
+  blue(Color(0xFFE6EEFF), Color(0xFF1F4E9C)),
+  gold(Color(0xFFFBF0D6), Color(0xFF7A5300)),
+  red(Color(0xFFFDE7E4), Color(0xFF9B1C12)),
+  stone(Color(0xFFEEEAE0), Color(0xFF4B4537));
+
+  const PillTone(this.bg, this.fg);
+  final Color bg;
+  final Color fg;
+
+  Pill pill(String label, {AppIcon? icon, bool check = false}) =>
+      Pill(label, bg: bg, fg: fg, icon: icon, check: check);
+}

@@ -1,0 +1,272 @@
+/// Page (seller) side models. All limits come from [SellerConfig] (GET /api/v1/config).
+class SellerConfig {
+  const SellerConfig({
+    this.selectionFee = 1000,
+    this.freeSelections = 10,
+    this.maxOffers = 5,
+    this.earlyWindow = const Duration(minutes: 2),
+    this.maxEarlySlots = 2,
+    this.replyWindow = const Duration(hours: 1),
+    this.ghostAfter = const Duration(hours: 24),
+    this.earlyAccessMonthly = 15000,
+    this.bannerDaily = 5000,
+    this.featuredWeekly = 20000,
+    this.sponsoredOffer = 1500,
+    this.minAdRating = 4.0,
+    this.appealHours = 48,
+  });
+  final int selectionFee;
+  final int freeSelections;
+  final int maxOffers;
+  final Duration earlyWindow;
+  final int maxEarlySlots;
+  final Duration replyWindow;
+  final Duration ghostAfter;
+  final int earlyAccessMonthly;
+  final int bannerDaily;
+  final int featuredWeekly;
+  final int sponsoredOffer;
+  final double minAdRating;
+  final int appealHours;
+}
+
+enum VerifyStatus { none, pending, verified, rejected }
+
+class SellerRequest {
+  const SellerRequest({
+    required this.id,
+    required this.title,
+    required this.image,
+    required this.governorate,
+    required this.condition,
+    required this.maxPrice,
+    required this.postedAt,
+    required this.offers,
+    this.earlyUntil,
+    this.earlyTaken = 0,
+    this.offeredByMe = false,
+    this.cancelled = false,
+  });
+  final String id;
+  final String title;
+  final String image;
+  final String governorate;
+  final String condition;
+  final int maxPrice;
+  final DateTime postedAt;
+  final int offers;
+
+  /// Set while this page (an early-access subscriber) sees it before others.
+  final DateTime? earlyUntil;
+
+  /// Offers already taken by early-access pages inside the window.
+  final int earlyTaken;
+  final bool offeredByMe;
+  final bool cancelled;
+
+  bool isEarly(DateTime now) => earlyUntil != null && now.isBefore(earlyUntil!);
+  bool locked(int max) => cancelled || offers >= max;
+
+  SellerRequest copyWith({int? offers, bool? offeredByMe, int? earlyTaken}) =>
+      SellerRequest(
+        id: id,
+        title: title,
+        image: image,
+        governorate: governorate,
+        condition: condition,
+        maxPrice: maxPrice,
+        postedAt: postedAt,
+        offers: offers ?? this.offers,
+        earlyUntil: earlyUntil,
+        earlyTaken: earlyTaken ?? this.earlyTaken,
+        offeredByMe: offeredByMe ?? this.offeredByMe,
+        cancelled: cancelled,
+      );
+}
+
+enum OfferState { chosen, waiting, notChosen, closed, withdrawn }
+
+class SellerOffer {
+  const SellerOffer({
+    required this.id,
+    required this.requestId,
+    required this.title,
+    required this.image,
+    required this.price,
+    required this.state,
+    this.orderNo,
+    this.chosenAt,
+    this.contacted = false,
+    this.ghostReported = false,
+    this.selectionNo,
+    this.governorate = 'بغداد',
+    this.customerPhone,
+  });
+
+  /// Only while the order is Selected/InProgress; null afterwards (§16).
+  final String? customerPhone;
+  final String id;
+  final String requestId;
+  final String title;
+  final String image;
+  final int price;
+  final OfferState state;
+  final String? orderNo;
+  final DateTime? chosenAt;
+  final bool contacted;
+  final bool ghostReported;
+  final int? selectionNo;
+  final String governorate;
+
+  SellerOffer copyWith({
+    OfferState? state,
+    bool? contacted,
+    bool? ghostReported,
+  }) => SellerOffer(
+    id: id,
+    requestId: requestId,
+    title: title,
+    image: image,
+    price: price,
+    state: state ?? this.state,
+    orderNo: orderNo,
+    chosenAt: chosenAt,
+    contacted: contacted ?? this.contacted,
+    ghostReported: ghostReported ?? this.ghostReported,
+    selectionNo: selectionNo,
+    governorate: governorate,
+    customerPhone: customerPhone,
+  );
+}
+
+enum LedgerKind { debit, free, held, credit }
+
+class LedgerEntry {
+  const LedgerEntry(this.title, this.sub, this.amount, this.kind);
+  final String title;
+  final String sub;
+  final int amount;
+  final LedgerKind kind;
+}
+
+enum TopupStatus { pending, approved }
+
+class Topup {
+  const Topup(this.ref, this.method, this.amount, this.at, this.status);
+  final String ref;
+  final String method;
+  final int amount;
+  final DateTime at;
+  final TopupStatus status;
+}
+
+enum AdSlot { homeBanner, featuredPage, sponsoredOffer }
+
+enum AdStatus {
+  pending,
+  rejected,
+  pausedBalance,
+  pausedSuspended,
+  active,
+  ended,
+}
+
+class AdCampaign {
+  const AdCampaign({
+    required this.id,
+    required this.slot,
+    required this.title,
+    required this.place,
+    required this.image,
+    required this.status,
+    this.note,
+    this.impressions = 0,
+    this.clicks = 0,
+    this.selections = 0,
+  });
+  final String id;
+  final AdSlot slot;
+  final String title;
+  final String place;
+  final String image;
+  final AdStatus status;
+  final String? note;
+  final int impressions;
+  final int clicks;
+  final int selections;
+}
+
+enum MarkKind { mark, review }
+
+class PageMark {
+  const PageMark(this.id, this.title, this.sub, this.kind, {this.orderNo});
+  final String id;
+  final String title;
+  final String sub;
+  final MarkKind kind;
+  final String? orderNo;
+}
+
+class PageSettings {
+  const PageSettings({
+    this.receiving = true,
+    this.sound = true,
+    this.categories = const {'أحذية', 'ملابس'},
+    this.governorates = const {'بغداد', 'بابل', 'ديالى'},
+    this.from = 10,
+    this.to = 23,
+    this.days = const {0, 1, 2, 3, 4, 5},
+  });
+  final bool receiving;
+  final bool sound;
+  final Set<String> categories;
+  final Set<String> governorates;
+
+  /// Working hours (24h clock, Asia/Baghdad).
+  final int from;
+  final int to;
+
+  /// 0 = السبت … 6 = الجمعة.
+  final Set<int> days;
+
+  PageSettings copyWith({
+    bool? receiving,
+    bool? sound,
+    Set<String>? categories,
+    Set<String>? governorates,
+    int? from,
+    int? to,
+    Set<int>? days,
+  }) => PageSettings(
+    receiving: receiving ?? this.receiving,
+    sound: sound ?? this.sound,
+    categories: categories ?? this.categories,
+    governorates: governorates ?? this.governorates,
+    from: from ?? this.from,
+    to: to ?? this.to,
+    days: days ?? this.days,
+  );
+}
+
+class ReceivedRating {
+  const ReceivedRating({
+    required this.orderNo,
+    required this.stars,
+    required this.tags,
+    required this.comment,
+    required this.governorate,
+  });
+  final String orderNo;
+  final int stars;
+  final List<String> tags;
+  final String comment;
+  final String governorate;
+}
+
+class SellerNotice {
+  const SellerNotice(this.title, this.body, this.route, this.ago);
+  final String title;
+  final String body;
+  final String route;
+  final String ago;
+}

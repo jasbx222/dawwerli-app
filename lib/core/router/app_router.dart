@@ -21,6 +21,14 @@ import '../../features/post/presentation/request_details_screen.dart';
 import '../../features/post/presentation/review_screen.dart';
 import '../../features/pages/presentation/featured_pages_screen.dart';
 import '../../features/more/more_screens.dart';
+import '../../features/seller/domain/seller_models.dart';
+import '../../features/seller/presentation/ads_screens.dart';
+import '../../features/seller/presentation/inbox_screen.dart';
+import '../../features/seller/presentation/my_offers_screens.dart';
+import '../../features/seller/presentation/page_account_screens.dart';
+import '../../features/seller/presentation/register_screens.dart';
+import '../../features/seller/presentation/submit_offer_screen.dart';
+import '../../features/seller/presentation/wallet_screen.dart';
 import '../../features/offers/data/mock_offers_repository.dart';
 import '../../features/offers/data/offers_providers.dart';
 import '../../features/offers/presentation/chosen_screen.dart';
@@ -459,6 +467,80 @@ final appRouter = GoRouter(
               CategoryScreen(categoryId: s.pathParameters['id']!),
         ),
       ],
+    ),
+    GoRoute(
+      path: Routes.sellerRegister,
+      builder: (_, _) => const SellerRegisterScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerVerify,
+      builder: (_, _) => const SellerVerifyScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerRejected,
+      builder: (_, _) => const SellerRejectedScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerInbox,
+      builder: (_, _) => const SellerInboxScreen(),
+    ),
+    GoRoute(
+      path: '/seller/requests/:id/offer',
+      builder: (_, s) => SubmitOfferScreen(requestId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: Routes.sellerOffers,
+      builder: (_, _) => const SellerOffersScreen(),
+    ),
+    GoRoute(
+      path: '/seller/offers/:id',
+      builder: (_, s) => SellerChosenScreen(offerId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: Routes.sellerRating,
+      builder: (_, _) => const SellerRatingScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerWallet,
+      builder: (_, _) => const SellerWalletScreen(),
+    ),
+    GoRoute(path: Routes.sellerAds, builder: (_, _) => const SellerAdsScreen()),
+    GoRoute(
+      path: Routes.sellerMyAds,
+      builder: (_, _) => const SellerMyAdsScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerAdsEligibility,
+      builder: (_, _) => const AdsEligibilityScreen(),
+    ),
+    GoRoute(
+      path: '/seller/ads/book/:slot',
+      builder: (_, s) =>
+          AdBookScreen(slot: AdSlot.values.byName(s.pathParameters['slot']!)),
+    ),
+    GoRoute(
+      path: Routes.sellerStanding,
+      builder: (_, _) => const SellerStandingScreen(),
+    ),
+    GoRoute(
+      path: '/seller/standing/appeal/:id',
+      builder: (_, s) => SellerAppealScreen(markId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: Routes.sellerSettings,
+      builder: (_, _) => const SellerSettingsScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerAccount,
+      builder: (_, _) => const SellerAccountScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerNotifications,
+      builder: (_, _) => const SellerNotificationsScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerDelete,
+      builder: (_, _) => const SellerDeleteScreen(),
     ),
     GoRoute(path: Routes.feed, builder: (_, _) => const FeedScreen()),
     GoRoute(

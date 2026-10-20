@@ -1,9 +1,11 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+
+import '../../../core/utils/whatsapp.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
-import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/l10n/offer_strings.dart';
 import '../../../core/router/routes.dart';
@@ -69,14 +71,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
   String _message(Selection s) =>
       OfferStrings.waMessage(s.orderNo, s.itemTitle, thousands(s.offer.price));
 
-  Future<void> _whatsapp(Selection s) async {
-    // api.whatsapp.com directly: the wa.me redirect mangles emoji in `text`.
-    final uri = Uri.parse(
-      'https://api.whatsapp.com/send?phone=${s.pagePhone}'
-      '&text=${Uri.encodeComponent(_message(s))}',
-    );
-    await launchUrl(uri, mode: LaunchMode.externalApplication);
-  }
+  Future<void> _whatsapp(Selection s) => openWhatsApp(s.pagePhone, _message(s));
 
   Future<void> _noReply() async {
     if (_busy) return;

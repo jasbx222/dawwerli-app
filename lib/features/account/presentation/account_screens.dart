@@ -18,6 +18,8 @@ import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/settings_row.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
 import '../../more/more_data.dart';
+import '../../../core/role/app_role.dart';
+import '../../seller/data/seller_controller.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
 
 /// 28 · «حسابي» tab. Mock profile until the account API lands.
@@ -149,6 +151,12 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ]),
                 SettingsGroup([
+                  _item(AppIcon.refresh, 'بدّل لـ«أبيع»', '', () {
+                    ref.read(appRoleProvider.notifier).set(AppRole.seller);
+                    context.go(
+                      sellerEntryRoute(ref.read(sellerProvider).status),
+                    );
+                  }),
                   _item(
                     AppIcon.refresh,
                     'سجّل خروج',

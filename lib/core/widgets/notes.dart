@@ -139,8 +139,8 @@ class BannerCard extends StatelessWidget {
 }
 
 /// Rounded photo square (`.th` 52×52, r16).
-class Thumb extends StatelessWidget {
-  const Thumb(
+class PhotoThumb extends StatelessWidget {
+  const PhotoThumb(
     this.image, {
     super.key,
     this.size = AppSize.thumb,

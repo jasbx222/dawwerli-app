@@ -3,6 +3,44 @@ import 'package:flutter_svg/flutter_svg.dart';
 
 /// Line icons copied from the approved designs (24×24 viewBox, stroke 2).
 enum AppIcon {
+  cameraFab(
+    '<path d="M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z"/><circle cx="12" cy="13" r="3"/>',
+  ),
+  clipboardList(
+    '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/>',
+  ),
+  message(
+    '<path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/>',
+  ),
+  wallet(
+    '<path d="M20 7H5a2 2 0 0 1 0-4h13v4"/><path d="M3 5v14a2 2 0 0 0 2 2h15V7"/><circle cx="16" cy="14" r="1.5"/>',
+  ),
+  person(
+    '<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>',
+  ),
+  gift(
+    '<rect x="3" y="8" width="18" height="5" rx="1"/><path d="M5 13v8h14v-8M12 8v13M12 8S10 3 7.5 4 9 8 12 8s4.5-3 4.5-4S12 8 12 8"/>',
+  ),
+  image(
+    '<rect x="3" y="3" width="18" height="18" rx="3"/><circle cx="9" cy="9" r="2"/><path d="m21 15-5-5L5 21"/>',
+  ),
+  chartLine('<path d="M3 3v18h18"/><path d="M7 15l4-4 3 3 5-6"/>'),
+  triangle(
+    '<path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0z"/><path d="M12 9v4M12 17h.01"/>',
+  ),
+  link(
+    '<path d="M10 14a4 4 0 0 0 5.7 0l3-3a4 4 0 0 0-5.7-5.7l-1 1M14 10a4 4 0 0 0-5.7 0l-3 3a4 4 0 0 0 5.7 5.7l1-1"/>',
+  ),
+  cash(
+    '<rect x="2" y="6" width="20" height="12" rx="2"/><circle cx="12" cy="12" r="2.5"/><path d="M6 12h.01M18 12h.01"/>',
+  ),
+  party(
+    '<path d="M4 20 9 7l8 8z"/><path d="M14 4v2M19 9h2M17 5l-1.5 1.5M20 14l-1.5-.5"/>',
+  ),
+  boltSmall('<path d="M13 2 4 14h7l-1 8 9-12h-7z"/>'),
+  copy(
+    '<rect x="9" y="9" width="12" height="12" rx="2"/><path d="M5 15V5a2 2 0 0 1 2-2h10"/>',
+  ),
   back('<path d="m9 18 6-6-6-6"/>'),
   whatsapp(
     '<path d="M3 21l1.6-5A9 9 0 1 1 8 19.4z"/><path d="M9 9.5c.5 2 2.5 4 4.5 4.5l1-1.2 2 .9c-.3 1.3-1.3 1.8-2.3 1.8C10 15.5 8.5 14 8 10.8c0-1 .6-2 1.8-2.3l.9 2z"/>',

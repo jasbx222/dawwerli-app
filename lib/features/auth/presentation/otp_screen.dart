@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../core/role/app_role.dart';
+import '../../seller/data/seller_controller.dart';
+
 import '../../guest/guest.dart';
 
 import 'package:flutter/services.dart';
@@ -97,7 +100,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     switch (r) {
       case OtpOk(:final needsProfile):
         ref.read(guestProvider.notifier).set(false);
-        context.go(needsProfile ? Routes.profileSetup : Routes.home);
+        if (ref.read(appRoleProvider) == AppRole.seller) {
+          context.go(sellerEntryRoute(ref.read(sellerProvider).status));
+        } else {
+          context.go(needsProfile ? Routes.profileSetup : Routes.home);
+        }
       case OtpWrong(:final attemptsLeft):
         setState(() => _attemptsLeft = attemptsLeft);
       case OtpExpired():

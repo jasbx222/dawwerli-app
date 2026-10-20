@@ -2,6 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../guest/guest.dart';
+import '../../../core/role/app_role.dart';
+import '../../../core/widgets/seg_tabs.dart';
 
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
@@ -14,65 +16,71 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/ishtar_pattern.dart';
 
-class OnboardingScreen extends StatelessWidget {
+class OnboardingScreen extends ConsumerWidget {
   const OnboardingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final seller = ref.watch(appRoleProvider) == AppRole.seller;
     return Scaffold(
-      body: Column(
-        children: [
-          const SizedBox(height: 470, width: double.infinity, child: _Hero()),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
-            child: Column(
-              children: [
-                Text.rich(
-                  const TextSpan(
-                    children: [
-                      TextSpan(text: '${AppStrings.onbTitle1}\n'),
-                      TextSpan(
-                        text: AppStrings.onbTitle2,
-                        style: TextStyle(color: AppColors.blue),
+      body: SingleChildScrollView(
+        child: Column(
+          children: [
+            const SizedBox(height: 470, width: double.infinity, child: _Hero()),
+            Padding(
+              padding: const EdgeInsets.symmetric(horizontal: 24, vertical: 28),
+              child: Column(
+                children: [
+                  Text.rich(
+                    const TextSpan(
+                      children: [
+                        TextSpan(text: '${AppStrings.onbTitle1}\n'),
+                        TextSpan(
+                          text: AppStrings.onbTitle2,
+                          style: TextStyle(color: AppColors.blue),
+                        ),
+                      ],
+                    ),
+                    textAlign: TextAlign.center,
+                    style: AppText.big.copyWith(
+                      fontSize: 27,
+                      height: AppText.lh(27),
+                    ),
+                  ),
+                  const SizedBox(height: 12),
+                  Text(
+                    AppStrings.onbBody,
+                    textAlign: TextAlign.center,
+                    style: AppText.muted.copyWith(fontSize: 14.5, height: 1.7),
+                  ),
+                  const SizedBox(height: 22),
+                  const _PageDots(count: 3, active: 0),
+                  const SizedBox(height: 18),
+                  const _RoleChoice(),
+                  const SizedBox(height: 14),
+                  AppButton(
+                    AppStrings.onbStart,
+                    onPressed: () => context.go(Routes.login),
+                  ),
+                  const SizedBox(height: 14),
+                  if (!seller)
+                    GestureDetector(
+                      onTap: () {
+                        ProviderScope.containerOf(context)
+                            .read(guestProvider.notifier)
+                            .set(true);
+                        context.go(Routes.home);
+                      },
+                      child: Text(
+                        AppStrings.onbBrowse,
+                        style: AppText.strong.copyWith(color: AppColors.blue),
                       ),
-                    ],
-                  ),
-                  textAlign: TextAlign.center,
-                  style: AppText.big.copyWith(
-                    fontSize: 27,
-                    height: AppText.lh(27),
-                  ),
-                ),
-                const SizedBox(height: 12),
-                Text(
-                  AppStrings.onbBody,
-                  textAlign: TextAlign.center,
-                  style: AppText.muted.copyWith(fontSize: 14.5, height: 1.7),
-                ),
-                const SizedBox(height: 22),
-                const _PageDots(count: 3, active: 0),
-                const SizedBox(height: 22),
-                AppButton(
-                  AppStrings.onbStart,
-                  onPressed: () => context.go(Routes.login),
-                ),
-                const SizedBox(height: 14),
-                GestureDetector(
-                  onTap: () {
-                    ProviderScope.containerOf(context)
-                        .read(guestProvider.notifier)
-                        .set(true);
-                    context.go(Routes.home);
-                  },
-                  child: Text(
-                    AppStrings.onbBrowse,
-                    style: AppText.strong.copyWith(color: AppColors.blue),
-                  ),
-                ),
-              ],
+                    ),
+                ],
+              ),
             ),
-          ),
-        ],
+          ],
+        ),
       ),
     );
   }
@@ -278,6 +286,22 @@ class _PageDots extends StatelessWidget {
           ),
         ],
       ],
+    );
+  }
+}
+
+/// «أشتري» opens the customer app, «أبيع» the page app; remembered on the device.
+class _RoleChoice extends ConsumerWidget {
+  const _RoleChoice();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final role = ref.watch(appRoleProvider);
+    return SegTabs(
+      labels: const ['أشتري', 'أبيع'],
+      selected: role.index,
+      onSelect: (i) =>
+          ref.read(appRoleProvider.notifier).set(AppRole.values[i]),
     );
   }
 }

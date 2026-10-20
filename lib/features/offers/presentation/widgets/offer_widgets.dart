@@ -10,9 +10,9 @@ import '../../../../core/widgets/app_icons.dart';
 import '../../domain/offer.dart';
 
 export '../../../../core/widgets/pill.dart';
+export '../../../../core/widgets/sticker.dart';
+import '../../../../core/widgets/sticker.dart';
 import '../../../../core/widgets/pill.dart';
-
-final _deg7 = -7 * 3.141592653589793 / 180;
 
 /// Icons only used in this flow (24×24, stroke 2, from 14/14b).
 enum OfferIcon {
@@ -55,41 +55,6 @@ WidgetSpan checkSpan(double size, Color c) => WidgetSpan(
   alignment: PlaceholderAlignment.middle,
   child: AppSvgIcon(AppIcon.check, size: size * .8, color: c, strokeWidth: 3),
 );
-
-/// `.stk`: coral sticker rotated −7°.
-class Sticker extends StatelessWidget {
-  const Sticker(this.label, {super.key});
-  final String label;
-
-  @override
-  Widget build(BuildContext context) => Transform.rotate(
-    angle: _deg7,
-    child: Container(
-      padding: EdgeInsets.symmetric(horizontal: 10, vertical: 4),
-      decoration: BoxDecoration(
-        color: AppColors.sticker,
-        borderRadius: BorderRadius.circular(10),
-        boxShadow: [
-          BoxShadow(
-            color: Color(0xB3FF7A59),
-            offset: Offset(0, 4),
-            blurRadius: 10,
-            spreadRadius: -3,
-          ),
-        ],
-      ),
-      child: Text(
-        label,
-        style: TextStyle(
-          fontSize: 12,
-          height: AppText.lh(12),
-          fontWeight: FontWeight.w700,
-          color: AppColors.stickerText,
-        ),
-      ),
-    ),
-  );
-}
 
 final cardShadow = BoxShadow(
   color: Color(0x660B1A3F),

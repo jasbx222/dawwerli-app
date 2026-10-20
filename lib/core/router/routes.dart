@@ -44,4 +44,28 @@ abstract final class Routes {
   static const terms = '/account/terms';
   static const contact = '/account/contact';
   static const postCategory = '/post/category';
+
+  // Page (seller) app.
+  static const roleChoice = '/role';
+  static const sellerRegister = '/seller/register';
+  static const sellerVerify = '/seller/verify';
+  static const sellerRejected = '/seller/verify/rejected';
+  static const sellerInbox = '/seller';
+  static String sellerSubmit(String requestId) =>
+      '/seller/requests/$requestId/offer';
+  static const sellerOffers = '/seller/offers';
+  static String sellerChosen(String offerId) => '/seller/offers/$offerId';
+  static const sellerRating = '/seller/rating';
+  static const sellerWallet = '/seller/wallet';
+  static const sellerAds = '/seller/ads';
+  static const sellerMyAds = '/seller/ads/mine';
+  static const sellerAdsEligibility = '/seller/ads/eligibility';
+  static String sellerAdBook(String slot) => '/seller/ads/book/$slot';
+  static const sellerStanding = '/seller/standing';
+  static String sellerAppeal(String markId) =>
+      '/seller/standing/appeal/$markId';
+  static const sellerSettings = '/seller/settings';
+  static const sellerAccount = '/seller/account';
+  static const sellerNotifications = '/seller/notifications';
+  static const sellerDelete = '/seller/account/delete';
 }
