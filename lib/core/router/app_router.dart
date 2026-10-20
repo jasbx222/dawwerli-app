@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../mock/mock_backend.dart';
+import '../l10n/offer_strings.dart';
 import '../../features/auth/domain/phone_number.dart';
 import '../../features/auth/presentation/login_phone_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
@@ -20,6 +21,11 @@ import '../../features/post/presentation/request_details_screen.dart';
 import '../../features/post/presentation/review_screen.dart';
 import '../../features/pages/presentation/featured_pages_screen.dart';
 import '../widgets/coming_soon_screen.dart';
+import '../../features/offers/data/mock_offers_repository.dart';
+import '../../features/offers/data/offers_providers.dart';
+import '../../features/offers/presentation/chosen_screen.dart';
+import '../../features/offers/presentation/offer_details_screen.dart';
+import '../../features/offers/presentation/offers_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -173,10 +179,48 @@ final appRouter = GoRouter(
             : screen;
       },
     ),
-    // TODO(offers): replace with 11_offers_compare when the offers group lands.
+    // 11 · `?preview=confirm` opens 13 for the cheapest offer; 12 under `/:offerId`.
     GoRoute(
       path: '/requests/:id/offers',
-      builder: (_, _) => const ComingSoonScreen(),
+      builder: (_, s) => OffersScreen(
+        requestId: s.pathParameters['id']!,
+        confirmId: s.uri.queryParameters['preview'] == 'confirm'
+            ? 'o1'
+            : s.uri.queryParameters['confirm'],
+      ),
+      routes: [
+        GoRoute(
+          path: ':offerId',
+          builder: (_, s) => OfferDetailsScreen(
+            requestId: s.pathParameters['id']!,
+            offerId: s.pathParameters['offerId']!,
+          ),
+        ),
+      ],
+    ),
+    // 14 · `?preview=1` = 17:50 after choosing (42:10 left); `=noreply` is 14b.
+    GoRoute(
+      path: '/requests/:id/chosen',
+      builder: (context, s) {
+        final id = s.pathParameters['id']!;
+        final p = s.uri.queryParameters['preview'];
+        if (p == null) return ChosenScreen(requestId: id);
+        final noReply = p == 'noreply';
+        final elapsed = noReply
+            ? const Duration(hours: 1, minutes: 2)
+            : const Duration(minutes: 17, seconds: 50);
+        // Seed the app-wide mock so «ما ردت» → 11 continues on the same data.
+        final repo = ProviderScope.containerOf(context)
+            .read(offersRepositoryProvider);
+        if (repo is MockOffersRepository) repo.seedSelection('o1', elapsed);
+        return ChosenScreen(
+          requestId: id,
+          frozenElapsed: elapsed,
+          toast: noReply
+              ? OfferStrings.backToOffers('رياضة الكرادة', '39,000')
+              : null,
+        );
+      },
     ),
     GoRoute(
       path: Routes.comingSoon,

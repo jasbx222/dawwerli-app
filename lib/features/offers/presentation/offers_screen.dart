@@ -1,0 +1,301 @@
+import 'dart:ui' show ImageFilter;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/l10n/app_strings.dart';
+import '../../../core/l10n/offer_strings.dart';
+import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_header.dart';
+import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/app_inputs.dart';
+import '../../live/presentation/widgets/live_sheets.dart';
+import '../data/offers_providers.dart';
+import '../domain/offer.dart';
+import 'widgets/offer_widgets.dart';
+
+/// 11 · Compare offers; 13 · confirm-choice sheet over the list.
+class OffersScreen extends ConsumerStatefulWidget {
+  const OffersScreen({super.key, required this.requestId, this.confirmId});
+
+  final String requestId;
+
+  /// Opens the 13 sheet for this offer (from 12 «أريده» or `?preview=confirm`).
+  final String? confirmId;
+
+  @override
+  ConsumerState<OffersScreen> createState() => _OffersScreenState();
+}
+
+class _OffersScreenState extends ConsumerState<OffersScreen> {
+  OfferSort _sort = OfferSort.cheapest;
+  late String? _confirm = widget.confirmId;
+  bool _busy = false;
+
+  void _back() => context.canPop()
+      ? context.pop()
+      : context.go(Routes.liveRequest(widget.requestId));
+
+  Future<void> _open(Offer o) async {
+    final want = await context.push<bool>(
+      Routes.offerDetails(widget.requestId, o.id),
+    );
+    if (want == true && mounted) setState(() => _confirm = o.id);
+  }
+
+  Future<void> _select(Offer o) async {
+    if (_busy) return;
+    _busy = true;
+    try {
+      await ref.read(offersRepositoryProvider).select(widget.requestId, o.id);
+    } on SelectionConflict {
+      // One active selection only (SEL-02): show the existing one instead.
+    } finally {
+      _busy = false;
+    }
+    if (mounted) context.go(Routes.chosen(widget.requestId));
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final board = ref.watch(offersProvider(widget.requestId)).value;
+    if (board == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
+      );
+    }
+    final cheapest = board.cheapest?.id;
+    final confirm = _confirm == null ? null : board.byId(_confirm!);
+    final list = board.sorted(_sort);
+    Widget card(Offer o) => Padding(
+      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+      child: OfferCard(
+        offer: o,
+        cheapest: o.id == cheapest,
+        onTap: confirm == null ? () => _open(o) : null,
+      ),
+    );
+
+    final Widget content;
+    if (confirm == null) {
+      final left = board.maxOffers - board.offers.length;
+      content = SingleChildScrollView(
+        padding: const EdgeInsets.only(bottom: 24),
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            AppHeader(
+              title: OfferStrings.offersArrived(board.offers.length),
+              subtitle: const Text(OfferStrings.pricesFixed),
+              onBack: _back,
+            ),
+            Padding(
+              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+              child: Wrap(
+                spacing: 8,
+                runSpacing: 8,
+                children: [
+                  for (final (s, l) in const [
+                    (OfferSort.cheapest, OfferStrings.sortCheapest),
+                    (OfferSort.topRated, OfferStrings.sortTopRated),
+                    (OfferSort.fastest, OfferStrings.sortFastest),
+                  ])
+                    AppChip(
+                      l,
+                      selected: _sort == s,
+                      onTap: () => setState(() => _sort = s),
+                    ),
+                ],
+              ),
+            ),
+            const SizedBox(height: 8),
+            for (final o in list) card(o),
+            if (left > 0)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: DashedCard(
+                  child: Text(
+                    OfferStrings.placesLeft(
+                      AppStrings.placesLeft(left),
+                      board.maxOffers,
+                    ),
+                    textAlign: TextAlign.center,
+                    style: AppText.muted,
+                    // Inline span in a 14px block: the line box is 21px, not 19.
+                    strutStyle: const StrutStyle(
+                      fontFamily: AppText.family,
+                      fontSize: 14,
+                      height: 1.5,
+                    ),
+                  ),
+                ),
+              ),
+            if (list.any((o) => o.sponsored)) ...[
+              const SizedBox(height: 12),
+              const Text(
+                OfferStrings.sponsoredNote,
+                textAlign: TextAlign.center,
+                style: AppText.muted,
+              ),
+            ],
+          ],
+        ),
+      );
+    } else {
+      // 13: chosen offer pinned on top of the blurred list.
+      content = ImageFiltered(
+        imageFilter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+        child: SingleChildScrollView(
+          physics: const NeverScrollableScrollPhysics(),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              AppHeader(
+                title: OfferStrings.offersArrived(board.offers.length),
+                onBack: _back,
+              ),
+              card(confirm),
+              for (final o in list)
+                if (o.id != confirm.id) card(o),
+            ],
+          ),
+        ),
+      );
+    }
+
+    return PopScope(
+      canPop: confirm == null,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _confirm = null);
+      },
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            content,
+            if (confirm != null) ...[
+              GestureDetector(
+                onTap: () => setState(() => _confirm = null),
+                child: const ColoredBox(color: Color(0x8C070E1F)),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: ConfirmSheet(
+                  offer: confirm,
+                  onYes: () => _select(confirm),
+                  onNo: () => setState(() => _confirm = null),
+                ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+/// 13
+class ConfirmSheet extends StatelessWidget {
+  const ConfirmSheet({
+    super.key,
+    required this.offer,
+    required this.onYes,
+    required this.onNo,
+  });
+  final Offer offer;
+  final VoidCallback onYes;
+  final VoidCallback onNo;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget point(Widget icon, String text) => Container(
+      padding: const EdgeInsets.symmetric(vertical: 13),
+      // Every `.li` keeps its rule: the buttons follow, so none is :last-child.
+      decoration: const BoxDecoration(
+        border: Border(bottom: BorderSide(color: AppColors.divider)),
+      ),
+      child: Row(
+        children: [
+          icon,
+          const SizedBox(width: 12),
+          Expanded(child: Text(text, style: AppText.body)),
+        ],
+      ),
+    );
+    return AppSheet(
+      children: [
+        Row(
+          children: [
+            ClipRRect(
+              borderRadius: BorderRadius.circular(16),
+              child: Image.asset(
+                offer.image,
+                width: 52,
+                height: 52,
+                fit: BoxFit.cover,
+              ),
+            ),
+            const SizedBox(width: 12),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(
+                    OfferStrings.confirmTitle(offer.pageName),
+                    style: AppText.strong.copyWith(
+                      fontSize: 17,
+                      height: AppText.lh(17),
+                    ),
+                  ),
+                  Text(
+                    OfferStrings.confirmSub(
+                      thousands(offer.price),
+                      offer.delivery,
+                    ),
+                    style: AppText.muted,
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        const SizedBox(height: 10),
+        point(
+          const AppSvgIcon(AppIcon.user, size: 20, color: AppColors.blue),
+          OfferStrings.pointPhone,
+        ),
+        point(
+          const AppSvgIcon(
+            AppIcon.whatsapp,
+            size: 20,
+            color: AppColors.whatsapp,
+          ),
+          OfferStrings.pointWhatsapp,
+        ),
+        point(
+          const AppSvgIcon(AppIcon.clock, size: 20, color: AppColors.blue),
+          OfferStrings.pointNoReply,
+        ),
+        point(
+          const AppSvgIcon(AppIcon.shield, size: 20, color: AppColors.blue),
+          OfferStrings.pointPrivacy,
+        ),
+        const SizedBox(height: 16),
+        AppButton(OfferStrings.confirmYes, onPressed: onYes),
+        const SizedBox(height: 10),
+        AppButton(
+          OfferStrings.confirmNo,
+          variant: AppButtonVariant.ghost,
+          onPressed: onNo,
+        ),
+      ],
+    );
+  }
+}

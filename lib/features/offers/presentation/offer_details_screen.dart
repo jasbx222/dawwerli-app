@@ -1,0 +1,288 @@
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/l10n/offer_strings.dart';
+import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_icons.dart';
+import '../data/offers_providers.dart';
+import 'widgets/offer_widgets.dart';
+
+/// 12 · One offer: live-camera photo, locked price, delivery, safety tips, «أريده».
+class OfferDetailsScreen extends ConsumerWidget {
+  const OfferDetailsScreen({
+    super.key,
+    required this.requestId,
+    required this.offerId,
+  });
+
+  final String requestId;
+  final String offerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final board = ref.watch(offersProvider(requestId)).value;
+    final o = board?.byId(offerId);
+    if (board == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
+      );
+    }
+    void back([bool? want]) => context.canPop()
+        ? context.pop(want)
+        : context.go(
+            Routes.offers(requestId) +
+                (want == true ? '?confirm=$offerId' : ''),
+          );
+    if (o == null) {
+      WidgetsBinding.instance.addPostFrameCallback((_) => back());
+      return const Scaffold();
+    }
+    Widget m(double top, Widget child) =>
+        Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
+    return Scaffold(
+      body: Stack(
+        fit: StackFit.expand,
+        children: [
+          SingleChildScrollView(
+            padding: const EdgeInsets.only(bottom: 100),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                SizedBox(
+                  height: 380,
+                  child: Stack(
+                    fit: StackFit.expand,
+                    children: [
+                      Image.asset(o.image, fit: BoxFit.cover),
+                      Positioned(
+                        top: 50,
+                        right: 16,
+                        child: GestureDetector(
+                          onTap: back,
+                          child: Container(
+                            width: 40,
+                            height: 40,
+                            decoration: BoxDecoration(
+                              color: AppColors.navy.withValues(alpha: .5),
+                              borderRadius: BorderRadius.circular(14),
+                            ),
+                            alignment: Alignment.center,
+                            child: const AppSvgIcon(
+                              AppIcon.back,
+                              size: 20,
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      Positioned(
+                        bottom: 14,
+                        left: 14,
+                        child: Container(
+                          padding: const EdgeInsets.symmetric(
+                            horizontal: 10,
+                            vertical: 5,
+                          ),
+                          decoration: BoxDecoration(
+                            color: AppColors.navy.withValues(alpha: .7),
+                            borderRadius: BorderRadius.circular(10),
+                          ),
+                          child: Text(
+                            o.photoStamp,
+                            textDirection: TextDirection.ltr,
+                            style: TextStyle(
+                              fontSize: 11,
+                              height: AppText.lh(11),
+                              color: AppColors.white,
+                            ),
+                          ),
+                        ),
+                      ),
+                      const Positioned(
+                        bottom: 14,
+                        right: 14,
+                        child: Pill(
+                          OfferStrings.liveCamera,
+                          bg: AppColors.white,
+                          fg: AppColors.navy,
+                          icon: AppIcon.camera,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+                Transform.translate(
+                  offset: const Offset(0, -30),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      m(
+                        0,
+                        AppCard(
+                          child: Row(
+                            children: [
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    OfferStrings.pageVerified(o.pageName),
+                                    style: AppText.strong.copyWith(
+                                      fontSize: 18,
+                                      height: AppText.lh(18),
+                                    ),
+                                  ),
+                                  Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        starSpan,
+                                        TextSpan(
+                                          text: OfferStrings.detailStats(
+                                            rating1(o.rating),
+                                            o.deals,
+                                            o.replyMinutes,
+                                          ),
+                                        ),
+                                      ],
+                                    ),
+                                    style: AppText.muted,
+                                  ),
+                                ],
+                              ),
+                              const Spacer(),
+                              if (o.trusted)
+                                const Pill(
+                                  OfferStrings.trusted,
+                                  bg: AppColors.blueTint,
+                                  fg: AppColors.blue,
+                                ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      m(
+                        14,
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            children: [
+                              Row(
+                                children: [
+                                  const Text.rich(
+                                    TextSpan(
+                                      children: [
+                                        WidgetSpan(
+                                          alignment:
+                                              PlaceholderAlignment.baseline,
+                                          baseline: TextBaseline.alphabetic,
+                                          child: AppSvgIcon(
+                                            AppIcon.lock,
+                                            size: 15,
+                                            color: AppColors.grey,
+                                          ),
+                                        ),
+                                        TextSpan(
+                                          text: OfferStrings.finalLocked,
+                                        ),
+                                      ],
+                                    ),
+                                    style: AppText.muted,
+                                  ),
+                                  const Spacer(),
+                                  Text(
+                                    '${thousands(o.price)} ${OfferStrings.iqd}',
+                                    style: AppText.number.copyWith(
+                                      fontSize: 22,
+                                      height: AppText.lh(22),
+                                      color: AppColors.blue,
+                                    ),
+                                  ),
+                                ],
+                              ),
+                              Container(
+                                margin: const EdgeInsets.only(top: 8),
+                                decoration: const BoxDecoration(
+                                  border: Border(
+                                    top: BorderSide(color: AppColors.divider),
+                                  ),
+                                ),
+                                child: InfoRow(
+                                  label: OfferStrings.delivery,
+                                  value: OfferStrings.deliveryIncluded(
+                                    o.delivery,
+                                  ),
+                                ),
+                              ),
+                              InfoRow(
+                                label: OfferStrings.condition,
+                                value: o.condition,
+                              ),
+                              InfoRow(
+                                label: OfferStrings.pageNote,
+                                value: o.note,
+                                valueSize: 13,
+                                divider: false,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                      m(
+                        14,
+                        AppCard(
+                          flat: true,
+                          color: AppColors.dangerBg,
+                          insets: const EdgeInsets.symmetric(
+                            horizontal: 14,
+                            vertical: 12,
+                          ),
+                          child: const Text(
+                            OfferStrings.noPrepay,
+                            strutStyle: StrutStyle(
+                              fontFamily: AppText.family,
+                              fontSize: 14,
+                              height: 1.5,
+                              forceStrutHeight: true,
+                            ),
+                            style: TextStyle(
+                              fontWeight: FontWeight.w700,
+                              color: AppColors.dangerText,
+                            ),
+                          ),
+                        ),
+                      ),
+                      m(
+                        14,
+                        AppCard(
+                          flat: true,
+                          color: AppColors.warnBg,
+                          child: Text(
+                            OfferStrings.inspectTip,
+                            style: AppText.muted.copyWith(
+                              color: AppColors.warnText,
+                            ),
+                          ),
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+          Positioned(
+            left: 16,
+            right: 16,
+            bottom: 30,
+            child: AppButton(OfferStrings.want, onPressed: () => back(true)),
+          ),
+        ],
+      ),
+    );
+  }
+}
