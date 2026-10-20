@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../pages/data/mock_pages_repository.dart';
+import '../../../core/mock/mock_backend.dart';
 import '../../pages/domain/pages_repository.dart';
 import '../domain/home_models.dart';
 import '../domain/home_repository.dart';
@@ -8,7 +9,7 @@ import 'mock_home_repository.dart';
 
 /// Swap for the API implementation later. Override in ProviderScope for previews/tests.
 final homeRepositoryProvider = Provider<HomeRepository>(
-  (ref) => const MockHomeRepository(),
+  (ref) => MockHomeRepository(ref.watch(mockBackendProvider)),
 );
 final pagesRepositoryProvider = Provider<PagesRepository>(
   (ref) => const MockPagesRepository(),

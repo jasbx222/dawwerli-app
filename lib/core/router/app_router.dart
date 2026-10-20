@@ -2,6 +2,7 @@ import 'package:flutter/widgets.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../mock/mock_backend.dart';
 import '../../features/auth/domain/phone_number.dart';
 import '../../features/auth/presentation/login_phone_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
@@ -80,9 +81,10 @@ final appRouter = GoRouter(
           ? ProviderScope(
               overrides: [
                 homeDataProvider.overrideWith(
-                  (ref) =>
-                      const MockHomeRepository(withData: true)
-                          .load(governorate: 'بغداد'),
+                  (ref) => MockHomeRepository(
+                    ref.watch(mockBackendProvider),
+                    withData: true,
+                  ).load(governorate: 'بغداد'),
                 ),
               ],
               child: const HomeScreen(),
@@ -100,7 +102,23 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'details',
-          builder: (_, s) => _seeded(s, const RequestDetailsScreen()),
+          builder: (_, s) {
+            // 10c «ارفع السعر» → 08 with the request's details and the
+            // suggested price prefilled; saving goes to the live request.
+            final edit = s.uri.queryParameters['editPrice'];
+            if (edit == null) return _seeded(s, const RequestDetailsScreen());
+            final price = int.tryParse(s.uri.queryParameters['price'] ?? '');
+            return ProviderScope(
+              overrides: [
+                draftProvider.overrideWith(
+                  () => SeededDraftNotifier(
+                    sampleDraft.copyWith(maxPrice: price),
+                  ),
+                ),
+              ],
+              child: RequestDetailsScreen(editPriceFor: edit),
+            );
+          },
         ),
         GoRoute(
           path: 'review',
@@ -122,7 +140,8 @@ final appRouter = GoRouter(
         ),
       ],
     ),
-    // 10 · `?preview=1` freezes the countdown; `=cancel` opens 10b; `=widened` is 10c.
+    // 10 · `?preview=cancel` opens 10b; `=widened` is 10c. Countdowns tick from
+    // the mock expiry time in every mode.
     GoRoute(
       path: '/requests/:id/live',
       builder: (_, s) {
@@ -130,26 +149,34 @@ final appRouter = GoRouter(
         final p = s.uri.queryParameters['preview'];
         final screen = LiveWaitingScreen(
           requestId: id,
-          frozenClock: p != null,
           openCancel: p == 'cancel',
         );
         return p == 'widened'
             ? ProviderScope(
                 overrides: [
-                  liveRepositoryProvider.overrideWithValue(
-                    const MockLiveRequestRepository(widened: true),
+                  liveRepositoryProvider.overrideWith(
+                    (ref) => MockLiveRequestRepository(
+                      ref.watch(mockBackendProvider),
+                      widened: true,
+                    ),
                   ),
                   // Family must be scoped too, or it keeps reading the root repo.
                   liveRequestProvider.overrideWith(
-                    (ref, id) =>
-                        const MockLiveRequestRepository(widened: true)
-                            .watch(id),
+                    (ref, id) => MockLiveRequestRepository(
+                      ref.watch(mockBackendProvider),
+                      widened: true,
+                    ).watch(id),
                   ),
                 ],
                 child: screen,
               )
             : screen;
       },
+    ),
+    // TODO(offers): replace with 11_offers_compare when the offers group lands.
+    GoRoute(
+      path: '/requests/:id/offers',
+      builder: (_, _) => const ComingSoonScreen(),
     ),
     GoRoute(
       path: Routes.comingSoon,

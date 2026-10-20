@@ -23,7 +23,8 @@ class LiveRequest {
     required this.seenBy,
     required this.offerPrices,
     this.maxOffers = 5,
-    required this.widensIn,
+    required this.widensAt,
+    this.cancelled = false,
     this.widenedTo = const [],
     this.waitedMinutes = 0,
     this.suggestedPrice,
@@ -41,8 +42,11 @@ class LiveRequest {
   final List<int> offerPrices;
   final int maxOffers;
 
-  /// Time until the request widens to neighbouring governorates.
-  final Duration widensIn;
+  /// When the request widens to neighbouring governorates (server time).
+  final DateTime widensAt;
+
+  /// Cancelled by the customer (REQ-14); pages are notified, no charge.
+  final bool cancelled;
 
   /// Set once the request was widened (10c sheet).
   final List<String> widenedTo;

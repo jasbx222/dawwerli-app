@@ -5,6 +5,7 @@ import '../../../../core/theme/app_colors.dart';
 import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
+import '../../../../core/widgets/countdown.dart';
 import '../../domain/home_models.dart';
 
 class LiveRequestCard extends StatelessWidget {
@@ -158,23 +159,26 @@ class LiveRequestCard extends StatelessWidget {
                 size: 16,
               ),
               const SizedBox(width: 6),
-              Text.rich(
-                TextSpan(
-                  children: [
-                    const TextSpan(text: AppStrings.closesIn),
-                    TextSpan(
-                      text: hhmm(r.closesIn),
-                      style: AppText.number.copyWith(
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.navy,
+              Countdown(
+                until: r.closesAt,
+                builder: (context, left) => Text.rich(
+                  TextSpan(
+                    children: [
+                      const TextSpan(text: AppStrings.closesIn),
+                      TextSpan(
+                        text: hhmm(left),
+                        style: AppText.number.copyWith(
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.navy,
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                style: const TextStyle(
-                  fontSize: 13,
-                  height: 1.500000,
-                  color: Color(0xFF475569),
+                    ],
+                  ),
+                  style: const TextStyle(
+                    fontSize: 13,
+                    height: 1.500000,
+                    color: Color(0xFF475569),
+                  ),
                 ),
               ),
               const Spacer(),

@@ -1,4 +1,3 @@
-import 'dart:async';
 import 'dart:ui' show ImageFilter;
 
 import 'package:flutter/material.dart';
@@ -13,6 +12,7 @@ import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../home/data/home_providers.dart';
 import '../data/live_providers.dart';
 import '../domain/live_request.dart';
 import 'widgets/live_sheets.dart';
@@ -25,14 +25,11 @@ class LiveWaitingScreen extends ConsumerStatefulWidget {
   const LiveWaitingScreen({
     super.key,
     required this.requestId,
-    this.frozenClock = false,
     this.openCancel = false,
   });
 
   final String requestId;
 
-  /// Design QA: keep the countdown at the server value.
-  final bool frozenClock;
   final bool openCancel;
 
   @override
@@ -42,36 +39,27 @@ class LiveWaitingScreen extends ConsumerStatefulWidget {
 class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
   late _Sheet _sheet = widget.openCancel ? _Sheet.cancel : _Sheet.none;
   bool _widenedSeen = false;
-  Timer? _timer;
-  int _elapsed = 0;
-
-  @override
-  void initState() {
-    super.initState();
-    if (!widget.frozenClock) {
-      _timer = Timer.periodic(
-        const Duration(seconds: 1),
-        (_) => setState(() => _elapsed++),
-      );
-    }
-  }
-
-  @override
-  void dispose() {
-    _timer?.cancel();
-    super.dispose();
-  }
-
   Future<void> _cancel() async {
     await ref.read(liveRepositoryProvider).cancel(widget.requestId);
+    // Home re-reads the store: the cancelled request no longer shows as live.
+    // TODO(uiux): REQ-14 confirmation message after cancelling has no design yet.
+    ref.invalidate(homeDataProvider);
     if (mounted) context.go(Routes.home);
   }
 
-  Future<void> _raise(LiveRequest r) async {
-    await ref
-        .read(liveRepositoryProvider)
-        .raisePrice(r.id, r.suggestedPrice ?? r.maxPrice);
+  /// Opens 08's price field prefilled with the suggested price; 08 saves it
+  /// through the repository and pops back here.
+  void _raise(LiveRequest r) {
     setState(() => _sheet = _Sheet.none);
+    context.push(
+      Uri(
+        path: Routes.postDetails,
+        queryParameters: {
+          'editPrice': r.id,
+          'price': '${r.suggestedPrice ?? r.maxPrice}',
+        },
+      ).toString(),
+    );
   }
 
   @override
@@ -88,11 +76,10 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
       _widenedSeen = true;
       _sheet = _Sheet.widened;
     }
-    final left = r.widensIn - Duration(seconds: _elapsed);
     final content = _Content(
       r: r,
-      widensIn: left.isNegative ? Duration.zero : left,
-      onCompare: () => context.push(Routes.comingSoon),
+      onBack: () => context.canPop() ? context.pop() : context.go(Routes.home),
+      onCompare: () => context.push(Routes.offers(r.id)),
       onCancel: () => setState(() => _sheet = _Sheet.cancel),
     );
     return PopScope(
@@ -143,13 +130,13 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
 class _Content extends StatelessWidget {
   const _Content({
     required this.r,
-    required this.widensIn,
+    required this.onBack,
     required this.onCompare,
     required this.onCancel,
   });
 
   final LiveRequest r;
-  final Duration widensIn;
+  final VoidCallback onBack;
   final VoidCallback onCompare;
   final VoidCallback onCancel;
 
@@ -162,6 +149,7 @@ class _Content extends StatelessWidget {
         children: [
           AppHeader(
             title: AppStrings.liveTitle,
+            onBack: onBack,
             below: _Summary(r: r),
           ),
           _m(14, _Stats(r: r)),
@@ -172,7 +160,7 @@ class _Content extends StatelessWidget {
               maxOffers: r.maxOffers,
               cheapest: r.cheapestIndex,
               // Countdown hidden once the request already widened (10c).
-              widensIn: r.widenedTo.isEmpty ? widensIn : null,
+              widensAt: r.widenedTo.isEmpty ? r.widensAt : null,
             ),
           ),
           if (r.sponsored != null) _m(14, SponsoredCard(page: r.sponsored!)),

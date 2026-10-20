@@ -43,6 +43,38 @@ class RequestDraft {
   /// True when we stripped a phone/link/@handle from the description (08 notice).
   final bool removedContactInfo;
 
+  Map<String, Object?> toJson() => {
+    'mode': mode.name,
+    'photo': photo,
+    'description': description,
+    'voiceSeconds': voiceSeconds,
+    'category': category,
+    'size': size,
+    'color': color,
+    'condition': condition.name,
+    'maxPrice': maxPrice,
+    'governorate': governorate,
+    'readyToBuy': readyToBuy,
+    'removedContactInfo': removedContactInfo,
+  };
+
+  factory RequestDraft.fromJson(Map<String, Object?> j) => RequestDraft(
+    mode: InputMode.values.asNameMap()[j['mode']] ?? InputMode.photo,
+    photo: j['photo'] as String?,
+    description: j['description'] as String? ?? '',
+    voiceSeconds: j['voiceSeconds'] as int?,
+    category: j['category'] as String?,
+    size: j['size'] as String?,
+    color: j['color'] as String?,
+    condition:
+        ItemCondition.values.asNameMap()[j['condition']] ??
+        ItemCondition.brandNew,
+    maxPrice: j['maxPrice'] as int?,
+    governorate: j['governorate'] as String? ?? 'بغداد',
+    readyToBuy: j['readyToBuy'] as bool? ?? false,
+    removedContactInfo: j['removedContactInfo'] as bool? ?? false,
+  );
+
   RequestDraft copyWith({
     InputMode? mode,
     String? photo,
@@ -80,6 +112,10 @@ enum PostError {
   maxOpen,
   voiceTooLong,
   priceZero,
+
+  /// REQ-03: shoes need a size (server re-checks). No 09b card is designed for
+  /// it, so the app keeps the user on 08 until a size is picked.
+  sizeMissing,
 }
 
 /// Category-specific required fields (08). Shoes need size + colour.
@@ -126,6 +162,9 @@ abstract final class PostRules {
 
   static bool hasDigits(String s) => _digits.hasMatch(s);
 
+  /// REQ-03 «أحذية بدون قياس → يطلب القياس».
+  static bool needsSize(RequestDraft d) => d.category == 'أحذية';
+
   /// Client-side pre-check; [openCount] = requests already open.
   static Set<PostError> validate(RequestDraft d, {required int openCount}) {
     final words = d.description
@@ -142,6 +181,7 @@ abstract final class PostRules {
       if (openCount >= maxOpenRequests) PostError.maxOpen,
       if ((d.voiceSeconds ?? 0) > maxVoiceSeconds) PostError.voiceTooLong,
       if (d.maxPrice == null || d.maxPrice! <= 0) PostError.priceZero,
+      if (needsSize(d) && d.size == null) PostError.sizeMissing,
     };
   }
 }

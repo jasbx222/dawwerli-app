@@ -11,6 +11,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../home/data/home_providers.dart';
 import '../data/post_providers.dart';
 import '../domain/post_repository.dart';
 import '../domain/request_draft.dart';
@@ -46,8 +47,16 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     switch (r) {
       case Published(:final requestId):
         ref.invalidate(openCountProvider);
+        ref.read(draftProvider.notifier).clear();
+        ref.invalidate(homeDataProvider);
         context.go(Routes.liveRequest(requestId));
       case Rejected(:final errors):
+        // No 09b card exists for a missing size: send the user back to 08's
+        // size picker (the designed place to fix it).
+        if (errors.contains(PostError.sizeMissing)) {
+          context.canPop() ? context.pop() : context.go(Routes.postDetails);
+          return;
+        }
         setState(() => _errors = errors);
       case QueuedOffline():
         setState(() => _offline = true);
@@ -100,7 +109,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                 if (hasErrors) ...[
                   _m(14, confirm),
                   for (final e in PostError.values)
-                    if (_errors.contains(e)) _m(10, _issue(e)),
+                    if (_errors.contains(e) && e != PostError.sizeMissing)
+                      _m(10, _issue(e)),
                   _m(16, publish),
                 ] else ...[
                   _m(14, _SummaryCard(draft: draft)),
@@ -159,6 +169,8 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
       title: AppStrings.errPrice,
       body: AppStrings.errPriceBody,
     ),
+    // Handled by returning to 08; never rendered as a card.
+    PostError.sizeMissing => const SizedBox.shrink(),
   };
 }
 

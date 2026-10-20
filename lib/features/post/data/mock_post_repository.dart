@@ -1,8 +1,12 @@
+import '../../../core/mock/mock_backend.dart';
 import '../domain/post_repository.dart';
 import '../domain/request_draft.dart';
 
 class MockPostRepository implements PostRepository {
-  MockPostRepository({this.openCount = 2, this.online = true});
+  MockPostRepository({this.backend, this.openCount = 2, this.online = true});
+
+  /// Shared mock server; published requests land here so 10 and home see them.
+  final MockBackend? backend;
 
   int openCount;
   bool online;
@@ -41,6 +45,17 @@ class MockPostRepository implements PostRepository {
     if (errors.isNotEmpty) return Rejected(errors);
     if (!online) return const QueuedOffline();
     openCount++;
-    return const Published('req_mock_1');
+    final b = backend;
+    if (b == null) return const Published('req_mock_1');
+    final name = draft.description.split('،').first.trim();
+    final r = b.create(
+      title: [
+        if (name.isNotEmpty) name else draft.category ?? '',
+        ?draft.size,
+      ].join(' · '),
+      image: draft.photo ?? 'assets/images/mock/cat_shoes_1.webp',
+      maxPrice: draft.maxPrice!,
+    );
+    return Published(r.id);
   }
 }

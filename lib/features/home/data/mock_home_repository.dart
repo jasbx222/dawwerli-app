@@ -1,3 +1,4 @@
+import '../../../core/mock/mock_backend.dart';
 import '../domain/home_models.dart';
 import '../domain/home_repository.dart';
 
@@ -5,7 +6,8 @@ const _img = 'assets/images/mock';
 
 /// Mock home. [withData] = the design's example data (06); false = cold start (06b: stats hidden, no deals).
 class MockHomeRepository implements HomeRepository {
-  const MockHomeRepository({this.withData = false});
+  const MockHomeRepository(this.backend, {this.withData = false});
+  final MockBackend backend;
   final bool withData;
 
   @override
@@ -23,16 +25,19 @@ class MockHomeRepository implements HomeRepository {
         StoryPage(name: 'ساعات النخبة', image: '$_img/watch.jpg'),
         StoryPage(name: 'بيتي', image: '$_img/lamp.jpg'),
       ],
-      liveRequest: const LiveRequest(
-        id: 'r1',
-        title: 'حذاء رياضي أسود · 43',
-        image: '$_img/shoe.jpg',
-        reachedPages: 14,
-        governorate: 'بغداد',
-        offerPrices: [35000, 39000, 42000],
-        maxOffers: 5,
-        closesIn: Duration(hours: 23, minutes: 41),
-      ),
+      liveRequest: switch (backend.latestOpen) {
+        null => null,
+        final r => LiveRequest(
+          id: r.id,
+          title: r.title,
+          image: r.homeImage,
+          reachedPages: 14,
+          governorate: governorate,
+          offerPrices: r.offerPrices,
+          maxOffers: 5,
+          closesAt: r.closesAt,
+        ),
+      },
       ticker: const [
         FeedItem(category: 'أحذية', governorate: 'بغداد', offers: 3, image: ''),
         FeedItem(

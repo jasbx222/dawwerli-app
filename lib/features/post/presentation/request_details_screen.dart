@@ -13,13 +13,18 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
+import '../../live/data/live_providers.dart';
 import '../data/post_providers.dart';
 import '../domain/request_draft.dart';
 import 'widgets/post_widgets.dart';
 
 /// 08 · Category details (size/colour/condition), max price, governorate.
 class RequestDetailsScreen extends ConsumerStatefulWidget {
-  const RequestDetailsScreen({super.key});
+  const RequestDetailsScreen({super.key, this.editPriceFor});
+
+  /// Raise-price mode from 10c («ارفع السعر»): saves the new max price to the
+  /// live request [editPriceFor] instead of continuing to 09.
+  final String? editPriceFor;
 
   @override
   ConsumerState<RequestDetailsScreen> createState() =>
@@ -46,6 +51,18 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
     _price.dispose();
     _priceFocus.dispose();
     super.dispose();
+  }
+
+  Future<void> _continue() async {
+    final id = widget.editPriceFor;
+    if (id == null) {
+      context.push(Routes.postReview);
+      return;
+    }
+    final price = ref.read(draftProvider).maxPrice;
+    if (price == null || price <= 0) return;
+    await ref.read(liveRepositoryProvider).raisePrice(id, price);
+    if (mounted) context.pop();
   }
 
   void _setPrice(int v) {
@@ -85,6 +102,10 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
   @override
   Widget build(BuildContext context) {
     final draft = ref.watch(draftProvider);
+    // REQ-03: shoes can't continue without a size (price edit skips this).
+    final canContinue =
+        widget.editPriceFor != null ||
+        !(PostRules.needsSize(draft) && draft.size == null);
     final notifier = ref.read(draftProvider.notifier);
     final schema = ref.watch(detailSchemaProvider(draft.category ?? '')).value;
     final priceFocused = _priceFocus.hasFocus || draft.maxPrice != null;
@@ -239,7 +260,10 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                   const SizedBox(height: 18),
                   AppButton(
                     AppStrings.reviewRequest,
-                    onPressed: () => context.push(Routes.postReview),
+                    variant: canContinue
+                        ? AppButtonVariant.primary
+                        : AppButtonVariant.disabled,
+                    onPressed: canContinue ? _continue : null,
                   ),
                 ],
               ),

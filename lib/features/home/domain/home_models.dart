@@ -19,7 +19,7 @@ class LiveRequest {
     required this.governorate,
     required this.offerPrices,
     required this.maxOffers,
-    required this.closesIn,
+    required this.closesAt,
   });
   final String id;
   final String title;
@@ -30,7 +30,9 @@ class LiveRequest {
   /// Offers received so far, cheapest first.
   final List<int> offerPrices;
   final int maxOffers;
-  final Duration closesIn;
+
+  /// Absolute expiry from the server; the card counts down to it.
+  final DateTime closesAt;
 }
 
 class FeedItem {

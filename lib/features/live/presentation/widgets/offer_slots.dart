@@ -6,6 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_card.dart';
 import '../../../../core/widgets/app_icons.dart';
+import '../../../../core/widgets/countdown.dart';
 import '../../../post/presentation/widgets/post_widgets.dart';
 import '../../domain/live_request.dart';
 
@@ -16,13 +17,13 @@ class OffersCard extends StatelessWidget {
     required this.offers,
     required this.maxOffers,
     required this.cheapest,
-    this.widensIn,
+    this.widensAt,
   });
 
   final List<int> offers;
   final int maxOffers;
   final int cheapest;
-  final Duration? widensIn;
+  final DateTime? widensAt;
 
   @override
   Widget build(BuildContext context) {
@@ -64,7 +65,7 @@ class OffersCard extends StatelessWidget {
                   ],
                 ],
               ),
-              if (widensIn != null) ...[
+              if (widensAt != null) ...[
                 const SizedBox(height: 16),
                 SizedBox(
                   height: 20.94, // 14px line, device-rounded
@@ -77,12 +78,15 @@ class OffersCard extends StatelessWidget {
                       ),
                       const Text(AppStrings.widensIn, style: AppText.muted),
                       const Spacer(),
-                      Text(
-                        mss(widensIn!.inSeconds),
-                        style: AppText.number.copyWith(
-                          fontSize: 14,
-                          height: AppText.lh(14),
-                          color: AppColors.navy,
+                      Countdown(
+                        until: widensAt!,
+                        builder: (context, left) => Text(
+                          mss(left.inSeconds),
+                          style: AppText.number.copyWith(
+                            fontSize: 14,
+                            height: AppText.lh(14),
+                            color: AppColors.navy,
+                          ),
                         ),
                       ),
                     ],

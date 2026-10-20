@@ -1,21 +1,46 @@
+import 'dart:convert';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
+
+import '../../../core/mock/mock_backend.dart';
+import '../../../core/storage/prefs.dart';
 
 import '../domain/post_repository.dart';
 import '../domain/request_draft.dart';
 import 'mock_post_repository.dart';
 
 final postRepositoryProvider = Provider<PostRepository>(
-  (ref) => MockPostRepository(),
+  (ref) => MockPostRepository(backend: ref.watch(mockBackendProvider)),
 );
 
-/// The request being composed; every change is persisted as a draft.
+/// The request being composed; every change is saved on the device
+/// (survives an app restart) and sent to the drafts API.
 class DraftNotifier extends Notifier<RequestDraft> {
+  static const storageKey = 'post.draft.v1';
+
   @override
-  RequestDraft build() => const RequestDraft();
+  RequestDraft build() {
+    final raw = ref.read(sharedPrefsProvider).getString(storageKey);
+    if (raw == null) return const RequestDraft();
+    try {
+      return RequestDraft.fromJson(jsonDecode(raw) as Map<String, Object?>);
+    } on Object {
+      return const RequestDraft();
+    }
+  }
 
   void update(RequestDraft Function(RequestDraft) f) {
     state = f(state);
+    ref
+        .read(sharedPrefsProvider)
+        .setString(storageKey, jsonEncode(state.toJson()));
     ref.read(postRepositoryProvider).saveDraft(state);
+  }
+
+  /// After a successful publish the draft is done.
+  void clear() {
+    state = const RequestDraft();
+    ref.read(sharedPrefsProvider).remove(storageKey);
   }
 
   void seed(RequestDraft d) => state = d;
@@ -58,4 +83,11 @@ class SeededDraftNotifier extends DraftNotifier {
   final RequestDraft seedDraft;
   @override
   RequestDraft build() => seedDraft;
+
+  // Previews and the raise-price editor must not overwrite the saved draft.
+  @override
+  void update(RequestDraft Function(RequestDraft) f) => state = f(state);
+
+  @override
+  void clear() {}
 }
