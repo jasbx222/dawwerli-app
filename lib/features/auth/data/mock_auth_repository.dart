@@ -1,7 +1,7 @@
 import '../domain/auth_repository.dart';
 import '../domain/phone_number.dart';
 
-/// In-memory mock. Valid code: 481923. 5 wrong codes → 15-minute lock.
+/// In-memory mock. Valid code: 000000. 5 wrong codes → 15-minute lock.
 /// Channel rule: switch to WhatsApp only after 3 FAILED SMS deliveries (not 3 total sends).
 /// NOTE: the backend (POST /v1/auth/otp/request) must apply the same rule, counting failures from
 /// SMS provider delivery reports plus "not received" resends.
@@ -16,7 +16,7 @@ class MockAuthRepository implements AuthRepository {
   /// When true every SMS is reported undelivered by the (fake) provider.
   final bool simulateSmsFailure;
 
-  static const validCode = '481923';
+  static const validCode = '000000';
   static const maxWrong = 5;
   static const lockFor = Duration(minutes: 15);
   static const codeTtl = Duration(minutes: 5);
