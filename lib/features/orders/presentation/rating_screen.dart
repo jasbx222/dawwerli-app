@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -118,7 +121,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                       children: [
                         ClipRRect(
                           borderRadius: BorderRadius.circular(22),
-                          child: Image.asset(
+                          child: AppImage(
                             o.pageImage,
                             width: 80,
                             height: 80,

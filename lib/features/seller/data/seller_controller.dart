@@ -1,10 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../../core/api/api_client.dart';
+import '../../../core/api/catalog.dart';
+import '../../../core/api/media.dart';
+import '../../../core/api/token_store.dart';
 import '../../../core/router/routes.dart';
-import '../../../core/storage/prefs.dart';
+import '../../../core/utils/format.dart';
 import '../domain/seller_models.dart';
-
-const _img = 'assets/images/mock';
 
 /// Why an offer can't be sent (19b / 20b / 22b states).
 enum OfferError {
@@ -17,10 +19,10 @@ enum OfferError {
   noBalance,
 }
 
-enum TopupError { duplicateRef, missingRef, missingReceipt }
+enum TopupError { duplicateRef, missingRef, missingReceipt, belowMin }
 
 /// Banned contact patterns in offer notes / ad text: phones (Arabic or Latin
-/// digits, spaced), links and @handles (§3.4).
+/// digits, spaced), links and @handles (§3.4). The server re-checks.
 final _contact = RegExp(
   r'(@\w+)|(https?://|www\.|\.com|\.iq)|([0-9٠-٩][\s\-]*){7,}',
   caseSensitive: false,
@@ -29,28 +31,28 @@ bool hasContact(String text) => _contact.hasMatch(text);
 
 class SellerState {
   const SellerState({
-    required this.config,
-    required this.status,
-    required this.shopName,
-    required this.handle,
-    required this.phone,
-    required this.verifyCode,
-    required this.inbox,
-    required this.offers,
-    required this.balance,
-    required this.freeUsed,
-    required this.ledger,
-    required this.topups,
-    required this.ads,
-    required this.earlyAccess,
-    required this.marks,
-    required this.appealed,
-    required this.settings,
-    required this.rating,
-    required this.deals,
-    required this.openReport,
-    required this.lastRating,
-    required this.notices,
+    this.config = const SellerConfig(),
+    this.status = VerifyStatus.none,
+    this.shopName = '',
+    this.handle = '',
+    this.phone = '',
+    this.verifyCode = '',
+    this.inbox = const [],
+    this.offers = const [],
+    this.balance = 0,
+    this.freeUsed = 0,
+    this.ledger = const [],
+    this.topups = const [],
+    this.ads = const [],
+    this.earlyAccess = false,
+    this.marks = const [],
+    this.appealed = const {},
+    this.settings = const PageSettings(),
+    this.rating = 0,
+    this.deals = 0,
+    this.openReport = false,
+    this.lastRating,
+    this.notices = const [],
     this.suspendedUntil,
     this.rejectReason,
   });
@@ -74,7 +76,7 @@ class SellerState {
   final double rating;
   final int deals;
   final bool openReport;
-  final ReceivedRating lastRating;
+  final ReceivedRating? lastRating;
   final List<SellerNotice> notices;
   final DateTime? suspendedUntil;
   final String? rejectReason;
@@ -82,7 +84,7 @@ class SellerState {
   bool get freeLeft => freeUsed < config.freeSelections;
   bool get suspended =>
       suspendedUntil != null && DateTime.now().isBefore(suspendedUntil!);
-  bool get trusted => deals >= 100;
+  bool get trusted => deals >= config.trustedDeals;
 
   /// Ads only for verified pages, rating ≥ min, no open report, not suspended (§13).
   bool get canAdvertise =>
@@ -92,10 +94,12 @@ class SellerState {
       !suspended;
 
   SellerState copyWith({
+    SellerConfig? config,
     VerifyStatus? status,
     String? shopName,
     String? handle,
     String? phone,
+    String? verifyCode,
     List<SellerRequest>? inbox,
     List<SellerOffer>? offers,
     int? balance,
@@ -104,16 +108,23 @@ class SellerState {
     List<Topup>? topups,
     List<AdCampaign>? ads,
     bool? earlyAccess,
+    List<PageMark>? marks,
     Set<String>? appealed,
     PageSettings? settings,
+    double? rating,
+    int? deals,
+    bool? openReport,
+    ReceivedRating? lastRating,
+    List<SellerNotice>? notices,
+    DateTime? suspendedUntil,
     String? rejectReason,
   }) => SellerState(
-    config: config,
+    config: config ?? this.config,
     status: status ?? this.status,
     shopName: shopName ?? this.shopName,
     handle: handle ?? this.handle,
     phone: phone ?? this.phone,
-    verifyCode: verifyCode,
+    verifyCode: verifyCode ?? this.verifyCode,
     inbox: inbox ?? this.inbox,
     offers: offers ?? this.offers,
     balance: balance ?? this.balance,
@@ -122,346 +133,292 @@ class SellerState {
     topups: topups ?? this.topups,
     ads: ads ?? this.ads,
     earlyAccess: earlyAccess ?? this.earlyAccess,
-    marks: marks,
+    marks: marks ?? this.marks,
     appealed: appealed ?? this.appealed,
     settings: settings ?? this.settings,
-    rating: rating,
-    deals: deals,
-    openReport: openReport,
-    lastRating: lastRating,
-    notices: notices,
-    suspendedUntil: suspendedUntil,
+    rating: rating ?? this.rating,
+    deals: deals ?? this.deals,
+    openReport: openReport ?? this.openReport,
+    lastRating: lastRating ?? this.lastRating,
+    notices: notices ?? this.notices,
+    suspendedUntil: suspendedUntil ?? this.suspendedUntil,
     rejectReason: rejectReason ?? this.rejectReason,
   );
 }
 
-/// Mock page backend (replace with the API client: /pages/me, /inbox, /offers, wallet, ads).
+/// Page side backed by the API: /pages/me, inbox, offers, wallet, ads, standing, ratings.
 class SellerController extends Notifier<SellerState> {
-  static const _kStatus = 'seller.status';
+  static const _notFound = 404;
+  static const _offerErrors = {
+    'offer.request_closed': OfferError.closed,
+    'offer.full': OfferError.closed,
+    'offer.not_dispatched': OfferError.closed,
+    'offer.blocked': OfferError.closed,
+    'offer.duplicate': OfferError.alreadyOffered,
+    'offer.early_window': OfferError.earlySlotsFull,
+    'offer.early_full': OfferError.earlySlotsFull,
+    'offer.over_max': OfferError.priceAboveMax,
+    'offer.price': OfferError.priceAboveMax,
+    'offer.contact': OfferError.contactInNote,
+    'wallet.insufficient': OfferError.noBalance,
+  };
+  static const _pageStatus = {
+    'pending': VerifyStatus.pending,
+    'verified': VerifyStatus.verified,
+    'suspended': VerifyStatus.verified,
+    'rejected': VerifyStatus.rejected,
+    'banned': VerifyStatus.rejected,
+  };
+  static const _ledgerKinds = {
+    'topUp': LedgerKind.credit,
+    'adRefund': LedgerKind.credit,
+    'freeSelection': LedgerKind.free,
+  };
+  static const _topupStatus = {
+    'approved': TopupStatus.approved,
+    'rejected': TopupStatus.rejected,
+  };
+  static const _appealType = 'strikeAppeal';
+  static final _uuid = RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-');
 
   @override
   SellerState build() {
-    final now = DateTime.now();
-    final saved = ref.watch(sharedPrefsProvider).getString(_kStatus);
-    return SellerState(
-      config: const SellerConfig(),
-      status: VerifyStatus.values.firstWhere(
-        (v) => v.name == saved,
-        orElse: () => VerifyStatus.none,
-      ),
-      shopName: 'ستايل بغداد',
-      handle: '@style.baghdad',
-      phone: '+964 780 555 0101',
-      verifyCode: 'DWR-7K42',
-      inbox: [
-        SellerRequest(
-          id: 'r101',
-          title: 'حذاء رياضي أسود · 43',
-          image: '$_img/cat_shoes_1.webp',
-          governorate: 'بغداد',
-          condition: 'جديد',
-          maxPrice: 45000,
-          postedAt: now.subtract(const Duration(minutes: 1)),
-          offers: 3,
-          earlyUntil: now.add(const Duration(seconds: 72)),
-          earlyTaken: 1,
-        ),
-        SellerRequest(
-          id: 'r102',
-          title: 'قمصلة شتوية رجالي XL',
-          image: '$_img/cat_clothes_1.webp',
-          governorate: 'بابل',
-          condition: 'ما يفرق',
-          maxPrice: 60000,
-          postedAt: now.subtract(const Duration(minutes: 4)),
-          offers: 1,
-        ),
-        SellerRequest(
-          id: 'r104',
-          title: 'جزمة رياضية أطفال 30',
-          image: '$_img/cat_shoes_2.webp',
-          governorate: 'بغداد',
-          condition: 'جديد',
-          maxPrice: 25000,
-          postedAt: now.subtract(const Duration(seconds: 40)),
-          offers: 2,
-          earlyUntil: now.add(const Duration(seconds: 80)),
-          earlyTaken: 2,
-        ),
-        SellerRequest(
-          id: 'r103',
-          title: 'بوت جلد نسائي 38',
-          image: '$_img/cat_shoes_2.webp',
-          governorate: 'بغداد',
-          condition: 'جديد',
-          maxPrice: 50000,
-          postedAt: now.subtract(const Duration(minutes: 30)),
-          offers: 5,
-        ),
-      ],
-      offers: [
-        SellerOffer(
-          id: 'o201',
-          requestId: 'r90',
-          title: 'حذاء رياضي',
-          image: '$_img/cat_shoes_1.webp',
-          price: 35000,
-          state: OfferState.chosen,
-          orderNo: 'DW-20481',
-          chosenAt: now.subtract(const Duration(minutes: 8)),
-          selectionNo: 11,
-          customerPhone: '9647701234567',
-        ),
-        SellerOffer(
-          id: 'o202',
-          requestId: 'r91',
-          title: 'قمصلة جلد',
-          image: '$_img/cat_clothes_2.webp',
-          price: 55000,
-          state: OfferState.chosen,
-          orderNo: 'DW-20410',
-          chosenAt: now.subtract(const Duration(hours: 26)),
-          contacted: true,
-          selectionNo: 10,
-          customerPhone: '9647809876543',
-        ),
-        const SellerOffer(
-          id: 'o203',
-          requestId: 'r92',
-          title: 'ساعة كاسيو',
-          image: '$_img/cat_watches_1.webp',
-          price: 30000,
-          state: OfferState.waiting,
-        ),
-        const SellerOffer(
-          id: 'o204',
-          requestId: 'r93',
-          title: 'بوت جلد',
-          image: '$_img/cat_shoes_2.webp',
-          price: 48000,
-          state: OfferState.notChosen,
-        ),
-        const SellerOffer(
-          id: 'o205',
-          requestId: 'r94',
-          title: 'عطر عود',
-          image: '$_img/cat_perfumes_1.webp',
-          price: 40000,
-          state: OfferState.closed,
-        ),
-      ],
-      balance: 24000,
-      freeUsed: 10,
-      ledger: const [
-        LedgerEntry(
-          'الاختيار 11 · ساعة كاسيو',
-          'مدفوع · خلصت المجانية',
-          -1000,
-          LedgerKind.debit,
-        ),
-        LedgerEntry(
-          'اختيار رقم 10 · حذاء رياضي',
-          'مجاني (10 من 10)',
-          0,
-          LedgerKind.free,
-        ),
-        LedgerEntry('حجز · قمصلة جلد', 'محجوز', -1000, LedgerKind.held),
-        LedgerEntry('تعبئة رصيد · زين كاش', 'مؤكدة', 25000, LedgerKind.credit),
-        LedgerEntry(
-          'إعلان بانر · يوم',
-          'الرئيسية · بغداد',
-          -5000,
-          LedgerKind.debit,
-        ),
-      ],
-      topups: [
-        Topup(
-          'ZC-88412093',
-          'ZainCash',
-          25000,
-          now.subtract(const Duration(hours: 1)),
-          TopupStatus.pending,
-        ),
-      ],
-      ads: const [
-        AdCampaign(
-          id: 'a1',
-          slot: AdSlot.homeBanner,
-          title: 'بانر «كل الأحذية خصم 20%»',
-          place: 'من 20/10 لحد 26/10 · بغداد',
-          image: '$_img/cat_shoes_2.webp',
-          status: AdStatus.pending,
-          note: 'المبلغ محجوز، ويرجع إذا انرفض',
-        ),
-        AdCampaign(
-          id: 'a2',
-          slot: AdSlot.homeBanner,
-          title: 'بانر «ساعات أصلية»',
-          place: 'الرئيسية · البصرة',
-          image: '$_img/cat_watches_2.webp',
-          status: AdStatus.rejected,
-          note: 'السبب: بالصورة رقم تلفون. شيله ودزه مرة ثانية. رجعنالك 5,000 د.ع',
-        ),
-        AdCampaign(
-          id: 'a3',
-          slot: AdSlot.featuredPage,
-          title: 'صفحة مميزة · ملابس',
-          place: 'بغداد · بالأسبوع',
-          image: '$_img/cat_clothes_1.webp',
-          status: AdStatus.pausedBalance,
-          note: 'توقف إعلانك، الرصيد خلص. عبّي حتى يرجع يشتغل',
-        ),
-        AdCampaign(
-          id: 'a4',
-          slot: AdSlot.homeBanner,
-          title: 'بانر «عطور العيد»',
-          place: 'الرئيسية · بغداد',
-          image: '$_img/cat_perfumes_1.webp',
-          status: AdStatus.pausedSuspended,
-          note: 'توقف إعلانك لأن الصفحة موقوفة. رجعنالك فلوس الأيام الباقية (3 أيام · 15,000 د.ع)',
-        ),
-        AdCampaign(
-          id: 'a5',
-          slot: AdSlot.sponsoredOffer,
-          title: 'عرض مُموّل',
-          place: 'أحذية · بغداد',
-          image: '$_img/cat_shoes_1.webp',
-          status: AdStatus.active,
-          note: 'ينثبت أول بطلب واحد بس، ويبين عليه «مُموّل»',
-        ),
-        AdCampaign(
-          id: 'a0',
-          slot: AdSlot.homeBanner,
-          title: 'إعلانك السابق',
-          place: 'الرئيسية · بغداد',
-          image: '$_img/cat_shoes_1.webp',
-          status: AdStatus.ended,
-          impressions: 12480,
-          clicks: 742,
-          selections: 18,
-        ),
-      ],
-      earlyAccess: true,
-      marks: const [
-        PageMark(
-          'm1',
-          'ما ردت على زبون',
-          '12/10 · طلب #DW-19870',
-          MarkKind.mark,
-          orderNo: 'DW-19870',
-        ),
-        PageMark(
-          'm2',
-          'ما ردت على زبون',
-          '15/10 · طلب #DW-20011',
-          MarkKind.mark,
-          orderNo: 'DW-20011',
-        ),
-        PageMark(
-          'm3',
-          'ما ردت على زبون',
-          '19/10 · طلب #DW-20402',
-          MarkKind.mark,
-          orderNo: 'DW-20402',
-        ),
-        PageMark('m4', 'شكوى «مو نفس الصورة»', 'قيد المراجعة', MarkKind.review),
-      ],
-      appealed: const {},
-      settings: const PageSettings(),
-      rating: 4.8,
-      deals: 121,
-      openReport: false,
-      lastRating: const ReceivedRating(
-        orderNo: 'DW-20481',
-        stars: 5,
-        tags: ['نفس الصورة', 'توصيل سريع'],
-        comment: 'الحذاء أصلي ووصل قبل الموعد',
-        governorate: 'بغداد',
-      ),
-      notices: [
-        const SellerNotice(
-          'اختارك زبون',
-          'حذاء رياضي · رد خلال ساعة',
-          '/seller/offers/o201',
-          'قبل 8 د',
-        ),
-        const SellerNotice(
-          'طلب جديد يناسبك',
-          'حذاء رياضي أسود · 43 · مبكر',
-          Routes.sellerInbox,
-          'قبل 1 د',
-        ),
-        const SellerNotice(
-          'وصلك تقييم',
-          '5 نجوم · طلب #DW-20481',
-          Routes.sellerRating,
-          'أمس',
-        ),
-        const SellerNotice(
-          'الزبون اختار غيرك',
-          'بوت جلد · الحجز رجع لرصيدك',
-          Routes.sellerOffers,
-          'أمس',
-        ),
-        const SellerNotice(
-          'إعلانك قيد المراجعة',
-          'بانر «كل الأحذية خصم 20%»',
-          Routes.sellerMyAds,
-          '20/10',
-        ),
-        const SellerNotice(
-          'علامة «ما ردت»',
-          'طلب #DW-20402 · تكدر تعترض',
-          Routes.sellerStanding,
-          '19/10',
-        ),
-      ],
-      suspendedUntil: null,
-    );
+    if (ref.read(tokenStoreProvider).signedIn) Future.microtask(refresh);
+    return const SellerState();
   }
 
-  void _setStatus(VerifyStatus s, {String? reason}) {
-    ref.read(sharedPrefsProvider).setString(_kStatus, s.name);
-    state = state.copyWith(status: s, rejectReason: reason);
-  }
+  ApiClient get _api => ref.read(apiClientProvider);
+  Future<Catalog> get _catalog => ref.read(catalogProvider.future);
 
-  /// 17 → POST /pages/register.
-  void register({
-    required String name,
-    required String handle,
-    required Set<String> categories,
-    required Set<String> governorates,
-  }) {
+  /// GET /pages/me (+ everything a verified page sees). Returns the verification status.
+  Future<VerifyStatus> refresh() async {
+    final config = SellerConfig.fromJson(await ref.read(appConfigProvider.future));
+    final Map<String, dynamic> me;
+    try {
+      me = await _api.get<Map<String, dynamic>>('/api/v1/pages/me');
+    } on ApiException catch (e) {
+      if (e.status != _notFound) rethrow;
+      state = SellerState(config: config);
+      return state.status;
+    }
+    final cat = await _catalog;
+    final st = me.m('settings');
+    final status = _pageStatus[me.s('status')] ?? VerifyStatus.pending;
     state = state.copyWith(
-      shopName: name,
-      handle: handle,
-      settings: state.settings.copyWith(
-        categories: categories,
-        governorates: governorates,
+      config: config,
+      status: status,
+      shopName: me.s('name'),
+      handle: '@${me.s('instagram')}',
+      phone: me.os('phone') ?? '',
+      verifyCode: me.s('bioCode'),
+      rejectReason: me.os('rejectReason'),
+      rating: me.d('rating'),
+      deals: me.i('deals'),
+      freeUsed: me.i('freeUsed'),
+      balance: me.i('balance'),
+      earlyAccess: me.ot('earlyAccessUntil')?.isAfter(DateTime.now()) ?? false,
+      suspendedUntil: me.ot('suspendedUntil'),
+      settings: PageSettings(
+        receiving: st.b('receiving'),
+        sound: st.b('sound'),
+        categories: cat.categoryNames(st.list<num>('categoryIds').map((e) => e.toInt())),
+        governorates: cat.governorateNames(st.list<num>('governorateIds').map((e) => e.toInt())),
+        from: st.i('from'),
+        to: st.i('to'),
+        days: st.list<num>('days').map((e) => e.toInt()).toSet(),
       ),
     );
-    _setStatus(VerifyStatus.pending);
-  }
-
-  /// 18 «تحقق»: the server reads the Instagram bio for [SellerState.verifyCode].
-  /// Mock: a handle must look like `@name` or the bio check fails (18b).
-  VerifyStatus checkBio() {
-    final ok = RegExp(r'^@[\w.]{3,}$').hasMatch(state.handle);
-    if (ok) {
-      _setStatus(VerifyStatus.pending);
-    } else {
-      _setStatus(
-        VerifyStatus.rejected,
-        reason: 'ما لكينا الكود ${state.verifyCode} ببايو ${state.handle}',
-      );
+    if (status == VerifyStatus.verified) {
+      await Future.wait([
+        loadInbox(),
+        loadOffers(),
+        loadWallet(),
+        loadAds(),
+        loadStanding(),
+        loadRatings(),
+        loadNotices(),
+      ]);
     }
     return state.status;
   }
 
-  /// Admin decision (first 20 pages are reviewed by hand).
-  void approve() => _setStatus(VerifyStatus.verified);
-  void retryVerification() => _setStatus(VerifyStatus.pending);
-  void reset() => _setStatus(VerifyStatus.none);
+  Future<void> loadInbox() async {
+    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/inbox'));
+    state = state.copyWith(
+      inbox: [
+        for (final r in list)
+          SellerRequest(
+            id: r.s('id'),
+            title: r.s('title'),
+            image: r.os('image') ?? '',
+            governorate: r.s('governorate'),
+            condition: r.s('condition'),
+            maxPrice: r.i('maxPrice'),
+            postedAt: r.t('postedAt'),
+            offers: r.i('offers'),
+            earlyUntil: r.ot('earlyUntil'),
+            earlyTaken: r.i('earlyTaken'),
+            offeredByMe: r.b('offeredByMe'),
+            cancelled: r.b('cancelled'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> loadOffers() async {
+    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/offers'));
+    state = state.copyWith(
+      offers: [
+        for (final o in list)
+          SellerOffer(
+            id: o.s('id'),
+            requestId: o.s('requestId'),
+            title: o.s('title'),
+            image: o.os('image') ?? '',
+            price: o.i('price'),
+            state: OfferState.values.byName(o.s('state')),
+            orderId: o.os('orderId'),
+            orderNo: o.os('orderNo'),
+            chosenAt: o.ot('chosenAt'),
+            contacted: o.b('contacted'),
+            ghostReported: o.b('ghostReported'),
+            selectionNo: o.oi('selectionNo'),
+            governorate: o.s('governorate'),
+            customerPhone: o.os('customerPhone')?.replaceAll('+', ''),
+          ),
+      ],
+    );
+  }
+
+  Future<void> loadWallet() async {
+    final w = await _api.get<Map<String, dynamic>>('/api/v1/pages/me/wallet');
+    state = state.copyWith(
+      balance: w.i('available'),
+      freeUsed: w.i('freeUsed'),
+      ledger: [
+        for (final e in w.l('ledger'))
+          LedgerEntry(
+            e.s('note'),
+            dayMonth(e.t('at')),
+            e.i('amount'),
+            _ledgerKinds[e.s('type')] ??
+                (e.i('amount') >= 0 ? LedgerKind.credit : LedgerKind.debit),
+          ),
+      ],
+      topups: [
+        for (final t in w.l('topUps'))
+          Topup(
+            t.s('ref'),
+            t.s('method'),
+            t.i('amount'),
+            t.t('at'),
+            _topupStatus[t.s('status')] ?? TopupStatus.pending,
+          ),
+      ],
+    );
+  }
+
+  Future<void> loadAds() async {
+    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/ads'));
+    final el = await _api.get<Map<String, dynamic>>('/api/v1/pages/me/ads/eligibility');
+    state = state.copyWith(
+      openReport: !el.b('noOpenReports'),
+      ads: [
+        for (final a in list)
+          AdCampaign(
+            id: a.s('id'),
+            slot: AdSlot.values.byName(a.s('slot')),
+            title: a.s('title'),
+            place: a.s('place'),
+            image: a.os('image') ?? '',
+            status: AdStatus.values.byName(a.s('status')),
+            note: a.os('note'),
+            impressions: a.i('impressions'),
+            clicks: a.i('clicks'),
+            selections: a.i('selections'),
+          ),
+      ],
+    );
+  }
+
+  Future<void> loadStanding() async {
+    final j = await _api.get<Map<String, dynamic>>('/api/v1/pages/me/standing');
+    final disputes = asList(await _api.get<List<dynamic>>('/api/v1/disputes'));
+    state = state.copyWith(
+      suspendedUntil: j.ot('suspendedUntil'),
+      marks: [
+        for (final m in j.l('marks'))
+          PageMark(
+            m.s('id'),
+            m.s('title'),
+            [dayMonth(m.t('at')), if (m.os('orderNo') case final no?) 'طلب #$no'].join(' · '),
+            m.b('underReview')
+                ? MarkKind.review
+                : MarkKind.mark,
+            orderNo: m.os('orderNo'),
+          ),
+      ],
+      appealed: {
+        for (final d in disputes)
+          if (d.s('type') == _appealType) ?d.os('subjectId'),
+      },
+    );
+  }
+
+  Future<void> loadRatings() async {
+    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/ratings'));
+    if (list.isEmpty) return;
+    final r = list.first;
+    state = state.copyWith(
+      lastRating: ReceivedRating(
+        orderNo: r.s('orderNo'),
+        stars: r.i('stars'),
+        tags: r.list<String>('tags'),
+        comment: r.s('comment'),
+        governorate: r.s('governorate'),
+      ),
+    );
+  }
+
+  Future<void> loadNotices() async {
+    final j = await _api.get<Map<String, dynamic>>('/api/v1/notifications');
+    state = state.copyWith(
+      notices: [
+        for (final n in j.l('items'))
+          SellerNotice(n.s('title'), n.s('body'), n.s('route'), agoLabel(n.t('at'))),
+      ],
+    );
+  }
+
+  /// 17 → POST /pages/register.
+  Future<void> register({
+    required String name,
+    required String handle,
+    required Set<String> categories,
+    required Set<String> governorates,
+  }) async {
+    final cat = await _catalog;
+    await _api.post<void>('/api/v1/pages/register', {
+      'name': name,
+      'instagram': handle.replaceFirst('@', ''),
+      'categoryIds': cat.categoryIds(categories),
+      'governorateIds': cat.governorateIds(governorates),
+      'acceptTerms': true,
+    });
+    await refresh();
+  }
+
+  /// 18 «تحقق»: re-reads the page status (bio code is checked by the reviewers).
+  Future<VerifyStatus> checkBio() => refresh();
+
+  /// After a rejection: POST /pages/me/resubmit.
+  Future<void> retryVerification() async {
+    await _api.post<void>('/api/v1/pages/me/resubmit');
+    await refresh();
+  }
+
+  /// Account deleted / signed out: forget the page locally.
+  void reset() => state = SellerState(config: state.config);
 
   SellerRequest? request(String id) =>
       state.inbox.where((r) => r.id == id).firstOrNull;
@@ -476,7 +433,8 @@ class SellerController extends Notifier<SellerState> {
     final c = state.config;
     if (r.offeredByMe) return OfferError.alreadyOffered;
     if (r.locked(c.maxOffers)) return OfferError.closed;
-    if (r.isEarly(DateTime.now()) && r.earlyTaken >= c.maxEarlySlots) {
+    if (r.isEarly(DateTime.now()) &&
+        (!state.earlyAccess || r.earlyTaken >= c.maxEarlySlots)) {
       return OfferError.earlySlotsFull;
     }
     if (!photo) return OfferError.noPhoto;
@@ -488,118 +446,150 @@ class SellerController extends Notifier<SellerState> {
     return null;
   }
 
-  /// POST /requests/{id}/offers — reserves the fee (released if not chosen).
-  OfferError? submit(String requestId, int price, String note) {
+  /// POST /media + POST /requests/{id}/offers — fee is reserved (released if not chosen).
+  Future<OfferError?> submit(
+    String requestId,
+    int price,
+    String note, {
+    required String photo,
+    required int deliveryHours,
+    String condition = 'new',
+  }) async {
     final r = request(requestId);
     if (r == null) return OfferError.closed;
     final e = validate(r, price: price, note: note);
     if (e != null) return e;
-    final fee = state.freeLeft ? 0 : state.config.selectionFee;
-    state = state.copyWith(
-      inbox: [
-        for (final x in state.inbox)
-          x.id == r.id
-              ? x.copyWith(
-                  offers: x.offers + 1,
-                  offeredByMe: true,
-                  earlyTaken: x.isEarly(DateTime.now())
-                      ? x.earlyTaken + 1
-                      : null,
-                )
-              : x,
-      ],
-      offers: [
-        SellerOffer(
-          id: 'o${r.id}',
-          requestId: r.id,
-          title: r.title,
-          image: r.image,
-          price: price,
-          state: OfferState.waiting,
-          governorate: r.governorate,
-        ),
-        ...state.offers,
-      ],
-      balance: state.balance - fee,
-      ledger: [
-        if (fee > 0)
-          LedgerEntry('حجز · ${r.title}', 'محجوز', -fee, LedgerKind.held),
-        ...state.ledger,
-      ],
-    );
+    try {
+      final key = await uploadImage(_api, photo, 'offers');
+      if (key == null) return OfferError.noPhoto;
+      await _api.post<void>('/api/v1/requests/$requestId/offers', {
+        'price': price,
+        'deliveryHours': deliveryHours,
+        'condition': condition,
+        'note': note,
+        'photoKey': key,
+      });
+    } on ApiException catch (x) {
+      final mapped = _offerErrors[x.code];
+      if (mapped == null) rethrow;
+      return mapped;
+    }
+    await Future.wait([loadInbox(), loadOffers(), loadWallet()]);
     return null;
   }
 
   /// POST /offers/{id}/withdraw — releases the held fee.
-  void withdraw(String offerId) {
-    final fee = state.freeLeft ? 0 : state.config.selectionFee;
-    state = state.copyWith(
-      offers: [
-        for (final o in state.offers)
-          o.id == offerId ? o.copyWith(state: OfferState.withdrawn) : o,
-      ],
-      balance: state.balance + fee,
-    );
+  Future<void> withdraw(String offerId) async {
+    await _api.post<void>('/api/v1/offers/$offerId/withdraw');
+    await Future.wait([loadOffers(), loadWallet()]);
   }
 
-  void markContacted(String offerId) => state = state.copyWith(
-    offers: [
-      for (final o in state.offers)
-        o.id == offerId ? o.copyWith(contacted: true) : o,
-    ],
-  );
+  String? _orderOf(String offerId) =>
+      state.offers.where((o) => o.id == offerId).firstOrNull?.orderId;
+
+  Future<void> markContacted(String offerId) async {
+    final id = _orderOf(offerId);
+    if (id == null) return;
+    await _api.post<void>('/api/v1/orders/$id/contacted');
+    await loadOffers();
+  }
 
   /// POST /orders/{id}/report-ghost — never auto-accepted; the customer is asked first.
-  void reportGhost(String offerId) => state = state.copyWith(
-    offers: [
-      for (final o in state.offers)
-        o.id == offerId ? o.copyWith(ghostReported: true) : o,
-    ],
-  );
+  Future<void> reportGhost(String offerId) async {
+    final id = _orderOf(offerId);
+    if (id == null) return;
+    await _api.post<void>('/api/v1/orders/$id/report-ghost');
+    await loadOffers();
+  }
 
-  /// POST /page/topups (unique transactionRef).
-  TopupError? topup(String method, String refNo, int amount, bool receipt) {
+  /// POST /media (receipt) + POST /pages/me/topups (unique transaction ref).
+  Future<TopupError?> topup(
+    String method,
+    String refNo,
+    int amount,
+    String? receipt,
+  ) async {
     final r = refNo.trim().toUpperCase();
     if (r.isEmpty) return TopupError.missingRef;
-    if (!receipt) return TopupError.missingReceipt;
-    if (state.topups.any((t) => t.ref == r)) return TopupError.duplicateRef;
-    state = state.copyWith(
-      topups: [
-        Topup(r, method, amount, DateTime.now(), TopupStatus.pending),
-        ...state.topups,
-      ],
-    );
+    if (receipt == null) return TopupError.missingReceipt;
+    if (amount < state.config.minTopUp) return TopupError.belowMin;
+    try {
+      final key = await uploadImage(_api, receipt, 'receipts');
+      await _api.post<void>('/api/v1/pages/me/topups', {
+        'method': method,
+        'transactionRef': r,
+        'amount': amount,
+        'receiptKey': key,
+      });
+    } on ApiException catch (e) {
+      return switch (e.code) {
+        'topup.duplicate_ref' => TopupError.duplicateRef,
+        'topup.min' => TopupError.belowMin,
+        _ => throw e,
+      };
+    }
+    await loadWallet();
     return null;
   }
 
-  void toggleEarly() => state = state.copyWith(earlyAccess: !state.earlyAccess);
+  /// Early access subscription on/off (monthly fee).
+  Future<void> toggleEarly() async {
+    final on = !state.earlyAccess;
+    const path = '/api/v1/pages/me/subscriptions/early-access';
+    await (on ? _api.post<void>(path) : _api.delete<void>(path));
+    state = state.copyWith(earlyAccess: on);
+    await loadWallet();
+  }
 
   /// POST /pages/me/ads — reserved now, Pending until a moderator approves.
-  void bookAd(AdSlot slot, String title, String place, int price) =>
-      state = state.copyWith(
-        balance: state.balance - price,
-        ads: [
-          AdCampaign(
-            id: 'a${state.ads.length + 1}',
-            slot: slot,
-            title: title,
-            place: place,
-            image: '$_img/cat_shoes_1.webp',
-            status: AdStatus.pending,
-            note: 'المبلغ محجوز، ويرجع إذا انرفض',
-          ),
-          ...state.ads,
-        ],
-        ledger: [
-          LedgerEntry('حجز إعلان · $title', place, -price, LedgerKind.held),
-          ...state.ledger,
-        ],
-      );
+  Future<void> bookAd({
+    required AdSlot slot,
+    required String title,
+    required String headline,
+    required String category,
+    required String governorate,
+    required int days,
+    String? image,
+  }) async {
+    final cat = await _catalog;
+    final key = await uploadImage(_api, image, 'ads');
+    await _api.post<void>('/api/v1/pages/me/ads', {
+      'slot': slot.name,
+      'title': title,
+      'headline': headline,
+      'discountPercent': 0,
+      'governorateIds': cat.governorateIds([governorate]),
+      'categoryIds': cat.categoryIds([category]),
+      'startAt': DateTime.now().toUtc().toIso8601String(),
+      'days': days,
+      'imageKey': key,
+    });
+    await Future.wait([loadAds(), loadWallet()]);
+  }
 
-  void appeal(String markId) =>
-      state = state.copyWith(appealed: {...state.appealed, markId});
+  /// POST /disputes {type: strikeAppeal} — decided within the appeal window.
+  Future<void> appeal(String markId, String text) async {
+    await _api.post<void>('/api/v1/disputes', {
+      'type': _appealType,
+      'subjectId': _uuid.hasMatch(markId) ? markId : null,
+      'text': text,
+    });
+    state = state.copyWith(appealed: {...state.appealed, markId});
+  }
 
-  void saveSettings(PageSettings s) => state = state.copyWith(settings: s);
+  Future<void> saveSettings(PageSettings s) async {
+    final cat = await _catalog;
+    await _api.put<void>('/api/v1/pages/me/settings', {
+      'receiving': s.receiving,
+      'sound': s.sound,
+      'categoryIds': cat.categoryIds(s.categories),
+      'governorateIds': cat.governorateIds(s.governorates),
+      'from': s.from,
+      'to': s.to,
+      'days': s.days.toList(),
+    });
+    state = state.copyWith(settings: s);
+  }
 }
 
 final sellerProvider = NotifierProvider<SellerController, SellerState>(

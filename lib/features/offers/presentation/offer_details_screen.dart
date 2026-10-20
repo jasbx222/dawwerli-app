@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -9,6 +12,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../more/more_data.dart';
 import '../data/offers_providers.dart';
 import 'widgets/offer_widgets.dart';
 
@@ -58,7 +62,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                   child: Stack(
                     fit: StackFit.expand,
                     children: [
-                      Image.asset(o.image, fit: BoxFit.cover),
+                      AppImage(o.image, fit: BoxFit.cover),
                       Positioned(
                         top: 50,
                         right: 16,
@@ -161,7 +165,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                                           text: OfferStrings.detailStats(
                                             rating1(o.rating),
                                             o.deals,
-                                            o.replyMinutes,
+                                            ref.watch(pageProfileProvider(o.pageId)).value?.replyMinutes ?? o.replyMinutes,
                                           ),
                                         ),
                                       ],

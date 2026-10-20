@@ -2,15 +2,19 @@ import 'dart:convert';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../../../core/mock/mock_backend.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/api/catalog.dart';
 import '../../../core/storage/prefs.dart';
 
 import '../domain/post_repository.dart';
 import '../domain/request_draft.dart';
-import 'mock_post_repository.dart';
+import 'api_post_repository.dart';
 
 final postRepositoryProvider = Provider<PostRepository>(
-  (ref) => MockPostRepository(backend: ref.watch(mockBackendProvider)),
+  (ref) => ApiPostRepository(
+    ref.watch(apiClientProvider),
+    ref.watch(catalogProvider.future),
+  ),
 );
 
 /// The request being composed; every change is saved on the device
@@ -50,7 +54,7 @@ final draftProvider = NotifierProvider<DraftNotifier, RequestDraft>(
   DraftNotifier.new,
 );
 
-final openCountProvider = FutureProvider<int>(
+final openCountProvider = FutureProvider.autoDispose<int>(
   (ref) => ref.watch(postRepositoryProvider).openRequestsCount(),
 );
 
@@ -64,20 +68,8 @@ final suggestedCategoriesProvider = FutureProvider<List<CategoryOption>>(
       .suggestCategories(ref.read(draftProvider)),
 );
 
-/// Example request from the approved designs (07–09), used by `?preview=` routes.
-const sampleDraft = RequestDraft(
-  photo: 'assets/images/mock/cat_shoes_1.webp',
-  description: 'حذاء رياضي أسود، قياس 43، أصلي',
-  voiceSeconds: 24,
-  category: 'أحذية',
-  size: '43',
-  color: 'أسود',
-  maxPrice: 45000,
-  governorate: 'بغداد',
-  readyToBuy: true,
-  removedContactInfo: true,
-);
-
+/// Draft scoped to one screen (e.g. raising a live request's price) that
+/// must not overwrite the saved draft.
 class SeededDraftNotifier extends DraftNotifier {
   SeededDraftNotifier(this.seedDraft);
   final RequestDraft seedDraft;

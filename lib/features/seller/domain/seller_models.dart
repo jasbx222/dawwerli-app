@@ -14,7 +14,33 @@ class SellerConfig {
     this.sponsoredOffer = 1500,
     this.minAdRating = 4.0,
     this.appealHours = 48,
+    this.trustedDeals = 100,
+    this.minTopUp = 5000,
+    this.topupMethods = const ['ZainCash', 'FIB', 'Qi'],
   });
+
+  /// Values from GET /api/v1/config (admin-editable business rules).
+  factory SellerConfig.fromJson(Map<String, dynamic> j) {
+    int i(String k) => (j[k] as num).toInt();
+    return SellerConfig(
+      selectionFee: i('selectionFee'),
+      freeSelections: i('freeSelections'),
+      maxOffers: i('maxOffers'),
+      earlyWindow: Duration(seconds: i('earlyWindowSec')),
+      maxEarlySlots: i('maxEarlySlots'),
+      replyWindow: Duration(minutes: i('replyWindowMin')),
+      ghostAfter: Duration(hours: i('ghostAfterHours')),
+      earlyAccessMonthly: i('earlyAccessMonthly'),
+      bannerDaily: i('bannerDaily'),
+      featuredWeekly: i('featuredWeekly'),
+      sponsoredOffer: i('sponsoredOffer'),
+      minAdRating: (j['minAdRating'] as num).toDouble(),
+      appealHours: i('disputeDecisionHours'),
+      trustedDeals: i('trustedDeals'),
+      minTopUp: i('minTopUp'),
+      topupMethods: (j['topUpMethods'] as List).cast<String>(),
+    );
+  }
   final int selectionFee;
   final int freeSelections;
   final int maxOffers;
@@ -28,6 +54,9 @@ class SellerConfig {
   final int sponsoredOffer;
   final double minAdRating;
   final int appealHours;
+  final int trustedDeals;
+  final int minTopUp;
+  final List<String> topupMethods;
 }
 
 enum VerifyStatus { none, pending, verified, rejected }
@@ -94,6 +123,7 @@ class SellerOffer {
     required this.image,
     required this.price,
     required this.state,
+    this.orderId,
     this.orderNo,
     this.chosenAt,
     this.contacted = false,
@@ -111,6 +141,7 @@ class SellerOffer {
   final String image;
   final int price;
   final OfferState state;
+  final String? orderId;
   final String? orderNo;
   final DateTime? chosenAt;
   final bool contacted;
@@ -129,6 +160,7 @@ class SellerOffer {
     image: image,
     price: price,
     state: state ?? this.state,
+    orderId: orderId,
     orderNo: orderNo,
     chosenAt: chosenAt,
     contacted: contacted ?? this.contacted,
@@ -149,7 +181,7 @@ class LedgerEntry {
   final LedgerKind kind;
 }
 
-enum TopupStatus { pending, approved }
+enum TopupStatus { pending, approved, rejected }
 
 class Topup {
   const Topup(this.ref, this.method, this.amount, this.at, this.status);
@@ -211,8 +243,8 @@ class PageSettings {
   const PageSettings({
     this.receiving = true,
     this.sound = true,
-    this.categories = const {'أحذية', 'ملابس'},
-    this.governorates = const {'بغداد', 'بابل', 'ديالى'},
+    this.categories = const {},
+    this.governorates = const {},
     this.from = 10,
     this.to = 23,
     this.days = const {0, 1, 2, 3, 4, 5},

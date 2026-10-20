@@ -1,5 +1,7 @@
 import 'dart:ui' show ImageFilter;
 
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -28,19 +30,11 @@ class OffersScreen extends ConsumerStatefulWidget {
     super.key,
     required this.requestId,
     this.confirmId,
-    this.forceError = false,
-    this.hidden = const {},
   });
-
-  /// 47 · offers hidden by the customer (`?preview=hidden` hides o3).
-  final Set<String> hidden;
-
-  /// `?preview=error` shows 34.
-  final bool forceError;
 
   final String requestId;
 
-  /// Opens the 13 sheet for this offer (from 12 «أريده» or `?preview=confirm`).
+  /// Opens the 13 sheet for this offer (from 12 «أريده» or `?confirm=`).
   final String? confirmId;
 
   @override
@@ -51,17 +45,19 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
   OfferSort _sort = OfferSort.cheapest;
   late String? _confirm = widget.confirmId;
   bool _busy = false;
-  late final Set<String> _hidden = {...widget.hidden};
+  Set<String>? _hiddenIds;
   bool _onlyHidden = false;
   String? _toast;
-  bool _previewToastDone = false;
+
+  Set<String> get _hidden => _hiddenIds ?? const {};
 
   // 47 · long-press a card to hide it; the toast explains it can come back.
   void _hide(Offer o) {
     setState(() {
-      _hidden.add(o.id);
+      _hiddenIds = {..._hidden, o.id};
       _toast = OfferStrings.hiddenToast(o.pageName);
     });
+    ref.read(offersRepositoryProvider).setHidden(o.id, true);
     Future<void>.delayed(const Duration(seconds: 4), () {
       if (mounted) setState(() => _toast = null);
     });
@@ -96,11 +92,9 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
   @override
   Widget build(BuildContext context) {
     final async = ref.watch(offersProvider(widget.requestId));
-    if (widget.forceError || (async.hasError && async.value == null)) {
+    if (async.hasError && async.value == null) {
       return OffersErrorScreen(
-        onRetry: () => widget.forceError
-            ? context.go(Routes.offers(widget.requestId))
-            : ref.invalidate(offersProvider(widget.requestId)),
+        onRetry: () => ref.invalidate(offersProvider(widget.requestId)),
       );
     }
     final board = async.value;
@@ -109,6 +103,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
+    _hiddenIds ??= {for (final o in board.offers) if (o.hidden) o.id};
     final chosen = ref.watch(selectionProvider(widget.requestId)).value;
     final cheapest = board.cheapest?.id;
     final confirm = _confirm == null ? null : board.byId(_confirm!);
@@ -117,12 +112,6 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
       for (final o in all)
         if (!_hidden.contains(o.id) && !_onlyHidden) o,
     ];
-    // Preview of 47 opens with its toast, as in the design frame.
-    if (!_previewToastDone && widget.hidden.isNotEmpty) {
-      _previewToastDone = true;
-      final h = board.byId(widget.hidden.first);
-      if (h != null) _toast = OfferStrings.hiddenToast(h.pageName);
-    }
     final hiddenList = [
       for (final o in all)
         if (_hidden.contains(o.id)) o,
@@ -234,10 +223,13 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             for (final o in hiddenList)
               _HiddenRow(
                 offer: o,
-                onUnhide: () => setState(() {
-                  _hidden.remove(o.id);
-                  if (_hidden.isEmpty) _onlyHidden = false;
-                }),
+                onUnhide: () {
+                  setState(() {
+                    _hiddenIds = {..._hidden}..remove(o.id);
+                    if (_hidden.isEmpty) _onlyHidden = false;
+                  });
+                  ref.read(offersRepositoryProvider).setHidden(o.id, false);
+                },
               ),
             if (left > 0)
               Padding(
@@ -375,7 +367,7 @@ class ConfirmSheet extends StatelessWidget {
           children: [
             ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
+              child: AppImage(
                 offer.image,
                 width: 52,
                 height: 52,
@@ -459,7 +451,7 @@ class _HiddenRow extends StatelessWidget {
             opacity: .6,
             child: ClipRRect(
               borderRadius: BorderRadius.circular(16),
-              child: Image.asset(
+              child: AppImage(
                 offer.image,
                 width: 52,
                 height: 52,

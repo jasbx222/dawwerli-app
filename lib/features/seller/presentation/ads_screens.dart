@@ -19,6 +19,7 @@ import '../../../core/widgets/notes.dart';
 import '../../../core/widgets/pill.dart';
 import '../../../core/widgets/settings_row.dart';
 import '../../../core/widgets/state_card.dart';
+import '../../../core/api/picker.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 import 'topup_sheet.dart';
@@ -358,7 +359,9 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
   late String _gov = ref.read(sellerProvider).settings.governorates.first;
   late String _cat = ref.read(sellerProvider).settings.categories.first;
   int _units = 1;
-  bool _image = false;
+  String? _image;
+  bool _busy = false;
+  static const _daysPerWeek = 7;
   String? _error;
 
   @override
@@ -376,12 +379,13 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
     AdSlot.homeBanner => n == 1 ? 'يوم' : '$n أيام',
   };
 
-  void _book(int total) {
+  Future<void> _book(int total) async {
+    if (_busy) return;
     final s = ref.read(sellerProvider);
     final text = _text.text.trim();
     final err = widget.slot == AdSlot.homeBanner && text.isEmpty
         ? 'اكتب نص البانر'
-        : widget.slot == AdSlot.homeBanner && !_image
+        : widget.slot == AdSlot.homeBanner && _image == null
         ? 'ارفع صورة البانر'
         : hasContact(text)
         ? 'شيل الرقم أو الرابط أو @الحساب من النص'
@@ -397,14 +401,23 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
       AdSlot.featuredPage => 'صفحة مميزة · $_cat',
       AdSlot.sponsoredOffer => 'عرض مُموّل',
     };
-    ref
-        .read(sellerProvider.notifier)
-        .bookAd(
-          widget.slot,
-          title,
-          '$_cat · $_gov · ${_unitLabel(_units)}',
-          total,
-        );
+    setState(() => _busy = true);
+    try {
+      await ref
+          .read(sellerProvider.notifier)
+          .bookAd(
+            slot: widget.slot,
+            title: title,
+            headline: text,
+            category: _cat,
+            governorate: _gov,
+            days: widget.slot == AdSlot.featuredPage ? _units * _daysPerWeek : _units,
+            image: _image,
+          );
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (!mounted) return;
     showAppToast(context, 'انحجز إعلانك، ينراجع قبل النشر');
     context.pushReplacement(Routes.sellerMyAds);
   }
@@ -467,8 +480,11 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
                 const SizedBox(height: 10),
                 UploadBox(
                   label: 'ارفع صورة البانر',
-                  done: _image,
-                  onTap: () => setState(() => _image = !_image),
+                  done: _image != null,
+                  onTap: () async {
+                    final path = await pickPhoto(camera: false);
+                    if (path != null && mounted) setState(() => _image = path);
+                  },
                 ),
               ],
               if (_error != null) ...[

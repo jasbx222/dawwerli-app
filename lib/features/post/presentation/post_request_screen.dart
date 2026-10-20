@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
 
+import 'dart:async';
+
+import '../../../core/api/picker.dart';
+import '../../../core/api/voice_recorder.dart';
+import '../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -27,7 +33,6 @@ class PostRequestScreen extends ConsumerStatefulWidget {
 }
 
 class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
-  static final _samplePhoto = 'assets/images/mock/cat_shoes_1.webp';
   late final _desc = TextEditingController(
     text: ref.read(draftProvider).description,
   )..addListener(_saveDesc);
@@ -92,10 +97,12 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                     SizedBox(height: 14),
                     _PhotoBox(
                       photo: draft.photo,
-                      // Mock picker: real app opens camera/gallery (image_picker).
-                      onPick: () => notifier.update(
-                        (d) => d.copyWith(photo: _samplePhoto),
-                      ),
+                      onPick: () async {
+                        final path = await pickPhoto();
+                        if (path != null) {
+                          notifier.update((d) => d.copyWith(photo: path));
+                        }
+                      },
                     ),
                   ],
                   SizedBox(height: 14),
@@ -115,8 +122,9 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                     SizedBox(height: 14),
                     _VoiceCard(
                       seconds: voice ?? 0,
-                      onRecord: () =>
-                          notifier.update((d) => d.copyWith(voiceSeconds: 24)),
+                      onRecorded: (path, secs) => notifier.update(
+                        (d) => d.copyWith(voice: path, voiceSeconds: secs),
+                      ),
                     ),
                   ],
                   SizedBox(height: 16),
@@ -180,11 +188,7 @@ class _PhotoBox extends StatelessWidget {
             children: [
               if (photo != null)
                 // CSS: background center/cover.
-                Image.asset(
-                  photo!,
-                  fit: BoxFit.cover,
-                  alignment: Alignment.center,
-                )
+                AppImage(photo!, fit: BoxFit.cover, alignment: Alignment.center)
               else
                 ColoredBox(color: AppColors.slotBg),
               PositionedDirectional(
@@ -206,13 +210,45 @@ class _PhotoBox extends StatelessWidget {
   }
 }
 
-class _VoiceCard extends StatelessWidget {
-  const _VoiceCard({required this.seconds, required this.onRecord});
+class _VoiceCard extends StatefulWidget {
+  const _VoiceCard({required this.seconds, required this.onRecorded});
   final int seconds;
-  final VoidCallback onRecord;
+  final void Function(String path, int seconds) onRecorded;
+
+  @override
+  State<_VoiceCard> createState() => _VoiceCardState();
+}
+
+class _VoiceCardState extends State<_VoiceCard> {
+  final _rec = VoiceRecorder(maxSeconds: PostRules.maxVoiceSeconds);
+  StreamSubscription<int>? _sub;
+  int? _live;
+
+  @override
+  void dispose() {
+    _sub?.cancel();
+    _rec.dispose();
+    super.dispose();
+  }
+
+  /// Tap to start, tap again to stop (auto-stops at the max length).
+  Future<void> onRecord() async {
+    if (_rec.recording) {
+      final r = await _rec.stop();
+      setState(() => _live = null);
+      if (r != null) widget.onRecorded(r.$1, r.$2);
+      return;
+    }
+    if (!await _rec.start()) return;
+    _sub ??= _rec.ticks.listen((s) {
+      if (mounted) setState(() => _live = s);
+    });
+    setState(() => _live = 0);
+  }
 
   @override
   Widget build(BuildContext context) {
+    final seconds = _live ?? widget.seconds;
     final muted = TextStyle(
       fontSize: 12.5,
       height: 1.502222,

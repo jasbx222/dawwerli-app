@@ -16,6 +16,7 @@ class Offer {
     required this.note,
     required this.photoStamp,
     this.sponsored = false,
+    this.hidden = false,
   });
 
   final String id;
@@ -47,6 +48,9 @@ class Offer {
 
   /// «مُموّل»: pinned first, max one per request.
   final bool sponsored;
+
+  /// Hidden by me (still counts toward the 5).
+  final bool hidden;
 }
 
 enum OfferSort { cheapest, topRated, fastest }
@@ -91,6 +95,7 @@ class OffersBoard {
 class Selection {
   const Selection({
     required this.requestId,
+    required this.orderId,
     required this.orderNo,
     required this.itemTitle,
     required this.offer,
@@ -100,6 +105,7 @@ class Selection {
   });
 
   final String requestId;
+  final String orderId;
   final String orderNo;
   final String itemTitle;
   final Offer offer;
@@ -127,4 +133,7 @@ abstract interface class OffersRepository {
 
   /// Drops the silent page and returns the next best offer (or null).
   Future<Offer?> noReply(String requestId);
+
+  /// 47 · hide/unhide an offer on my board.
+  Future<void> setHidden(String offerId, bool hidden);
 }

@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import '../../../../core/l10n/app_strings.dart';
@@ -258,11 +260,7 @@ class SponsoredCard extends StatelessWidget {
         fit: StackFit.expand,
         children: [
           // Design CSS: background-size cover, position default 0 0 (top-left).
-          Image.asset(
-            page.image,
-            fit: BoxFit.cover,
-            alignment: Alignment.topLeft,
-          ),
+          AppImage(page.image, fit: BoxFit.cover, alignment: Alignment.topLeft),
           const DecoratedBox(
             decoration: BoxDecoration(
               gradient: LinearGradient(

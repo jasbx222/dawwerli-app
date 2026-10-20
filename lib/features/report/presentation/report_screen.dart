@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_image.dart';
+
 import '../../../core/widgets/app_toggle.dart';
 import '../../../core/widgets/radio_row.dart';
 
@@ -18,7 +20,12 @@ import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/ishtar_pattern.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
+import '../../../core/api/api_client.dart';
+import '../../../core/api/media.dart';
+import '../../../core/api/picker.dart';
+import '../../more/more_data.dart';
 import '../../orders/data/orders_providers.dart';
+import '../../orders/domain/order.dart';
 
 /// 27 · report a problem with an order; the block toggle asks via 27c.
 class ReportScreen extends ConsumerStatefulWidget {
@@ -26,20 +33,60 @@ class ReportScreen extends ConsumerStatefulWidget {
     super.key,
     required this.orderId,
     this.initialReason = 1,
-    this.openBlock = false,
+
   });
   final String orderId;
   final int initialReason;
-  final bool openBlock;
 
   @override
   ConsumerState<ReportScreen> createState() => _ReportScreenState();
 }
 
 class _ReportScreenState extends ConsumerState<ReportScreen> {
+  /// Server reason codes, aligned with [ReportStrings.reasons].
+  static const _reasonCodes = [
+    'notDelivered',
+    'mismatch',
+    'priceChanged',
+    'depositRequest',
+    'contactSolicitation',
+    'abuse',
+    'bannedItem',
+  ];
+  static const _trackPrefix = 'CMP-';
+  static const _trackLength = 8;
+
   late int reason = widget.initialReason;
   bool block = false;
-  late bool sheet = widget.openBlock;
+  bool sheet = false;
+  bool _busy = false;
+  String? _photo;
+
+  Future<void> _send(OrderStatus o) async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      final key = await uploadImage(api, _photo, 'disputes');
+      final res = await api.post<Map<String, dynamic>>(
+        '/api/v1/orders/${o.id}/complaint',
+        {
+          'target': 'page',
+          'targetId': o.pageId,
+          'reason': _reasonCodes[reason],
+          'photoKey': key,
+        },
+      );
+      if (block) {
+        await ref.read(blockedProvider.notifier).block(o.pageId, name: o.pageName);
+      }
+      final no = _trackPrefix +
+          res.s('id').replaceAll('-', '').substring(0, _trackLength).toUpperCase();
+      if (mounted) context.pushReplacement(Routes.reportSent(widget.orderId, no));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -86,17 +133,24 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       const SizedBox(height: 8),
                       Row(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(16),
-                            child: Image.asset(
-                              'assets/images/mock/cat_shoes_2.webp',
-                              width: 76,
-                              height: 76,
-                              fit: BoxFit.cover,
+                          if (_photo case final p?) ...[
+                            ClipRRect(
+                              borderRadius: BorderRadius.circular(16),
+                              child: AppImage(
+                                p,
+                                width: 76,
+                                height: 76,
+                                fit: BoxFit.cover,
+                              ),
                             ),
-                          ),
-                          const SizedBox(width: 12),
-                          const DashedCard(
+                            const SizedBox(width: 12),
+                          ],
+                          GestureDetector(
+                            onTap: () async {
+                              final p = await pickPhoto(camera: false);
+                              if (p != null && mounted) setState(() => _photo = p);
+                            },
+                            child: const DashedCard(
                             radius: 16,
                             padding: 0,
                             child: SizedBox(
@@ -110,6 +164,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                                 ),
                               ),
                             ),
+                          ),
                           ),
                         ],
                       ),
@@ -152,9 +207,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       const SizedBox(height: 16),
                       AppButton(
                         ReportStrings.send,
-                        onPressed: () => context.pushReplacement(
-                          Routes.reportSent(widget.orderId),
-                        ),
+                        onPressed: () => _send(o),
                       ),
                     ],
                   ),
@@ -232,7 +285,14 @@ class BlockSheet extends StatelessWidget {
 
 /// 27b · complaint received.
 class ReportSentScreen extends ConsumerWidget {
-  const ReportSentScreen({super.key, required this.orderId});
+  /// Complaint tracking number shown to the customer.
+  final String trackNo;
+
+  const ReportSentScreen({
+    super.key,
+    required this.orderId,
+    required this.trackNo,
+  });
   final String orderId;
 
   @override
@@ -274,8 +334,7 @@ class ReportSentScreen extends ConsumerWidget {
                 const SizedBox(height: 20),
                 Text(ReportStrings.trackLabel, style: AppText.big),
                 Text(
-                  // Mock tracking number until the complaints API lands.
-                  'CMP-30917',
+                  trackNo,
                   textDirection: TextDirection.ltr,
                   style: AppText.big.copyWith(color: AppColors.blue),
                 ),

@@ -1,5 +1,7 @@
 import 'dart:async';
 
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter/material.dart';
 
 import '../../../core/utils/whatsapp.dart';
@@ -155,7 +157,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                               ),
                               child: ClipRRect(
                                 borderRadius: BorderRadius.circular(24),
-                                child: Image.asset(
+                                child: AppImage(
                                   s.offer.image,
                                   width: 90,
                                   height: 90,
@@ -391,7 +393,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                 m(
                   14,
                   GestureDetector(
-                    onTap: () => context.push(Routes.report('o1', reason: 2)),
+                    onTap: () => context.push(Routes.report(s.orderId, reason: 2)),
                     child: AppCard(
                       child: Row(
                         children: [

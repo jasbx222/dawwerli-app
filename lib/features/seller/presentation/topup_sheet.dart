@@ -13,11 +13,11 @@ import '../../../core/widgets/app_inputs.dart';
 import '../../../core/widgets/app_sheet.dart';
 import '../../../core/widgets/ishtar_pattern.dart';
 import '../../../core/widgets/state_card.dart';
+import '../../../core/api/picker.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 import 'widgets/seller_widgets.dart';
 
-const topupMethods = ['ZainCash', 'FIB', 'Qi'];
 
 /// Top-up form shared by 22 (inline card) and 22b (sheet when the balance is 0).
 class TopupForm extends ConsumerStatefulWidget {
@@ -31,8 +31,8 @@ class TopupForm extends ConsumerStatefulWidget {
 class _TopupFormState extends ConsumerState<TopupForm> {
   final _ref = TextEditingController();
   final _amount = TextEditingController(text: '25000');
-  String _method = topupMethods.first;
-  bool _receipt = false;
+  String? _method;
+  String? _receipt;
   TopupError? _error;
 
   @override
@@ -42,17 +42,24 @@ class _TopupFormState extends ConsumerState<TopupForm> {
     super.dispose();
   }
 
-  void _send() {
+  Future<void> _send() async {
     final amount = int.tryParse(_amount.text.trim()) ?? 0;
-    final e = ref
+    final methods = ref.read(sellerProvider).config.topupMethods;
+    final e = await ref
         .read(sellerProvider.notifier)
-        .topup(_method, _ref.text, amount, _receipt);
+        .topup(_method ?? methods.first, _ref.text, amount, _receipt);
+    if (!mounted) return;
     setState(() => _error = e);
     if (e == null) {
       _ref.clear();
-      setState(() => _receipt = false);
+      setState(() => _receipt = null);
       widget.onDone?.call();
     }
+  }
+
+  Future<void> _pickReceipt() async {
+    final path = await pickPhoto(camera: false);
+    if (path != null && mounted) setState(() => _receipt = path);
   }
 
   @override
@@ -62,16 +69,19 @@ class _TopupFormState extends ConsumerState<TopupForm> {
         .topups
         .where((t) => t.status == TopupStatus.pending)
         .toList();
+    final config = ref.watch(sellerProvider).config;
+    final methods = config.topupMethods;
+    final method = _method ?? methods.first;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         Wrap(
           spacing: AppSpacing.sm,
           children: [
-            for (final m in topupMethods)
+            for (final m in methods)
               AppChip(
                 m,
-                selected: m == _method,
+                selected: m == method,
                 onTap: () => setState(() => _method = m),
               ),
           ],
@@ -92,8 +102,8 @@ class _TopupFormState extends ConsumerState<TopupForm> {
         const SizedBox(height: 10),
         UploadBox(
           label: 'ارفع صورة وصل التحويل',
-          done: _receipt,
-          onTap: () => setState(() => _receipt = !_receipt),
+          done: _receipt != null,
+          onTap: _pickReceipt,
         ),
         if (_error case final e?) ...[
           const SizedBox(height: 10),
@@ -105,6 +115,7 @@ class _TopupFormState extends ConsumerState<TopupForm> {
               TopupError.duplicateRef => 'رقم العملية مستخدم قبل',
               TopupError.missingRef => 'اكتب رقم العملية',
               TopupError.missingReceipt => 'ارفع صورة الوصل',
+              TopupError.belowMin => 'المبلغ أقل من الحد الأدنى',
             },
             body: TextSpan(
               text: switch (e) {
@@ -113,6 +124,7 @@ class _TopupFormState extends ConsumerState<TopupForm> {
                 TopupError.missingRef =>
                   'المالية تطابقه ويا كشف الحساب قبل الموافقة.',
                 TopupError.missingReceipt => 'بدون وصل ما نكدر نأكد التحويل.',
+                TopupError.belowMin => 'أقل تعبئة ${iqd(config.minTopUp)}.',
               },
             ),
             action: e == TopupError.duplicateRef ? 'عدّل رقم العملية' : null,

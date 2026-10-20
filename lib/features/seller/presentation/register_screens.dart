@@ -17,6 +17,7 @@ import '../../../core/widgets/notes.dart';
 import '../../../core/widgets/pill.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../more/more_data.dart';
+import '../../auth/data/session.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 
@@ -88,7 +89,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
               const SizedBox(height: 14),
               const _Label('شتبيع؟'),
               ChipPicker(
-                options: [for (final c in catalogCategories) c.name],
+                options: [for (final c in ref.watch(catalogCategoriesProvider)) c.name],
                 selected: _cats,
                 limit: 4,
                 onToggle: (v) => setState(() => _cats = _flip(_cats, v)),
@@ -127,8 +128,8 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                     : AppButtonVariant.disabled,
                 onPressed: !_valid
                     ? null
-                    : () {
-                        ref
+                    : () async {
+                        await ref
                             .read(sellerProvider.notifier)
                             .register(
                               name: _name.text.trim(),
@@ -136,7 +137,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                               categories: _cats,
                               governorates: _govs,
                             );
-                        context.go(Routes.sellerVerify);
+                        if (context.mounted) context.go(Routes.sellerVerify);
                       },
               ),
             ],
@@ -272,12 +273,17 @@ class SellerVerifyScreen extends ConsumerWidget {
                 const SizedBox(height: AppSpacing.md),
                 AppButton(
                   verified ? 'افتح صندوق الطلبات' : 'تحقق',
-                  onPressed: () {
+                  onPressed: () async {
                     if (verified) return context.go(Routes.sellerInbox);
-                    if (ctl.checkBio() == VerifyStatus.rejected) {
-                      context.go(Routes.sellerRejected);
-                    } else {
-                      showAppToast(context, 'لكينا الكود، صفحتك بالمراجعة');
+                    final status = await ctl.checkBio();
+                    if (!context.mounted) return;
+                    switch (status) {
+                      case VerifyStatus.rejected:
+                        context.go(Routes.sellerRejected);
+                      case VerifyStatus.verified:
+                        context.go(Routes.sellerInbox);
+                      case VerifyStatus.pending || VerifyStatus.none:
+                        showAppToast(context, 'صفحتك بالمراجعة، نبلغك أول ما تتوثق');
                     }
                   },
                 ),
@@ -301,9 +307,15 @@ class SellerVerifyScreen extends ConsumerWidget {
               icon: AppIcon.refresh,
               variant: AppButtonVariant.ghost,
               // GET /pages/me — the first 20 pages are approved by hand.
-              onPressed: () {
-                ctl.approve();
-                showAppToast(context, 'صفحتك صارت موثّقة');
+              onPressed: () async {
+                final status = await ctl.refresh();
+                if (!context.mounted) return;
+                showAppToast(
+                  context,
+                  status == VerifyStatus.verified
+                      ? 'صفحتك صارت موثّقة'
+                      : 'بعدها بالمراجعة',
+                );
               },
             ),
           ),
@@ -391,7 +403,10 @@ class SellerRejectedScreen extends ConsumerWidget {
         children: [
           AppButton(
             'أعد طلب التوثيق',
-            onPressed: () => context.go(Routes.sellerRegister),
+            onPressed: () async {
+              await ref.read(sellerProvider.notifier).retryVerification();
+              if (context.mounted) context.go(Routes.sellerVerify);
+            },
           ),
           const SizedBox(height: 10),
           AppButton(
@@ -426,9 +441,9 @@ class SellerRejectedScreen extends ConsumerWidget {
         ),
         Gap(
           TextButton(
-            onPressed: () {
-              ref.read(appRoleProvider.notifier).set(AppRole.buyer);
-              context.go(Routes.home);
+            onPressed: () async {
+              final to = await switchAppRole(ref, AppRole.buyer);
+              if (context.mounted) context.go(to);
             },
             child: Text(
               'رجوع لتطبيق الزبون',

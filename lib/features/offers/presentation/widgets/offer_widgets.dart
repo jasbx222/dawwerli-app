@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../../core/widgets/app_image.dart';
+
 import 'package:flutter_svg/flutter_svg.dart';
 
 import '../../../../core/l10n/offer_strings.dart';
@@ -110,7 +113,7 @@ class OfferCard extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(16),
-                  child: Image.asset(
+                  child: AppImage(
                     o.image,
                     width: 72,
                     height: 72,

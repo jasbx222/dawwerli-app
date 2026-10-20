@@ -8,6 +8,7 @@ class RequestDraft {
   const RequestDraft({
     this.mode = InputMode.photo,
     this.photo,
+    this.voice,
     this.description = '',
     this.voiceSeconds,
     this.category,
@@ -22,8 +23,11 @@ class RequestDraft {
 
   final InputMode mode;
 
-  /// Asset/file path of the photo (mock uses bundled assets).
+  /// Local file path of the photo (camera/gallery).
   final String? photo;
+
+  /// Local file path of the recorded voice note (.m4a).
+  final String? voice;
   final String description;
 
   /// Length of the voice note; null when nothing recorded.
@@ -46,6 +50,7 @@ class RequestDraft {
   Map<String, Object?> toJson() => {
     'mode': mode.name,
     'photo': photo,
+    'voice': voice,
     'description': description,
     'voiceSeconds': voiceSeconds,
     'category': category,
@@ -61,6 +66,7 @@ class RequestDraft {
   factory RequestDraft.fromJson(Map<String, Object?> j) => RequestDraft(
     mode: InputMode.values.asNameMap()[j['mode']] ?? InputMode.photo,
     photo: j['photo'] as String?,
+    voice: j['voice'] as String?,
     description: j['description'] as String? ?? '',
     voiceSeconds: j['voiceSeconds'] as int?,
     category: j['category'] as String?,
@@ -78,6 +84,7 @@ class RequestDraft {
   RequestDraft copyWith({
     InputMode? mode,
     String? photo,
+    String? voice,
     String? description,
     int? voiceSeconds,
     String? category,
@@ -91,6 +98,7 @@ class RequestDraft {
   }) => RequestDraft(
     mode: mode ?? this.mode,
     photo: photo ?? this.photo,
+    voice: voice ?? this.voice,
     description: description ?? this.description,
     voiceSeconds: voiceSeconds ?? this.voiceSeconds,
     category: category ?? this.category,

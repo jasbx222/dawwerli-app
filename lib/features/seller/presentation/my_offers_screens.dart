@@ -17,6 +17,7 @@ import '../../../core/widgets/pill.dart';
 import '../../../core/widgets/seg_tabs.dart';
 import '../../../core/widgets/sticker.dart';
 import '../../../core/widgets/app_inputs.dart';
+import '../../../core/widgets/loading_block.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 import 'widgets/seller_nav.dart';
@@ -415,6 +416,7 @@ class SellerRatingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(sellerProvider);
     final r = s.lastRating;
+    if (r == null) return const AppPage(title: 'وصلك تقييم', children: [LoadingBlock()]);
     return AppPage(
       title: 'وصلك تقييم',
       titleIcon: const AppSvgIcon(

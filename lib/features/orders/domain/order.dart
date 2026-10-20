@@ -12,6 +12,7 @@ class OrderStatus {
   const OrderStatus({
     required this.id,
     required this.orderNo,
+    required this.pageId,
     required this.pageName,
     required this.pageImage,
     required this.steps,
@@ -21,6 +22,7 @@ class OrderStatus {
   });
   final String id;
   final String orderNo;
+  final String pageId;
   final String pageName;
   final String pageImage;
   final List<OrderStep> steps;

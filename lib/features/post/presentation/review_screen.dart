@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -202,7 +204,7 @@ class _SummaryCard extends StatelessWidget {
                   height: 76,
                   child: draft.photo == null
                       ? ColoredBox(color: AppColors.slotBg)
-                      : Image.asset(
+                      : AppImage(
                           draft.photo!,
                           fit: BoxFit.cover,
                           alignment: Alignment.center,

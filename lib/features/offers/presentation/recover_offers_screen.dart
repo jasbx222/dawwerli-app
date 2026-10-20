@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -17,13 +20,16 @@ class RecoverOffersScreen extends ConsumerWidget {
   const RecoverOffersScreen({super.key, required this.requestId});
   final String requestId;
 
+  /// Other offers stay selectable this long after choosing.
+  static const recoverWindow = Duration(hours: 48);
+
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final board = ref.watch(offersProvider(requestId)).value;
     final chosen = ref.watch(selectionProvider(requestId)).value;
     final others = [
       for (final o in board?.offers ?? const [])
-        if (o.id != (chosen?.offer.id ?? 'o1')) o,
+        if (o.id != chosen?.offer.id) o,
     ];
     Widget gap(Widget w) =>
         Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: w);
@@ -40,26 +46,27 @@ class RecoverOffersScreen extends ConsumerWidget {
                   context.canPop() ? context.pop() : context.go(Routes.home),
             ),
             gap(
-              const AppCard(
+              AppCard(
                 flat: true,
                 color: AppColors.warnBg,
                 child: Row(
                   children: [
-                    AppSvgIcon(AppIcon.clock, color: AppColors.warn, size: 22),
-                    SizedBox(width: 12),
+                    const AppSvgIcon(AppIcon.clock, color: AppColors.warn, size: 22),
+                    const SizedBox(width: 12),
                     Expanded(
                       child: Text.rich(
                         TextSpan(
                           text: 'الصفحة اللي اخترتها ما زبطت؟ تكدر ترجع لعرض ثاني لحد ',
                           children: [
                             TextSpan(
-                              // Mock deadline = selection + 48h.
-                              text: '21/10 · 9:42 م',
-                              style: TextStyle(fontWeight: FontWeight.w700),
+                              text: chosen == null
+                                  ? ''
+                                  : dayTimeLabel(chosen.selectedAt.add(recoverWindow)),
+                              style: const TextStyle(fontWeight: FontWeight.w700),
                             ),
                           ],
                         ),
-                        style: TextStyle(
+                        style: const TextStyle(
                           fontSize: 12.5,
                           height: 1.502222,
                           color: AppColors.warnText,
@@ -77,7 +84,7 @@ class RecoverOffersScreen extends ConsumerWidget {
                     children: [
                       ClipRRect(
                         borderRadius: BorderRadius.circular(16),
-                        child: Image.asset(
+                        child: AppImage(
                           o.image,
                           width: 52,
                           height: 52,

@@ -22,6 +22,8 @@ import '../../../core/widgets/settings_row.dart';
 import '../../../core/widgets/state_card.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../more/more_data.dart';
+import '../../account/data/account_api.dart';
+import '../../auth/data/session.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 import 'widgets/seller_nav.dart';
@@ -166,15 +168,18 @@ class SellerAccountScreen extends ConsumerWidget {
             AppIcon.refresh,
             'بدّل لـ«أشتري»',
             sub: 'افتح تطبيق الزبون',
-            onTap: () {
-              ref.read(appRoleProvider.notifier).set(AppRole.buyer);
-              context.go(Routes.home);
+            onTap: () async {
+              final to = await switchAppRole(ref, AppRole.buyer);
+              if (context.mounted) context.go(to);
             },
           ),
           SettingsRow(
             AppIcon.refresh,
             'سجّل خروج',
-            onTap: () => context.go(Routes.login),
+            onTap: () async {
+              await signOut(ref);
+              if (context.mounted) context.go(Routes.login);
+            },
           ),
           SettingsRow(
             AppIcon.trash,
@@ -274,7 +279,7 @@ class _SettingsState extends ConsumerState<SellerSettingsScreen> {
                 Text('شتبيع؟', style: AppText.strong),
                 const SizedBox(height: 10),
                 ChipPicker(
-                  options: [for (final c in catalogCategories) c.name],
+                  options: [for (final c in ref.watch(catalogCategoriesProvider)) c.name],
                   selected: _s.categories,
                   limit: 4,
                   onToggle: (v) => setState(
@@ -505,11 +510,11 @@ class _AppealState extends ConsumerState<SellerAppealScreen> {
                       : AppButtonVariant.primary,
                   onPressed: _text.text.trim().length < 10
                       ? null
-                      : () {
-                          ref
+                      : () async {
+                          await ref
                               .read(sellerProvider.notifier)
-                              .appeal(widget.markId);
-                          showAppToast(context, 'انرسل اعتراضك');
+                              .appeal(widget.markId, _text.text.trim());
+                          if (context.mounted) showAppToast(context, 'انرسل اعتراضك');
                         },
                 ),
               ],
@@ -594,7 +599,17 @@ class SellerDeleteScreen extends ConsumerStatefulWidget {
 }
 
 class _DeleteState extends ConsumerState<SellerDeleteScreen> {
+  static const _codeLength = 6;
   final _code = TextEditingController();
+  String? _devCode;
+
+  @override
+  void initState() {
+    super.initState();
+    ref.read(accountApiProvider).requestDeleteCode().then((c) {
+      if (mounted) setState(() => _devCode = c);
+    });
+  }
 
   @override
   void dispose() {
@@ -608,7 +623,7 @@ class _DeleteState extends ConsumerState<SellerDeleteScreen> {
     final open = s.offers
         .where((o) => o.state == OfferState.chosen)
         .firstOrNull;
-    final ok = open == null && _code.text.length == 6;
+    final ok = open == null && _code.text.length == _codeLength;
     return Scaffold(
       backgroundColor: const Color(0x8C070E1F),
       body: Align(
@@ -662,7 +677,7 @@ class _DeleteState extends ConsumerState<SellerDeleteScreen> {
               ],
               const SizedBox(height: 14),
               LabeledField(
-                label: 'كود التأكيد',
+                label: _devCode == null ? 'كود التأكيد' : 'كود التأكيد ($_devCode)',
                 controller: _code,
                 ltr: true,
                 keyboardType: TextInputType.number,
@@ -675,10 +690,11 @@ class _DeleteState extends ConsumerState<SellerDeleteScreen> {
                     ? AppButtonVariant.danger
                     : AppButtonVariant.disabled,
                 onPressed: ok
-                    ? () {
+                    ? () async {
+                        await ref.read(accountApiProvider).delete(_code.text);
                         ref.read(sellerProvider.notifier).reset();
                         ref.read(appRoleProvider.notifier).set(AppRole.buyer);
-                        context.go(Routes.onboarding);
+                        if (context.mounted) context.go(Routes.onboarding);
                       }
                     : null,
               ),

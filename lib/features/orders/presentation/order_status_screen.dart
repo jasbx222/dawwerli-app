@@ -151,7 +151,7 @@ class OrderStatusScreen extends ConsumerWidget {
                               OrderStrings.viewReport,
                               variant: AppButtonVariant.ghost,
                               onPressed: () =>
-                                  context.push(Routes.reportSent(orderId)),
+                                  context.push(Routes.disputeStatus),
                             ),
                           ],
                   ),

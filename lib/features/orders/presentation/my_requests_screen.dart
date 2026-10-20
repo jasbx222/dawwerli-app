@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_image.dart';
+
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
@@ -11,87 +15,51 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
+import '../data/my_requests_provider.dart';
 
 enum _Kind { live, waiting, chosen, expired, done }
 
 enum _Filter { all, open, chosen, ended }
 
 class _Item {
-  const _Item(this.kind, this.title, this.sub, this.image);
+  const _Item(this.kind, this.title, this.sub, this.image, this.r);
   final _Kind kind;
   final String title;
   final String sub;
   final String image;
+  final RequestSummary r;
+
+  factory _Item.of(RequestSummary r) {
+    final kind = switch (r.status) {
+      _ when r.isOpen => r.offers > 0 ? _Kind.live : _Kind.waiting,
+      'selected' => _Kind.chosen,
+      'closed' => _Kind.done,
+      _ => _Kind.expired,
+    };
+    final sub = switch (kind) {
+      _Kind.live => '${r.offers}/${r.maxOffers} عروض',
+      _Kind.waiting => 'بانتظار العروض · 0 عروض',
+      _Kind.chosen => 'اخترت عرض · بانتظار الاستلام',
+      _Kind.done => 'خلص الطلب',
+      _Kind.expired =>
+        r.status == 'cancelled' ? 'ألغيته · ما انخصم شي' : 'انتهى الوقت · ما انخصم شي',
+    };
+    return _Item(kind, r.title, sub, r.image, r);
+  }
 }
-
-const _img = 'assets/images/mock';
-
-// Mock list until the requests API lands.
-const _items = [
-  _Item(
-    _Kind.live,
-    'حذاء رياضي أسود',
-    '3/5 عروض · يتسكر بعد 23:41',
-    '$_img/cat_shoes_1.webp',
-  ),
-  _Item(
-    _Kind.waiting,
-    'ساعة كاسيو',
-    'وصل لـ 8 صفحات · 0 عروض',
-    '$_img/cat_watches_1.webp',
-  ),
-  _Item(
-    _Kind.chosen,
-    'عطر عود هدية',
-    'عطور الشرق · 40,000 د.ع · بالطريق',
-    '$_img/cat_perfumes_2.webp',
-  ),
-  _Item(
-    _Kind.expired,
-    'آيفون 13 مستعمل',
-    '24 ساعة بدون عروض · ما انخصم شي',
-    '$_img/cat_phones_2.webp',
-  ),
-  _Item(_Kind.done, 'بوكس هدية', 'قيّمت', '$_img/cat_gifts_1.webp'),
-];
 
 /// 25 · «طلباتي»: all of the customer's requests with a status pill.
-class MyRequestsScreen extends StatefulWidget {
-  const MyRequestsScreen({super.key, this.preview});
-
-  /// `empty` · `loading` · `error` · `filter-empty` (25b–25e).
-  final String? preview;
+class MyRequestsScreen extends ConsumerStatefulWidget {
+  const MyRequestsScreen({super.key});
 
   @override
-  State<MyRequestsScreen> createState() => _MyRequestsScreenState();
+  ConsumerState<MyRequestsScreen> createState() => _MyRequestsScreenState();
 }
 
-class _MyRequestsScreenState extends State<MyRequestsScreen> {
+class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
   _Filter filter = _Filter.all;
-  late bool loading = widget.preview == 'loading';
-  late bool failed = widget.preview == 'error';
-  late List<_Item> items = widget.preview == 'empty'
-      ? const []
-      : widget.preview == 'filter-empty'
-      ? _items
-            .where((i) => i.kind != _Kind.expired && i.kind != _Kind.done)
-            .toList()
-      : _items;
 
-  @override
-  void initState() {
-    super.initState();
-    if (widget.preview == 'filter-empty') filter = _Filter.ended;
-  }
-
-  Future<void> _retry() async {
-    setState(() {
-      failed = false;
-      loading = true;
-    });
-    await Future<void>.delayed(const Duration(milliseconds: 700));
-    if (mounted) setState(() => loading = false);
-  }
+  void _retry() => ref.invalidate(myRequestsProvider);
 
   bool _in(_Item i) => switch (filter) {
     _Filter.all => true,
@@ -101,13 +69,18 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
   };
 
   void _open(_Item i) => context.push(switch (i.kind) {
-    _Kind.live || _Kind.waiting => Routes.liveRequest('r1'),
-    _Kind.expired => Routes.noOffers('r1'),
-    _Kind.chosen || _Kind.done => Routes.orderStatus('o1'),
+    _Kind.live || _Kind.waiting => Routes.liveRequest(i.r.id),
+    _Kind.expired => Routes.noOffers(i.r.id),
+    _Kind.chosen || _Kind.done =>
+      i.r.orderId == null ? Routes.offers(i.r.id) : Routes.orderStatus(i.r.orderId!),
   });
 
   @override
   Widget build(BuildContext context) {
+    final async = ref.watch(myRequestsProvider);
+    final loading = async.isLoading && !async.hasValue;
+    final failed = async.hasError && !async.hasValue;
+    final items = [for (final r in async.value ?? const <RequestSummary>[]) _Item.of(r)];
     final open = items
         .where((i) => i.kind == _Kind.live || i.kind == _Kind.waiting)
         .length;
@@ -264,12 +237,7 @@ class _Row extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.circular(16),
-          child: Image.asset(
-            item.image,
-            width: 52,
-            height: 52,
-            fit: BoxFit.cover,
-          ),
+          child: AppImage(item.image, width: 52, height: 52, fit: BoxFit.cover),
         ),
         const SizedBox(width: 12),
         Expanded(

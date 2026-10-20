@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/l10n/offer_strings.dart';
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -16,11 +20,12 @@ import '../../../core/widgets/countdown.dart';
 import '../../../core/widgets/notes.dart';
 import '../../../core/widgets/pill.dart';
 import '../../../core/widgets/toast_bar.dart';
+import '../../../core/api/picker.dart';
 import '../data/seller_controller.dart';
 import 'topup_sheet.dart';
 import 'widgets/seller_widgets.dart';
 
-const deliveryOptions = ['اليوم', 'يومين', '3 أيام', 'أسبوع'];
+final deliveryOptions = [for (final c in OfferStrings.deliveryChoices) c.$1];
 
 /// 20 · submit an offer (camera photo, locked price, delivery time, note).
 /// 20b when already offered; 19b states as inline cards.
@@ -38,6 +43,8 @@ class _SubmitState extends ConsumerState<SubmitOfferScreen> {
   final _note = TextEditingController();
   String _delivery = deliveryOptions[1];
   DateTime? _shotAt;
+  String? _photo;
+  bool _busy = false;
   OfferError? _error;
   bool _sent = false;
 
@@ -51,14 +58,36 @@ class _SubmitState extends ConsumerState<SubmitOfferScreen> {
   int? get _priceValue =>
       int.tryParse(_price.text.replaceAll(RegExp(r'[^0-9]'), ''));
 
-  void _send() {
+  /// In-app camera only (no gallery): the photo is stamped server-side.
+  Future<void> _shoot() async {
+    final path = await pickPhoto();
+    if (path == null || !mounted) return;
+    setState(() {
+      _photo = path;
+      _shotAt = DateTime.now();
+      _error = null;
+    });
+  }
+
+  Future<void> _send() async {
+    if (_busy) return;
     final ctl = ref.read(sellerProvider.notifier);
     final r = ctl.request(widget.requestId)!;
-    final err = _shotAt == null
+    final hours = OfferStrings.deliveryChoices.firstWhere((c) => c.$1 == _delivery).$2;
+    setState(() => _busy = true);
+    final err = _photo == null
         ? OfferError.noPhoto
         : (_priceValue == null || _priceValue! <= 0)
         ? OfferError.priceAboveMax
-        : ctl.submit(r.id, _priceValue!, _note.text);
+        : await ctl.submit(
+            r.id,
+            _priceValue!,
+            _note.text,
+            photo: _photo!,
+            deliveryHours: hours,
+          );
+    if (!mounted) return;
+    setState(() => _busy = false);
     if (err == OfferError.noBalance) {
       TopupSheet.show(context);
       return;
@@ -72,10 +101,7 @@ class _SubmitState extends ConsumerState<SubmitOfferScreen> {
   void _onErrorAction() {
     switch (_error) {
       case OfferError.noPhoto:
-        setState(() {
-          _shotAt = DateTime.now();
-          _error = null;
-        });
+        _shoot();
       case OfferError.closed ||
           OfferError.alreadyOffered ||
           OfferError.earlySlotsFull:
@@ -118,11 +144,11 @@ class _SubmitState extends ConsumerState<SubmitOfferScreen> {
             ),
             children: [
               _CameraArea(
-                image: r.image,
+                image: _photo ?? r.image,
                 height: _photoH,
                 shotAt: shot,
                 shop: s.shopName,
-                onShoot: () => setState(() => _shotAt = DateTime.now()),
+                onShoot: _shoot,
               ),
               Padding(
                 padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
@@ -281,7 +307,7 @@ class _CameraArea extends StatelessWidget {
       fit: StackFit.expand,
       children: [
         if (shotAt != null)
-          Image.asset(image, fit: BoxFit.cover)
+          AppImage(image, fit: BoxFit.cover)
         else
           const ColoredBox(color: AppColors.navy),
         Container(
