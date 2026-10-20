@@ -379,7 +379,12 @@ class _BentoTile extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(cat.image, fit: BoxFit.cover),
+            // CSS: background-size:cover; background-position:center
+            Image.asset(
+              cat.image,
+              fit: BoxFit.cover,
+              alignment: Alignment.center,
+            ),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
