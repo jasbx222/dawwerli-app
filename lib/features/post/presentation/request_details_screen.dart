@@ -107,8 +107,11 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
   Widget build(BuildContext context) {
     final edit = widget.editPriceFor != null;
     // Raise-price mode: other fields stay visible at .5 and can't be changed.
-    Widget dim(Widget w) =>
-        edit ? IgnorePointer(child: Opacity(opacity: .5, child: w)) : w;
+    Widget dim(Widget w) => edit
+        ? ExcludeFocus(
+            child: IgnorePointer(child: Opacity(opacity: .5, child: w)),
+          )
+        : w;
     final draft = ref.watch(draftProvider);
     // REQ-03: shoes can't continue without a size (price edit skips this).
     final canContinue =
@@ -144,7 +147,8 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                               label: AppStrings.sizeLabel,
                               value: draft.size,
                               // Size is the active field in the flow (`.inp.f`).
-                              focused: _sizeOpen || draft.size != null,
+                              focused:
+                                  !edit && (_sizeOpen || draft.size != null),
                               onTap: () => _pick(
                                 schema.sizes,
                                 (v) =>

@@ -76,7 +76,7 @@ abstract final class AppStrings {
   static const profileGov = 'محافظتك';
   static const profileArea = 'منطقتك';
   static const profileAreaHint = 'المنطقة ما تنعرض للصفحات، بس المحافظة.';
-  static const profileDone = 'خلصنا، يلا 🚀';
+  static const profileDone = 'خلصنا، يلا';
 
   // Placeholder for screens of later groups
   static const comingSoon = 'هاي الشاشة بالمجموعة الجاية';
@@ -175,7 +175,7 @@ abstract final class AppStrings {
 
   // Review (09 / 09b)
   static const reviewTitle = 'راجع طلبك';
-  static const draftSaved = 'مسودة محفوظة ✓';
+  static const draftSaved = 'مسودة محفوظة';
   static const reviewErrorsSub = 'حالات الرفض';
   static String voiceLen(String t) => '🎙️ تسجيل $t';
   static const maxPrice = 'أعلى سعر';
@@ -188,7 +188,7 @@ abstract final class AppStrings {
   static const openPrefix = 'عندك ';
   static String openOf(int n, int max) => '$n من $max';
   static const openSuffix = ' طلبات مفتوحة';
-  static const publish = 'انشر 🚀';
+  static const publish = 'انشر';
   static const offlineDraftNote =
       'انقطع النت؟ نخليه بالمسودة وينرسل وحده لما يرجع';
   static const offlineToast = 'النت فاصل، طلبك انحفظ مسودة وينرسل وحده 📶';
@@ -201,6 +201,8 @@ abstract final class AppStrings {
   static const expiredBody =
       'ما وصلت عروض خلال 24 ساعة. تكدر تعيد نشره أو ترفع السعر.';
   static const republish = 'أعد النشر';
+  static String expiredOffersBody(int n) =>
+      'وصلك $n عروض. اختار واحد منها أو ارفع السعر حتى توصل لصفحات أكثر.';
   static const raiseSubtitle = 'فوق سعرك يوصل طلبك لصفحات أكثر';
   static const currentPrice = 'سعرك الحالي ';
   static const updatePrice = 'حدّث السعر';

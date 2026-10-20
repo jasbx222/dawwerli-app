@@ -166,12 +166,16 @@ class _Content extends StatelessWidget {
           if (r.expired)
             _m(
               14,
-              const StateCard(
+              StateCard(
                 icon: AppIcon.clock,
                 tint: AppColors.warnBg,
                 tone: AppColors.warn,
                 title: AppStrings.expiredTitle,
-                body: TextSpan(text: AppStrings.expiredBody),
+                body: TextSpan(
+                  text: n > 0
+                      ? AppStrings.expiredOffersBody(n)
+                      : AppStrings.expiredBody,
+                ),
               ),
             )
           else

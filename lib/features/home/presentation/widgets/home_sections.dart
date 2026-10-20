@@ -200,7 +200,17 @@ class StatsRow extends StatelessWidget {
         decoration: deco,
         child: const Row(
           children: [
-            Text('📊', style: TextStyle(fontSize: 22, height: 33 / 22)),
+            SizedBox(
+              width: 26,
+              height: 33,
+              child: Center(
+                child: AppSvgIcon(
+                  AppIcon.barChart,
+                  size: 22,
+                  color: AppColors.blue,
+                ),
+              ),
+            ),
             SizedBox(width: 10),
             Expanded(
               child: Column(

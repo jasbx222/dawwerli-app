@@ -97,6 +97,7 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
                       ? null
                       : SmallPill(
                           label: AppStrings.draftSaved,
+                          icon: AppIcon.check,
                           bg: AppColors.white.withValues(alpha: .18),
                         ),
                 ),
