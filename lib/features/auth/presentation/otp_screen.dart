@@ -123,6 +123,18 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     }
   }
 
+  /// Tapping the boxes always brings the keyboard back, even if it was dismissed.
+  void _openKeyboard() {
+    if (_locked != null) return;
+    if (_focus.hasFocus) {
+      SystemChannels.textInput.invokeMethod<void>('TextInput.show');
+    } else {
+      _focus.requestFocus();
+    }
+  }
+
+  Future<void> _onNext() => _onChanged(_ctrl.text);
+
   Future<void> _resendCode() async {
     final r = await ref
         .read(authRepositoryProvider)
@@ -163,7 +175,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
               ),
               SizedBox(height: 28),
               GestureDetector(
-                onTap: () => _focus.requestFocus(),
+                behavior: HitTestBehavior.opaque,
+                onTap: _openKeyboard,
                 child: Stack(
                   alignment: Alignment.center,
                   children: [
@@ -230,6 +243,12 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                         variant: AppButtonVariant.disabled,
                       )
                     : AppButton(AppStrings.otpResend, onPressed: _resendCode),
+              ),
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: code.length == _len && _locked == null
+                    ? AppButton(AppStrings.next, onPressed: _onNext)
+                    : AppButton(AppStrings.next, variant: AppButtonVariant.disabled),
               ),
             ],
           ),
