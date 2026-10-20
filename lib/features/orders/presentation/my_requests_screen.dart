@@ -5,6 +5,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
+import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -56,7 +57,10 @@ const _items = [
 
 /// 25 · «طلباتي»: all of the customer's requests with a status pill.
 class MyRequestsScreen extends StatefulWidget {
-  const MyRequestsScreen({super.key});
+  const MyRequestsScreen({super.key, this.preview});
+
+  /// `empty` · `loading` · `error` · `filter-empty` (25b–25e).
+  final String? preview;
 
   @override
   State<MyRequestsScreen> createState() => _MyRequestsScreenState();
@@ -64,6 +68,30 @@ class MyRequestsScreen extends StatefulWidget {
 
 class _MyRequestsScreenState extends State<MyRequestsScreen> {
   _Filter filter = _Filter.all;
+  late bool loading = widget.preview == 'loading';
+  late bool failed = widget.preview == 'error';
+  late List<_Item> items = widget.preview == 'empty'
+      ? const []
+      : widget.preview == 'filter-empty'
+      ? _items
+            .where((i) => i.kind != _Kind.expired && i.kind != _Kind.done)
+            .toList()
+      : _items;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.preview == 'filter-empty') filter = _Filter.ended;
+  }
+
+  Future<void> _retry() async {
+    setState(() {
+      failed = false;
+      loading = true;
+    });
+    await Future<void>.delayed(const Duration(milliseconds: 700));
+    if (mounted) setState(() => loading = false);
+  }
 
   bool _in(_Item i) => switch (filter) {
     _Filter.all => true,
@@ -80,7 +108,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final open = _items
+    final open = items
         .where((i) => i.kind == _Kind.live || i.kind == _Kind.waiting)
         .length;
     const labels = {
@@ -89,6 +117,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
       _Filter.chosen: 'اخترت',
       _Filter.ended: 'منتهية',
     };
+    final shown = items.where(_in).toList();
+    final noItems = !loading && !failed && items.isEmpty;
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -103,35 +133,79 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
                 AppHeader(
                   title: 'طلباتي',
                   showBack: false,
-                  trailing: Pill(
-                    '$open من 3 مفتوحة',
-                    bg: AppColors.white.withValues(alpha: .18),
-                    fg: AppColors.white,
-                  ),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                  child: Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      for (final f in _Filter.values)
-                        AppChip(
-                          labels[f]!,
-                          selected: f == filter,
-                          onTap: () => setState(() => filter = f),
+                  trailing: noItems || failed
+                      ? null
+                      : Pill(
+                          '$open من 3 مفتوحة',
+                          bg: AppColors.white.withValues(alpha: .18),
+                          fg: AppColors.white,
                         ),
-                    ],
-                  ),
                 ),
-                for (final i in _items.where(_in))
+                if (!noItems && !failed)
                   Padding(
                     padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                    child: GestureDetector(
-                      onTap: () => _open(i),
-                      child: AppCard(child: _Row(item: i)),
+                    child: Wrap(
+                      spacing: 8,
+                      runSpacing: 8,
+                      children: [
+                        for (final f in _Filter.values)
+                          AppChip(
+                            labels[f]!,
+                            selected: f == filter,
+                            onTap: () => setState(() => filter = f),
+                          ),
+                      ],
                     ),
                   ),
+                if (failed)
+                  _Message(
+                    icon: AppIcon.wifiOff,
+                    color: AppColors.grey,
+                    title: 'ما كدرنا نجيب طلباتك',
+                    text: 'تأكد من النت وجرّب مرة ثانية',
+                    action: AppButton(
+                      'جرّب مرة ثانية',
+                      variant: AppButtonVariant.ghost,
+                      onPressed: _retry,
+                    ),
+                  )
+                else if (loading)
+                  for (var k = 0; k < 3; k++) const _SkeletonCard()
+                else if (noItems)
+                  _Message(
+                    icon: AppIcon.clipboard,
+                    color: AppColors.navy,
+                    opacity: .3,
+                    title: 'ما عندك طلبات بعد',
+                    text: 'اكتب شتريد وخلي الصفحات تتسابق عليك',
+                    action: AppButton(
+                      'انشر طلب جديد',
+                      onPressed: () => context.push(Routes.post),
+                    ),
+                  )
+                else if (shown.isEmpty)
+                  _Message(
+                    icon: AppIcon.filter,
+                    color: AppColors.grey,
+                    title: 'ماكو طلبات ${labels[filter]}',
+                    action: GestureDetector(
+                      onTap: () => setState(() => filter = _Filter.all),
+                      child: Text(
+                        'شوف الكل',
+                        textAlign: TextAlign.center,
+                        style: AppText.strong.copyWith(color: AppColors.blue),
+                      ),
+                    ),
+                  ),
+                if (!loading && !failed)
+                  for (final i in shown)
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                      child: GestureDetector(
+                        onTap: () => _open(i),
+                        child: AppCard(child: _Row(item: i)),
+                      ),
+                    ),
               ],
             ),
           ),
@@ -270,6 +344,94 @@ class _LiveDotPill extends StatelessWidget {
           ),
         ),
       ],
+    ),
+  );
+}
+
+/// Centered icon + title + text + action (25b, 25d, 25e).
+class _Message extends StatelessWidget {
+  const _Message({
+    required this.icon,
+    required this.color,
+    required this.title,
+    this.text,
+    required this.action,
+    this.opacity = 1,
+  });
+  final double opacity;
+  final AppIcon icon;
+  final Color color;
+  final String title;
+  final String? text;
+  final Widget action;
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(32, 96, 32, 0),
+    child: Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        Center(
+          child: Opacity(
+            opacity: opacity,
+            child: AppSvgIcon(icon, color: color, size: 56),
+          ),
+        ),
+        const SizedBox(height: 16),
+        Text(title, textAlign: TextAlign.center, style: AppText.big),
+        if (text != null) ...[
+          const SizedBox(height: 6),
+          Text(text!, textAlign: TextAlign.center, style: AppText.muted),
+        ],
+        const SizedBox(height: 20),
+        action,
+      ],
+    ),
+  );
+}
+
+/// 25c · request-card-sized placeholder with a shimmer sweep.
+class _SkeletonCard extends StatefulWidget {
+  const _SkeletonCard();
+
+  @override
+  State<_SkeletonCard> createState() => _SkeletonCardState();
+}
+
+class _SkeletonCardState extends State<_SkeletonCard>
+    with SingleTickerProviderStateMixin {
+  late final c = AnimationController(
+    vsync: this,
+    duration: const Duration(milliseconds: 1200),
+  )..repeat();
+
+  @override
+  void dispose() {
+    c.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+    child: AnimatedBuilder(
+      animation: c,
+      builder: (_, _) => Container(
+        // Card padding 16 + 52 thumb.
+        height: 84,
+        decoration: BoxDecoration(
+          borderRadius: BorderRadius.circular(22),
+          gradient: LinearGradient(
+            begin: Alignment(-1 + 4 * c.value - 1, 0),
+            end: Alignment(1 + 4 * c.value - 1, 0),
+            colors: const [
+              Color(0xFFEFEAE0),
+              Color(0xFFF6F2E8),
+              Color(0xFFEFEAE0),
+            ],
+          ),
+        ),
+      ),
     ),
   );
 }

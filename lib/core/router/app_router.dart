@@ -342,7 +342,8 @@ final appRouter = GoRouter(
     // 25 · «طلباتي» tab.
     GoRoute(
       path: Routes.myRequests,
-      builder: (_, _) => const MyRequestsScreen(),
+      builder: (_, s) =>
+          MyRequestsScreen(preview: s.uri.queryParameters['preview']),
     ),
     GoRoute(
       path: Routes.comingSoon,
