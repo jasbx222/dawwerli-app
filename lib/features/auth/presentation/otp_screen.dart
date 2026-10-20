@@ -19,6 +19,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../data/api_auth_repository.dart';
 import '../data/auth_providers.dart';
 import '../domain/auth_repository.dart';
 import '../domain/phone_number.dart';
@@ -45,6 +46,8 @@ class OtpScreen extends ConsumerStatefulWidget {
   @override
   ConsumerState<OtpScreen> createState() => _OtpScreenState();
 }
+
+const _devCodeLabel = 'رمز التجربة (سيرفر التطوير):';
 
 class _OtpScreenState extends ConsumerState<OtpScreen> {
   static final _len = 6;
@@ -89,8 +92,8 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
     super.dispose();
   }
 
-  PhoneNumber? get _phone =>
-      ref.read(pendingPhoneProvider) ?? PhoneNumber.parse('7701234567').phone;
+  /// Set by the login screen; the router sends you back there without it.
+  PhoneNumber? get _phone => ref.read(pendingPhoneProvider);
 
   Future<void> _onChanged(String v) async {
     setState(() {});
@@ -101,7 +104,9 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
       case OtpOk(:final needsProfile):
         ref.read(guestProvider.notifier).set(false);
         if (ref.read(appRoleProvider) == AppRole.seller) {
-          context.go(sellerEntryRoute(ref.read(sellerProvider).status));
+          final status = await ref.read(sellerProvider.notifier).refresh();
+          if (!mounted) return;
+          context.go(sellerEntryRoute(status));
         } else {
           context.go(needsProfile ? Routes.profileSetup : Routes.home);
         }
@@ -235,6 +240,11 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
             child: Column(
               mainAxisSize: MainAxisSize.min,
               children: [
+                if (ref.watch(devOtpCodeProvider) case final code?)
+                  Padding(
+                    padding: const EdgeInsets.only(bottom: 8),
+                    child: Text('$_devCodeLabel $code', textAlign: TextAlign.center),
+                  ),
                 if (_expired)
                   OtpExpiredCard(onResend: _resendCode)
                 else if (_attemptsLeft != null)

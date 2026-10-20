@@ -1,8 +1,14 @@
-/// Image reference: asset path in mocks, CDN URL from the API later.
+/// Image reference: signed media URL from the API (or a bundled asset path).
 typedef ImageRef = String;
 
 class StoryPage {
-  const StoryPage({required this.name, required this.image, this.isAd = false});
+  const StoryPage({
+    required this.pageId,
+    required this.name,
+    required this.image,
+    this.isAd = false,
+  });
+  final String pageId;
   final String name;
   final ImageRef image;
 

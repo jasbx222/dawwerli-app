@@ -1,5 +1,11 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../core/api/catalog.dart';
+import '../../core/utils/format.dart';
+import '../live/data/live_providers.dart';
+import '../post/data/post_providers.dart';
 
 import '../../core/router/routes.dart';
 import '../../core/theme/app_colors.dart';
@@ -12,18 +18,19 @@ import '../offers/presentation/widgets/offer_widgets.dart';
 void _back(BuildContext c) => c.canPop() ? c.pop() : c.go(Routes.home);
 
 /// 31 · offline with a queued draft.
-class OfflineScreen extends StatelessWidget {
-  const OfflineScreen({super.key, this.draftTitle = 'حذاء رياضي أسود'});
-  final String draftTitle;
+class OfflineScreen extends ConsumerWidget {
+  const OfflineScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => FullStateScreen(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final draftTitle = ref.watch(draftProvider).description.split('،').first.trim();
+    return FullStateScreen(
     header: 'دوّرلي',
     icon: AppIcon.wifiOff,
     titleIcon: AppIcon.wifiOffSmall,
     title: 'النت فاصل',
     body: 'مسودتك محفوظة على الموبايل، وراح تنرسل وحدها أول ما يرجع النت.',
-    extra: Padding(
+    extra: draftTitle.isEmpty ? null : Padding(
       padding: const EdgeInsets.only(top: 20),
       child: AppCard(
         child: Row(
@@ -39,6 +46,7 @@ class OfflineScreen extends StatelessWidget {
     onAction: () => _back(context),
     onBack: () => _back(context),
   );
+  }
 }
 
 /// 34 · offers failed to load.
@@ -60,17 +68,20 @@ class OffersErrorScreen extends StatelessWidget {
 }
 
 /// 35 · request closed after 24h with no offers.
-class NoOffersScreen extends StatelessWidget {
-  const NoOffersScreen({super.key, this.title = 'حذاء رياضي أسود'});
-  final String title;
+class NoOffersScreen extends ConsumerWidget {
+  const NoOffersScreen({super.key, required this.requestId});
+  final String requestId;
 
   @override
-  Widget build(BuildContext context) => FullStateScreen(
-    header: title,
+  Widget build(BuildContext context, WidgetRef ref) {
+    final r = ref.watch(liveRequestProvider(requestId)).value;
+    final suggested = r?.suggestedPrice;
+    return FullStateScreen(
+    header: r?.title ?? '',
     icon: AppIcon.clock,
     title: 'ما لكينا عروض هالمرة',
     body: 'مرّت 24 ساعة بدون عروض، فسكرنا الطلب. ما انخصم شي من أحد. جرب ترفع السعر أو تغير الوصف.',
-    extra: Padding(
+    extra: suggested == null ? null : Padding(
       padding: const EdgeInsets.only(top: 18),
       child: AppCard(
         flat: true,
@@ -82,9 +93,9 @@ class NoOffersScreen extends StatelessWidget {
                 alignment: PlaceholderAlignment.middle,
                 child: OfferIcon.bulb.of(AppColors.warnText, 14),
               ),
-              // Mock hint; hidden when there are too few similar requests.
-              const TextSpan(
-                text: ' أغلب الطلبات المشابهة انحلت بسعر حول 55,000 د.ع',
+              // Server suggestion from similar requests; hidden when there's none.
+              TextSpan(
+                text: ' أغلب الطلبات المشابهة انحلت بسعر حول ${thousands(suggested)} د.ع',
               ),
             ],
           ),
@@ -96,19 +107,20 @@ class NoOffersScreen extends StatelessWidget {
     onAction: () => context.go(Routes.post),
     onBack: () => _back(context),
   );
+  }
 }
 
 /// 36 · no pages for this category in the customer's governorate.
-class NoPagesScreen extends StatelessWidget {
-  const NoPagesScreen({super.key, this.title = 'ساعة كاسيو'});
-  final String title;
+class NoPagesScreen extends ConsumerWidget {
+  const NoPagesScreen({super.key, required this.requestId});
+  final String requestId;
 
   @override
-  Widget build(BuildContext context) => FullStateScreen(
-    header: title,
+  Widget build(BuildContext context, WidgetRef ref) => FullStateScreen(
+    header: ref.watch(liveRequestProvider(requestId)).value?.title ?? '',
     icon: AppIcon.pin,
     title: 'ماكو صفحات بهالصنف حالياً',
-    body: 'لحد هسه ما عدنا صفحات ساعات توصل لمحافظتك. سجلنا طلبك، ونبلغك أول ما تنضم صفحة.',
+    body: 'لحد هسه ما عدنا صفحات بهالصنف توصل لمحافظتك. سجلنا طلبك، ونبلغك أول ما تنضم صفحة.',
     action: 'بلغني',
     onAction: () => _back(context),
     onBack: () => _back(context),
@@ -116,21 +128,25 @@ class NoPagesScreen extends StatelessWidget {
 }
 
 /// 37 · three open requests already.
-class MaxOpenScreen extends StatelessWidget {
+class MaxOpenScreen extends ConsumerWidget {
   const MaxOpenScreen({super.key});
 
+  static const _fallbackMax = 3;
+
   @override
-  Widget build(BuildContext context) => FullStateScreen(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final max = (ref.watch(appConfigProvider).value?['maxOpenRequests'] as num?)?.toInt() ?? _fallbackMax;
+    return FullStateScreen(
     header: 'انشر طلب',
     icon: AppIcon.lock,
-    title: 'عندك 3 طلبات مفتوحة',
+    title: 'عندك $max طلبات مفتوحة',
     body: 'هذا الحد. سكّر طلب أو اختار عرض حتى تكدر تنشر طلب جديد.',
     extra: Padding(
       padding: const EdgeInsets.only(top: 18),
       child: Row(
         mainAxisAlignment: MainAxisAlignment.center,
         children: [
-          for (var i = 1; i <= 3; i++) ...[
+          for (var i = 1; i <= max; i++) ...[
             if (i > 1) const SizedBox(width: 12),
             _DotPill('$i'),
           ],
@@ -141,6 +157,7 @@ class MaxOpenScreen extends StatelessWidget {
     onAction: () => context.go(Routes.myRequests),
     onBack: () => _back(context),
   );
+  }
 }
 
 class _DotPill extends StatelessWidget {

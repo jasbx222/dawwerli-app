@@ -17,7 +17,6 @@ import '../data/home_providers.dart';
 import '../../post/presentation/widgets/post_widgets.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../domain/home_models.dart';
-import '../../more/more_data.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/live_request_card.dart';
@@ -60,7 +59,7 @@ class HomeScreen extends ConsumerWidget {
                       () => context.push(Routes.region),
                     ),
                     onStory: (s) =>
-                        context.push(Routes.pageProfile(pageIdByName(s.name))),
+                        context.push(Routes.pageProfile(s.pageId)),
                   ),
                   Transform.translate(
                     offset: const Offset(0, -_overlap),

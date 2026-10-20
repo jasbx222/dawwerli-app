@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -18,6 +21,8 @@ import '../auth/data/auth_providers.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
+import '../../core/api/api_client.dart';
+import '../../core/widgets/loading_block.dart';
 import 'more_data.dart';
 
 void _back(BuildContext c) => popOr(c);
@@ -38,7 +43,8 @@ class PageProfileScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final p = pageById(pageId);
+    final p = ref.watch(pageProfileProvider(pageId)).value;
+    if (p == null) return const AppPage(title: '', children: [LoadingBlock()]);
     final blocked = ref.watch(blockedProvider).contains(p.id);
     return AppPage(
       title: p.name,
@@ -76,7 +82,7 @@ class PageProfileScreen extends ConsumerWidget {
                 n.unblock(p.id);
                 _toast(context, 'لغيت حظر ${p.name}');
               } else {
-                n.block(p.id);
+                n.block(p.id, name: p.name);
                 _toast(context, 'حظرت ${p.name}، ما تشوف طلباتك بعد');
               }
             }),
@@ -218,7 +224,7 @@ class CategoriesScreen extends ConsumerWidget {
             crossAxisSpacing: 12,
             childAspectRatio: 1.25,
             children: [
-              for (final c in catalogCategories)
+              for (final c in ref.watch(catalogCategoriesProvider))
                 _CategoryTile(
                   c,
                   onTap: () => context.push(Routes.category(c.id)),
@@ -243,7 +249,7 @@ class _CategoryTile extends StatelessWidget {
       clipBehavior: Clip.antiAlias,
       decoration: BoxDecoration(
         borderRadius: BorderRadius.circular(20),
-        image: DecorationImage(image: AssetImage(c.image), fit: BoxFit.cover),
+        image: DecorationImage(image: appImage(c.image), fit: BoxFit.cover),
       ),
       child: DecoratedBox(
         decoration: const BoxDecoration(
@@ -279,9 +285,9 @@ class CategoryScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final c = categoryById(categoryId);
+    final c = ref.watch(catalogCategoriesProvider).byId(categoryId);
     final gov = ref.watch(regionProvider).governorate;
-    final pages = pagesInCategory(c.name);
+    final pages = ref.watch(categoryPagesProvider(categoryId)).value ?? const [];
     return AppPage(
       title: c.name,
       subtitle: 'صفحات موثّقة تبيع ${c.name} وتوصّل ل$gov',
@@ -299,7 +305,7 @@ class CategoryScreen extends ConsumerWidget {
         _pad(
           ClipRRect(
             borderRadius: BorderRadius.circular(22),
-            child: Image.asset(c.image, height: 140, fit: BoxFit.cover),
+            child: AppImage(c.image, height: 140, fit: BoxFit.cover),
           ),
         ),
         _sectionLabel('أفضل صفحات ${c.name} ب$gov'),
@@ -327,7 +333,7 @@ class CategoryScreen extends ConsumerWidget {
         for (final p in pages)
           _pad(
             PageTile(
-              page: p.summary,
+              page: p,
               onTap: () => context.push(Routes.pageProfile(p.id)),
             ),
             top: 10,
@@ -340,15 +346,15 @@ class CategoryScreen extends ConsumerWidget {
 // ───────────────────────── Feed ─────────────────────────
 
 /// «هسه يدوّرون» → «شوف الكل».
-class FeedScreen extends StatelessWidget {
+class FeedScreen extends ConsumerWidget {
   const FeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => AppPage(
+  Widget build(BuildContext context, WidgetRef ref) => AppPage(
     title: 'هسه يدوّرون',
     subtitle: 'طلبات صارت بآخر ساعة بكل العراق',
     children: [
-      _pad(const LiveFeedCard(items: fullFeed), top: 14),
+      _pad(LiveFeedCard(items: ref.watch(fullFeedProvider).value ?? const []), top: 14),
       _pad(
         Text(
           'نعرض الصنف والمحافظة وعدد العروض بس، بدون صورة أو اسم أو منطقة الزبون.',
@@ -395,8 +401,9 @@ class _RegionScreenState extends ConsumerState<RegionScreen> {
       subtitle: 'طلباتك توصل للصفحات اللي توصّل لهنا',
       bottom: AppButton(
         'احفظ',
-        onPressed: () {
-          ref.read(regionProvider.notifier).save(_gov, _area.text.trim());
+        onPressed: () async {
+          await ref.read(regionProvider.notifier).save(_gov, _area.text.trim());
+          if (!context.mounted) return;
           _toast(context, 'انحفظت منطقتك');
           _back(context);
         },
@@ -524,6 +531,7 @@ class BlockedPagesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ids = ref.watch(blockedProvider);
+    final names = ref.read(blockedProvider.notifier);
     return AppPage(
       title: 'الصفحات المحظورة',
       subtitle: 'الصفحة المحظورة ما تشوف طلباتك',
@@ -557,12 +565,12 @@ class BlockedPagesScreen extends ConsumerWidget {
               insets: const EdgeInsets.all(12),
               child: Row(
                 children: [
-                  _avatar(pageById(id).name),
+                  _avatar(names.nameOf(id)),
                   const SizedBox(width: 12),
                   Expanded(
                     child: GestureDetector(
                       onTap: () => context.push(Routes.pageProfile(id)),
-                      child: Text(pageById(id).name, style: AppText.strong),
+                      child: Text(names.nameOf(id), style: AppText.strong),
                     ),
                   ),
                   SizedBox(
@@ -572,8 +580,8 @@ class BlockedPagesScreen extends ConsumerWidget {
                       compact: true,
                       variant: AppButtonVariant.ghost,
                       onPressed: () {
-                        ref.read(blockedProvider.notifier).unblock(id);
-                        _toast(context, 'لغيت حظر ${pageById(id).name}');
+                        names.unblock(id);
+                        _toast(context, 'لغيت حظر ${names.nameOf(id)}');
                       },
                     ),
                   ),
@@ -589,43 +597,11 @@ class BlockedPagesScreen extends ConsumerWidget {
 
 // ───────────────────────── Terms ─────────────────────────
 
-class TermsScreen extends StatelessWidget {
+class TermsScreen extends ConsumerWidget {
   const TermsScreen({super.key});
 
-  static const _sections = [
-    (
-      'شنو دوّرلي؟',
-      'سوق عكسي: تنشر شتريد، والصفحات الموثّقة تقدّملك عروض بسعر ثابت.',
-    ),
-    (
-      'الفلوس',
-      'التطبيق ما يمسك فلوس. الدفع عند الاستلام بينك وبين الصفحة، وافحص الغرض قدام المندوب قبل ما تدفع.',
-    ),
-    (
-      'السعر مقفول',
-      'سعر العرض ما يتغيّر بعد ما ينرسل. إذا الصفحة غيّرته بالواتساب بلّغ «السعر تغيّر».',
-    ),
-    ('رقمك', 'ينكشف بس للصفحة اللي تختار عرضها، وينشال بعد ما يخلص الطلب.'),
-    (
-      'الممنوعات',
-      'ممنوع طلب أسلحة، أدوية، مخدرات أو محتوى للكبار، وممنوع تكتب رقمك أو حسابك بالطلب.',
-    ),
-    (
-      'الطلبات',
-      'بحد أقصى 3 طلبات مفتوحة، وكل طلب ياخذ 5 عروض. تأكد إنك جاهز تشتري خلال 48 ساعة.',
-    ),
-    (
-      'المخالفات',
-      '3 مخالفات مؤكدة خلال 30 يوم توقف النشر 7 أيام، والإيقاف الثاني دائمي. تكدر تعترض على أي قرار.',
-    ),
-    (
-      'الإعلانات',
-      'كل شي مدفوع ينكتب عليه «مُموّل» أو «إعلان»، وما يخفي العروض الأرخص.',
-    ),
-  ];
-
   @override
-  Widget build(BuildContext context) => AppPage(
+  Widget build(BuildContext context, WidgetRef ref) => AppPage(
     title: 'الشروط',
     subtitle: 'آخر تحديث 19/10/2026',
     children: [
@@ -634,7 +610,7 @@ class TermsScreen extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final (t, b) in _sections) ...[
+              for (final (t, b) in ref.watch(legalProvider('terms')).value ?? const <(String, String)>[]) ...[
                 const SizedBox(height: 8),
                 Text(
                   t,
@@ -659,14 +635,14 @@ class TermsScreen extends StatelessWidget {
 
 // ───────────────────────── Contact ─────────────────────────
 
-class ContactScreen extends StatefulWidget {
+class ContactScreen extends ConsumerStatefulWidget {
   const ContactScreen({super.key});
 
   @override
-  State<ContactScreen> createState() => _ContactScreenState();
+  ConsumerState<ContactScreen> createState() => _ContactScreenState();
 }
 
-class _ContactScreenState extends State<ContactScreen> {
+class _ContactScreenState extends ConsumerState<ContactScreen> {
   static const _topics = [
     'مشكلة بالتطبيق',
     'مشكلة ويا صفحة',
@@ -724,6 +700,11 @@ class _ContactScreenState extends State<ContactScreen> {
         ),
       );
 
+  Future<void> _send() async {
+    await ref.read(apiClientProvider).post<void>('/api/v1/contact', {'topic': _topic, 'text': _text.text.trim()});
+    if (mounted) setState(() => _sent = true);
+  }
+
   @override
   Widget build(BuildContext context) {
     final ok = _text.text.trim().length >= 10;
@@ -737,7 +718,7 @@ class _ContactScreenState extends State<ContactScreen> {
               variant: ok
                   ? AppButtonVariant.primary
                   : AppButtonVariant.disabled,
-              onPressed: ok ? () => setState(() => _sent = true) : null,
+              onPressed: ok ? _send : null,
             ),
       children: [
         _pad(
@@ -867,7 +848,7 @@ class CategoryPickerScreen extends ConsumerWidget {
             insets: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               children: [
-                for (final (i, c) in catalogCategories.indexed)
+                for (final (i, c) in ref.watch(catalogCategoriesProvider).indexed)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
@@ -878,7 +859,7 @@ class CategoryPickerScreen extends ConsumerWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: i == catalogCategories.length - 1
+                      decoration: i == ref.watch(catalogCategoriesProvider).length - 1
                           ? null
                           : BoxDecoration(
                               border: Border(
@@ -889,7 +870,7 @@ class CategoryPickerScreen extends ConsumerWidget {
                         children: [
                           ClipRRect(
                             borderRadius: BorderRadius.circular(12),
-                            child: Image.asset(
+                            child: AppImage(
                               c.image,
                               width: 40,
                               height: 40,

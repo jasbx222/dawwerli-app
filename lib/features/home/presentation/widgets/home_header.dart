@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import '../../../../core/l10n/app_strings.dart';
@@ -256,7 +258,7 @@ class _Story extends StatelessWidget {
                   shape: BoxShape.circle,
                   border: Border.all(color: AppColors.navy, width: 2.5),
                   image: DecorationImage(
-                    image: AssetImage(story.image),
+                    image: appImage(story.image),
                     fit: BoxFit.cover,
                   ),
                 ),

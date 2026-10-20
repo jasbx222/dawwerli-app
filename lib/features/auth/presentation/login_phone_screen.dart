@@ -5,6 +5,7 @@ import 'package:dawwerli/core/widgets/emoji_text.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../account/presentation/server_url_sheet.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -61,10 +62,12 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
       _busy = true;
     });
     ref.read(pendingPhoneProvider.notifier).set(r.phone!);
-    await ref.read(authRepositoryProvider).requestOtp(r.phone!);
-    if (!mounted) return;
-    setState(() => _busy = false);
-    context.go(Routes.otp);
+    try {
+      await ref.read(authRepositoryProvider).requestOtp(r.phone!);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+    if (mounted) context.go(Routes.otp);
   }
 
   @override
@@ -156,7 +159,10 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                   onPressed: _busy ? null : _submit,
                 ),
                 const SizedBox(height: 16),
-                Text.rich(
+                // Long-press: point the app at another API server (testing on a real phone).
+                GestureDetector(
+                  onLongPress: () => ServerUrlSheet.show(context),
+                  child: Text.rich(
                   const TextSpan(
                     children: [
                       TextSpan(text: AppStrings.termsPrefix),
@@ -167,6 +173,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                   ),
                   textAlign: TextAlign.center,
                   style: AppText.muted,
+                ),
                 ),
               ],
             ),

@@ -1,11 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
+import '../../core/api/api_client.dart';
+import '../../core/api/catalog.dart';
+import '../../core/api/token_store.dart';
 import '../../core/storage/prefs.dart';
 import '../home/domain/home_models.dart';
 
-const _img = 'assets/images/mock';
-
-/// Full category catalogue (GET /api/v1/categories) until the API lands.
+/// Category tile data (GET /api/v1/categories).
 class CatalogCategory {
   const CatalogCategory(this.id, this.name, this.image);
   final String id;
@@ -13,22 +14,17 @@ class CatalogCategory {
   final ImageRef image;
 }
 
-const catalogCategories = [
-  CatalogCategory('phones', 'موبايلات', '$_img/phone.jpg'),
-  CatalogCategory('shoes', 'أحذية', '$_img/shoe.jpg'),
-  CatalogCategory('clothes', 'ملابس', '$_img/jacket.jpg'),
-  CatalogCategory('dresses', 'فساتين', '$_img/dress.jpg'),
-  CatalogCategory('perfumes', 'عطور', '$_img/perfume.jpg'),
-  CatalogCategory('care', 'عناية', '$_img/cosmetics.jpg'),
-  CatalogCategory('watches', 'ساعات', '$_img/watch.jpg'),
-  CatalogCategory('eid', 'هدوم العيد', '$_img/shirt.jpg'),
-  CatalogCategory('home', 'أغراض البيت', '$_img/lamp.jpg'),
-];
-
-CatalogCategory categoryById(String id) => catalogCategories.firstWhere(
-  (c) => c.id == id,
-  orElse: () => catalogCategories.first,
+final catalogCategoriesProvider = Provider<List<CatalogCategory>>(
+  (ref) => [
+    for (final c in ref.watch(catalogProvider).value?.categories ?? const <CatalogCategoryRef>[])
+      CatalogCategory('${c.id}', c.name, c.image),
+  ],
 );
+
+extension CatalogCategoryLookup on List<CatalogCategory> {
+  CatalogCategory byId(String id) =>
+      where((c) => c.id == id).firstOrNull ?? const CatalogCategory('', '', '');
+}
 
 /// Public page profile (GET /api/v1/pages/{id}); phone never included.
 class PageProfile {
@@ -55,177 +51,70 @@ class PageProfile {
   final String memberSince;
   final ImageRef? image;
 
-  PageSummary get summary => PageSummary(
-    id: id,
-    name: name,
-    rating: rating,
-    deals: deals,
-    image: image,
-  );
+  PageSummary get summary =>
+      PageSummary(id: id, name: name, rating: rating, deals: deals, image: image);
 }
 
-const _pages = {
-  'p1': PageProfile(
-    id: 'p1',
-    name: 'ستايل بغداد',
-    rating: 4.8,
-    deals: 120,
-    governorate: 'بغداد',
-    deliversTo: 6,
-    categories: ['أحذية', 'ملابس', 'ساعات'],
-    replyMinutes: 6,
-    memberSince: '2026',
-    image: '$_img/shoe.jpg',
-  ),
-  'p2': PageProfile(
-    id: 'p2',
-    name: 'موبايل زون',
-    rating: 4.7,
-    deals: 86,
-    governorate: 'بغداد',
-    deliversTo: 18,
-    categories: ['موبايلات'],
-    replyMinutes: 9,
-    memberSince: '2026',
-    image: '$_img/phone.jpg',
-  ),
-  'p3': PageProfile(
-    id: 'p3',
-    name: 'عطور الشرق',
-    rating: 4.9,
-    deals: 74,
-    governorate: 'بغداد',
-    deliversTo: 4,
-    categories: ['عطور', 'عناية'],
-    replyMinutes: 5,
-    memberSince: '2026',
-    image: '$_img/perfume.jpg',
-  ),
-  'p4': PageProfile(
-    id: 'p4',
-    name: 'رياضة الكرادة',
-    rating: 4.9,
-    deals: 210,
-    governorate: 'بغداد',
-    deliversTo: 3,
-    categories: ['أحذية', 'ملابس'],
-    replyMinutes: 4,
-    memberSince: '2026',
-    image: '$_img/shoe.jpg',
-  ),
-  'p5': PageProfile(
-    id: 'p5',
-    name: 'حذاء المنصور',
-    rating: 4.6,
-    deals: 58,
-    governorate: 'بغداد',
-    deliversTo: 2,
-    categories: ['أحذية'],
-    replyMinutes: 12,
-    memberSince: '2026',
-    image: '$_img/shoe.jpg',
-  ),
-  'p6': PageProfile(
-    id: 'p6',
-    name: 'بوتيك ريم',
-    rating: 4.8,
-    deals: 88,
-    governorate: 'بغداد',
-    deliversTo: 5,
-    categories: ['فساتين', 'ملابس'],
-    replyMinutes: 8,
-    memberSince: '2026',
-    image: '$_img/dress.jpg',
-  ),
-  'p7': PageProfile(
-    id: 'p7',
-    name: 'ساعات النخبة',
-    rating: 4.7,
-    deals: 41,
-    governorate: 'بغداد',
-    deliversTo: 18,
-    categories: ['ساعات'],
-    replyMinutes: 10,
-    memberSince: '2026',
-    image: '$_img/watch.jpg',
-  ),
-  'p8': PageProfile(
-    id: 'p8',
-    name: 'بيتي',
-    rating: 4.9,
-    deals: 64,
-    governorate: 'بغداد',
-    deliversTo: 3,
-    categories: ['أغراض البيت'],
-    replyMinutes: 15,
-    memberSince: '2026',
-    image: '$_img/lamp.jpg',
-  ),
-};
+final pageProfileProvider = FutureProvider.autoDispose.family<PageProfile, String>((ref, id) async {
+  final j = await ref.watch(apiClientProvider).get<Map<String, dynamic>>('/api/v1/pages/$id');
+  final govs = j.list<String>('governorates');
+  return PageProfile(
+    id: j.s('id'),
+    name: j.s('name'),
+    rating: j.d('rating'),
+    deals: j.i('deals'),
+    governorate: govs.firstOrNull ?? '',
+    deliversTo: govs.length,
+    categories: j.list<String>('categories'),
+    replyMinutes: j.i('replyMinutes'),
+    memberSince: '${j.i('memberSince')}',
+    image: j.os('image'),
+  );
+});
 
-PageProfile pageById(String id) => _pages[id] ?? _pages['p1']!;
+/// Verified pages of a category in my governorate (paid «مُموّل» first, then organic).
+final categoryPagesProvider = FutureProvider.autoDispose.family<List<PageSummary>, String>((ref, categoryId) async {
+  final cat = await ref.watch(catalogProvider.future);
+  final gov = cat.governorateId(ref.watch(regionProvider).governorate);
+  final j = await ref.watch(apiClientProvider).get<Map<String, dynamic>>(
+    '/api/v1/pages/featured',
+    query: {'categoryId': categoryId, 'governorateId': gov},
+  );
+  return [for (final p in j.l('pages')) pageSummaryFromJson(p)];
+});
 
-/// Mock lookup by display name (stories carry names only in the mock).
-String pageIdByName(String name) => _pages.values
-    .firstWhere((p) => p.name == name, orElse: () => _pages['p1']!)
-    .id;
+PageSummary pageSummaryFromJson(Map<String, dynamic> p) => PageSummary(
+  id: p.s('id'),
+  name: p.s('name'),
+  rating: p.d('rating'),
+  deals: p.i('deals'),
+  image: p.os('image'),
+  isAd: p.b('isAd'),
+);
 
-/// Pages in a category for the customer's governorate (organic, by rating).
-List<PageProfile> pagesInCategory(String categoryName) =>
-    _pages.values.where((p) => p.categories.contains(categoryName)).toList()
-      ..sort((a, b) => b.rating.compareTo(a.rating));
+FeedItem feedItemFromJson(Map<String, dynamic> f) => FeedItem(
+  category: f.s('category'),
+  governorate: f.s('governorate'),
+  offers: f.i('offers'),
+  image: f.os('image') ?? '',
+);
 
 /// Anonymized activity (GET /api/v1/home/feed): category + governorate + offers.
-const fullFeed = [
-  FeedItem(
-    category: 'موبايلات',
-    governorate: 'بغداد',
-    offers: 4,
-    image: '$_img/phone.jpg',
-  ),
-  FeedItem(
-    category: 'ملابس',
-    governorate: 'البصرة',
-    offers: 2,
-    image: '$_img/jacket.jpg',
-  ),
-  FeedItem(
-    category: 'عطور',
-    governorate: 'أربيل',
-    offers: 5,
-    image: '$_img/perfume.jpg',
-  ),
-  FeedItem(
-    category: 'أحذية',
-    governorate: 'بغداد',
-    offers: 3,
-    image: '$_img/shoe.jpg',
-  ),
-  FeedItem(
-    category: 'فساتين',
-    governorate: 'نينوى',
-    offers: 1,
-    image: '$_img/dress.jpg',
-  ),
-  FeedItem(
-    category: 'ساعات',
-    governorate: 'النجف',
-    offers: 4,
-    image: '$_img/watch.jpg',
-  ),
-  FeedItem(
-    category: 'أغراض البيت',
-    governorate: 'كربلاء',
-    offers: 2,
-    image: '$_img/lamp.jpg',
-  ),
-  FeedItem(
-    category: 'عناية',
-    governorate: 'بابل',
-    offers: 5,
-    image: '$_img/cosmetics.jpg',
-  ),
-];
+final fullFeedProvider = FutureProvider.autoDispose<List<FeedItem>>((ref) async {
+  final list = asList(await ref.watch(apiClientProvider).get<List<dynamic>>('/api/v1/home/feed'));
+  return [for (final f in list) feedItemFromJson(f)];
+});
+
+/// Legal text (GET /api/v1/legal/{terms|privacy}) as (title, body) sections.
+final legalProvider = FutureProvider.family<List<(String, String)>, String>((ref, doc) async {
+  final md = await ref.watch(apiClientProvider).get<String>('/api/v1/legal/$doc');
+  final out = <(String, String)>[];
+  for (final block in md.split(RegExp(r'^## ', multiLine: true)).where((b) => b.trim().isNotEmpty)) {
+    final lines = block.trim().split('\n');
+    out.add((lines.first.trim(), lines.skip(1).join('\n').trim()));
+  }
+  return out;
+});
 
 /// Governorate + area shown on home and «حسابي» (saved on the device; PUT /me later).
 class Region {
@@ -245,11 +134,14 @@ class RegionNotifier extends Notifier<Region> {
     );
   }
 
-  void save(String gov, String area) {
+  Future<void> save(String gov, String area) async {
     final p = ref.read(sharedPrefsProvider);
     p.setString('region.gov', gov);
     p.setString('region.area', area);
     state = Region(gov, area);
+    if (!ref.read(tokenStoreProvider).signedIn) return;
+    final id = (await ref.read(catalogProvider.future)).governorateId(gov);
+    await ref.read(apiClientProvider).put<void>('/api/v1/me/region', {'governorateId': id, 'area': area});
   }
 }
 
@@ -303,20 +195,45 @@ final notifPrefsProvider =
       NotifPrefsNotifier.new,
     );
 
-/// Blocked pages (POST/DELETE /api/v1/blocks); they never see my requests.
+/// Blocked pages (GET/POST/DELETE /api/v1/blocks); they never see my requests.
+/// State holds page ids; [nameOf] gives the display name.
 class BlockedNotifier extends Notifier<List<String>> {
-  @override
-  List<String> build() =>
-      ref.watch(sharedPrefsProvider).getStringList('blocked.pages') ??
-      const ['p5', 'p8'];
+  final _names = <String, String>{};
 
-  void _save(List<String> v) {
-    ref.read(sharedPrefsProvider).setStringList('blocked.pages', v);
-    state = v;
+  @override
+  List<String> build() {
+    _load();
+    return const [];
   }
 
-  void block(String id) => state.contains(id) ? null : _save([...state, id]);
-  void unblock(String id) => _save([...state]..remove(id));
+  ApiClient get _api => ref.read(apiClientProvider);
+
+  Future<void> _load() async {
+    if (!ref.read(tokenStoreProvider).signedIn) return;
+    try {
+      final list = asList(await _api.get<List<dynamic>>('/api/v1/blocks'));
+      for (final b in list) {
+        _names[b.os('pageId') ?? b.s('userId')] = b.s('name');
+      }
+      state = [for (final b in list) b.os('pageId') ?? b.s('userId')];
+    } on ApiException {
+      // Keep the last known list.
+    }
+  }
+
+  String nameOf(String id) => _names[id] ?? '';
+
+  Future<void> block(String id, {String name = ''}) async {
+    if (state.contains(id)) return;
+    await _api.post<void>('/api/v1/blocks', {'pageId': id});
+    _names[id] = name;
+    state = [...state, id];
+  }
+
+  Future<void> unblock(String id) async {
+    await _api.delete<void>('/api/v1/blocks/$id');
+    state = [...state]..remove(id);
+  }
 }
 
 final blockedProvider = NotifierProvider<BlockedNotifier, List<String>>(

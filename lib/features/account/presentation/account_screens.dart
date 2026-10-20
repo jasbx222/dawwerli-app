@@ -18,11 +18,16 @@ import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/settings_row.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
 import '../../more/more_data.dart';
+import '../../orders/data/my_requests_provider.dart';
+import '../../../core/api/api_config.dart';
+import '../../auth/data/session.dart';
+import '../data/account_api.dart';
+import 'server_url_sheet.dart';
 import '../../../core/role/app_role.dart';
 import '../../seller/data/seller_controller.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
 
-/// 28 · «حسابي» tab. Mock profile until the account API lands.
+/// 28 · «حسابي» tab (profile from GET /me).
 class AccountScreen extends ConsumerWidget {
   const AccountScreen({super.key});
 
@@ -33,6 +38,8 @@ class AccountScreen extends ConsumerWidget {
     final region = ref.watch(regionProvider);
     final notifOn = ref.watch(notifPrefsProvider).values.where((v) => v).length;
     final blocked = ref.watch(blockedProvider).length;
+    final me = ref.watch(meProvider).value;
+    final server = ref.watch(apiBaseUrlProvider);
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -58,7 +65,7 @@ class AccountScreen extends ConsumerWidget {
                         ),
                         alignment: Alignment.center,
                         child: Text(
-                          'ع',
+                          me?.initial ?? '',
                           style: AppText.strong.copyWith(
                             fontSize: 24,
                             height: AppText.lh(24),
@@ -70,17 +77,17 @@ class AccountScreen extends ConsumerWidget {
                         crossAxisAlignment: CrossAxisAlignment.start,
                         children: [
                           Text(
-                            'أبو علي',
+                            me?.name ?? '',
                             style: AppText.strong.copyWith(
                               fontSize: 18,
                               height: AppText.lh(18),
                               color: AppColors.white,
                             ),
                           ),
-                          const Text(
-                            '+964 770 ••• 4567',
+                          Text(
+                            me?.maskedPhone ?? '',
                             textDirection: TextDirection.ltr,
-                            style: TextStyle(
+                            style: const TextStyle(
                               fontSize: 13,
                               height: 1.5,
                               color: AppColors.headerSub,
@@ -149,19 +156,26 @@ class AccountScreen extends ConsumerWidget {
                     '',
                     () => context.push(Routes.contact),
                   ),
+                  _item(
+                    AppIcon.link,
+                    'عنوان الخادم',
+                    server,
+                    () => ServerUrlSheet.show(context),
+                  ),
                 ]),
                 SettingsGroup([
-                  _item(AppIcon.refresh, 'بدّل لـ«أبيع»', '', () {
-                    ref.read(appRoleProvider.notifier).set(AppRole.seller);
-                    context.go(
-                      sellerEntryRoute(ref.read(sellerProvider).status),
-                    );
+                  _item(AppIcon.refresh, 'بدّل لـ«أبيع»', '', () async {
+                    final to = await switchAppRole(ref, AppRole.seller);
+                    if (context.mounted) context.go(to);
                   }),
                   _item(
                     AppIcon.refresh,
                     'سجّل خروج',
                     '',
-                    () => context.go(Routes.login),
+                    () async {
+                      await signOut(ref);
+                      if (context.mounted) context.go(Routes.login);
+                    },
                   ),
                   _item(
                     AppIcon.trash,
@@ -269,16 +283,34 @@ class PrivacyScreen extends StatelessWidget {
 }
 
 /// 30 · delete account: what gets deleted + confirmation sheet.
-class DeleteAccountScreen extends StatefulWidget {
+class DeleteAccountScreen extends ConsumerStatefulWidget {
   const DeleteAccountScreen({super.key});
 
   @override
-  State<DeleteAccountScreen> createState() => _DeleteAccountScreenState();
+  ConsumerState<DeleteAccountScreen> createState() =>
+      _DeleteAccountScreenState();
 }
 
-class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
+class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
+  static const _codeLength = 6;
   bool sheet = true;
   final code = TextEditingController();
+  String? _devCode;
+
+  @override
+  void initState() {
+    super.initState();
+    code.addListener(() => setState(() {}));
+    ref.read(accountApiProvider).requestDeleteCode().then((c) {
+      if (mounted) setState(() => _devCode = c);
+    });
+  }
+
+  Future<void> _delete() async {
+    await ref.read(accountApiProvider).delete(code.text.trim());
+    ref.read(sellerProvider.notifier).reset();
+    if (mounted) context.go(Routes.onboarding);
+  }
 
   @override
   void dispose() {
@@ -287,7 +319,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final open = (ref.watch(myRequestsProvider).value ?? const <RequestSummary>[])
+        .where((r) => r.status == 'selected')
+        .firstOrNull;
+    final ok = open == null && code.text.trim().length == _codeLength;
+    return Scaffold(
     body: Stack(
       fit: StackFit.expand,
       children: [
@@ -366,22 +403,29 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                   textAlign: TextAlign.center,
                   style: AppText.muted,
                 ),
-                const SizedBox(height: 14),
-                const AppCard(
-                  flat: true,
-                  color: AppColors.warnBg,
-                  padding: 12,
-                  child: Text(
-                    'عندك طلب «عطر عود» بالطريق. أكد الاستلام أو ألغيه أول.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      height: 1.502222,
-                      color: AppColors.warnText,
+                if (open != null) ...[
+                  const SizedBox(height: 14),
+                  AppCard(
+                    flat: true,
+                    color: AppColors.warnBg,
+                    padding: 12,
+                    child: Text(
+                      'عندك طلب «${open.title}» بالطريق. أكد الاستلام أو ألغيه أول.',
+                      style: const TextStyle(
+                        fontSize: 12.5,
+                        height: 1.502222,
+                        color: AppColors.warnText,
+                      ),
                     ),
                   ),
-                ),
+                ],
                 const SizedBox(height: 14),
-                Text('اكتب كود التأكيد اللي وصلك', style: AppText.label),
+                Text(
+                  _devCode == null
+                      ? 'اكتب كود التأكيد اللي وصلك'
+                      : 'اكتب كود التأكيد اللي وصلك ($_devCode)',
+                  style: AppText.label,
+                ),
                 const SizedBox(height: 8),
                 Container(
                   padding: const EdgeInsets.symmetric(
@@ -420,9 +464,12 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
                 ),
                 const SizedBox(height: 14),
                 // Blocked while an order is open (the warning above).
-                const AppButton(
+                AppButton(
                   'إي، احذف نهائياً',
-                  variant: AppButtonVariant.danger,
+                  variant: ok
+                      ? AppButtonVariant.danger
+                      : AppButtonVariant.disabled,
+                  onPressed: ok ? _delete : null,
                 ),
                 const SizedBox(height: 10),
                 AppButton(
@@ -437,4 +484,5 @@ class _DeleteAccountScreenState extends State<DeleteAccountScreen> {
       ],
     ),
   );
+  }
 }

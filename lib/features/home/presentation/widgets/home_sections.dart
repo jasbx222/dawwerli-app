@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import '../../../../core/l10n/app_strings.dart';
@@ -417,7 +419,7 @@ class _BentoTile extends StatelessWidget {
                 fit: StackFit.expand,
                 children: [
                   // CSS: background-size:cover; background-position:center
-                  Image.asset(
+                  AppImage(
                     cat.image,
                     fit: BoxFit.cover,
                     alignment: Alignment.center,
@@ -523,7 +525,7 @@ class LiveFeedCard extends StatelessWidget {
                   decoration: BoxDecoration(
                     borderRadius: BorderRadius.circular(12),
                     image: DecorationImage(
-                      image: AssetImage(items[i].image),
+                      image: appImage(items[i].image),
                       fit: BoxFit.cover,
                     ),
                   ),
@@ -612,7 +614,7 @@ class DealsStrip extends StatelessWidget {
               SizedBox(
                 height: 86,
                 width: double.infinity,
-                child: Image.asset(d.image, fit: BoxFit.cover),
+                child: AppImage(d.image, fit: BoxFit.cover),
               ),
               Padding(
                 padding: const EdgeInsets.symmetric(

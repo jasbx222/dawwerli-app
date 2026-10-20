@@ -2,7 +2,17 @@ import 'package:flutter/material.dart';
 
 import '../../../core/widgets/radio_row.dart';
 
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/api/api_client.dart';
+import '../../../core/api/media.dart';
+import '../../../core/api/picker.dart';
+import '../../../core/utils/format.dart';
+import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/loading_block.dart';
+import '../../orders/data/orders_providers.dart';
+import '../data/standing_providers.dart';
 
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -16,23 +26,23 @@ import '../../offers/presentation/widgets/offer_widgets.dart';
 
 const _red = Color(0xFF7A1A10);
 
-// Mock strikes until the account-standing API lands.
-const _strikes = [
-  ('اخترت عرض وما رديت على الصفحة', '03/10 · #DW-19102'),
-  ('رفضت الاستلام بدون سبب', '11/10 · #DW-19733'),
-  ('اخترت عرض وما رديت على الصفحة', '18/10 · #DW-20390'),
-];
-
 Widget _gap(Widget w) =>
     Padding(padding: const EdgeInsets.fromLTRB(16, 14, 16, 0), child: w);
 
 /// 46 (suspended) / 46b (banned): why, appeal, appeal status.
-class StandingScreen extends StatelessWidget {
-  const StandingScreen({super.key, this.banned = false});
-  final bool banned;
+class StandingScreen extends ConsumerWidget {
+  const StandingScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context, WidgetRef ref) {
+    final st = ref.watch(standingProvider).value;
+    if (st == null) {
+      return const Scaffold(body: LoadingBlock());
+    }
+    final banned = st.permanent;
+    final strikes = st.strikes;
+    final appeal = ref.watch(myDisputesProvider).value?.firstOrNull;
+    return Scaffold(
     body: Stack(
       fit: StackFit.expand,
       children: [
@@ -69,7 +79,9 @@ class StandingScreen extends StatelessWidget {
                       Text(
                         banned
                             ? 'حسابك موقوف نهائياً'
-                            : 'حسابك موقوف لحد 26/10/2026',
+                            : st.bannedUntil == null
+                            ? 'عندك ${strikes.length} من ${st.strikesForBan} مخالفات'
+                            : 'حسابك موقوف لحد ${dayMonth(st.bannedUntil!)}/${st.bannedUntil!.year}',
                         textAlign: TextAlign.center,
                         style: AppText.strong.copyWith(
                           fontSize: 19,
@@ -81,7 +93,7 @@ class StandingScreen extends StatelessWidget {
                       Text(
                         banned
                             ? 'ثاني إيقاف خلال الحساب'
-                            : '3 مخالفات مؤكدة خلال 30 يوم · إيقاف أسبوع',
+                            : '${st.strikesForBan} مخالفات مؤكدة توقف النشر مؤقتاً',
                         textAlign: TextAlign.center,
                         style: const TextStyle(
                           fontSize: 13,
@@ -99,10 +111,10 @@ class StandingScreen extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text('ليش؟', style: AppText.strong),
-                      for (var i = 0; i < _strikes.length; i++)
+                      for (var i = 0; i < strikes.length; i++)
                         Container(
                           padding: const EdgeInsets.symmetric(vertical: 13),
-                          decoration: i == _strikes.length - 1
+                          decoration: i == strikes.length - 1
                               ? null
                               : BoxDecoration(
                                   border: Border(
@@ -123,8 +135,13 @@ class StandingScreen extends StatelessWidget {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    Text(_strikes[i].$1, style: AppText.strong),
-                                    Text(_strikes[i].$2, style: AppText.muted),
+                                    Text(strikes[i].reason, style: AppText.strong),
+                                    Text(
+                                      strikes[i].frozen
+                                          ? '${dayMonth(strikes[i].at)} · متجمّد'
+                                          : dayMonth(strikes[i].at),
+                                      style: AppText.muted,
+                                    ),
                                   ],
                                 ),
                               ),
@@ -157,9 +174,10 @@ class StandingScreen extends StatelessWidget {
                       icon: AppIcon.flag,
                       onPressed: () => context.push(Routes.disputeNew),
                     ),
+                    if (appeal != null) ...[
                     const SizedBox(height: 12),
                     GestureDetector(
-                      onTap: () => context.push(Routes.disputeStatus),
+                      onTap: () => context.push(Routes.disputeStatusOf(appeal.id)),
                       child: AppCard(
                         insets: const EdgeInsets.symmetric(
                           horizontal: 14,
@@ -170,8 +188,8 @@ class StandingScreen extends StatelessWidget {
                           children: [
                             Row(
                               children: [
-                                const Pill(
-                                  'قيد المراجعة',
+                                Pill(
+                                  _statusLabel(appeal.status),
                                   bg: AppColors.warnBg,
                                   fg: AppColors.warn,
                                 ),
@@ -179,7 +197,7 @@ class StandingScreen extends StatelessWidget {
                                 Text('اعتراضك', style: AppText.muted),
                                 const Spacer(),
                                 Text(
-                                  'APL-5102',
+                                  appeal.trackNo,
                                   textDirection: TextDirection.ltr,
                                   style: AppText.strong.copyWith(
                                     fontWeight: FontWeight.w600,
@@ -188,11 +206,17 @@ class StandingScreen extends StatelessWidget {
                               ],
                             ),
                             const SizedBox(height: 6),
-                            Text('القرار خلال 48 ساعة', style: AppText.muted),
+                            Text(
+                              appeal.decided
+                                  ? appeal.decision ?? ''
+                                  : 'القرار لحد ${dayTimeLabel(appeal.decideBy)}',
+                              style: AppText.muted,
+                            ),
                           ],
                         ),
                       ),
                     ),
+                    ],
                   ],
                 ),
               ),
@@ -217,27 +241,63 @@ class StandingScreen extends StatelessWidget {
       ],
     ),
   );
+  }
 }
+
+String _statusLabel(String status) => switch (status) {
+  'accepted' => 'انقبل',
+  'rejected' => 'انرفض',
+  _ => 'قيد المراجعة',
+};
 
 /// 49 · new dispute.
-class DisputeNewScreen extends StatefulWidget {
-  const DisputeNewScreen({super.key});
+class DisputeNewScreen extends ConsumerStatefulWidget {
+  const DisputeNewScreen({super.key, this.orderId});
+
+  /// Order the dispute is about (null for an appeal on my standing).
+  final String? orderId;
 
   @override
-  State<DisputeNewScreen> createState() => _DisputeNewScreenState();
+  ConsumerState<DisputeNewScreen> createState() => _DisputeNewScreenState();
 }
 
-class _DisputeNewScreenState extends State<DisputeNewScreen> {
+class _DisputeNewScreenState extends ConsumerState<DisputeNewScreen> {
   static const _types = [
-    'الصفحة ما ردت',
-    'الغرض ما وصل',
-    'بلاغ كاذب عليّ',
-    'اعتراض على إنذار',
+    ('الصفحة ما ردت', 'noReply'),
+    ('الغرض ما وصل', 'notDelivered'),
+    ('بلاغ كاذب عليّ', 'fakeReport'),
+    ('اعتراض على إنذار', 'strikeAppeal'),
   ];
-  int type = 3;
-  final text = TextEditingController(
-    text: 'رديت على الصفحة بالواتساب بنفس اليوم، وعندي صورة المحادثة',
-  );
+  static const _minText = 10;
+  late int type = widget.orderId == null ? _types.length - 1 : 1;
+  final text = TextEditingController();
+  final _photos = <String>[];
+  bool _busy = false;
+
+  @override
+  void initState() {
+    super.initState();
+    text.addListener(() => setState(() {}));
+  }
+
+  Future<void> _send() async {
+    if (_busy) return;
+    setState(() => _busy = true);
+    try {
+      final api = ref.read(apiClientProvider);
+      final keys = [for (final p in _photos) ?await uploadImage(api, p, 'disputes')];
+      final d = await api.post<Map<String, dynamic>>('/api/v1/disputes', {
+        'orderId': widget.orderId,
+        'type': _types[type].$2,
+        'text': text.text.trim(),
+        'photos': keys,
+      });
+      ref.invalidate(myDisputesProvider);
+      if (mounted) context.pushReplacement(Routes.disputeStatusOf(d.s('id')));
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
 
   @override
   void dispose() {
@@ -246,7 +306,12 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
   }
 
   @override
-  Widget build(BuildContext context) => Scaffold(
+  Widget build(BuildContext context) {
+    final order = widget.orderId == null
+        ? null
+        : ref.watch(orderProvider(widget.orderId!)).value;
+    final ok = text.text.trim().length >= _minText && !_busy;
+    return Scaffold(
     body: SingleChildScrollView(
       padding: const EdgeInsets.only(bottom: 24),
       child: Column(
@@ -254,7 +319,11 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
         children: [
           AppHeader(
             title: 'اعتراض جديد',
-            subtitle: const Text('#DW-20481 · اعتراض واحد مفتوح لكل طلب'),
+            subtitle: Text(
+              order == null
+                  ? 'اعتراض واحد مفتوح لكل قرار'
+                  : '#${order.orderNo} · اعتراض واحد مفتوح لكل طلب',
+            ),
             onBack: () => context.pop(),
           ),
           Padding(
@@ -268,7 +337,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
                     child: RadioRow(
-                      label: _types[i],
+                      label: _types[i].$1,
                       on: i == type,
                       onTap: () => setState(() => type = i),
                     ),
@@ -301,23 +370,37 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                 const SizedBox(height: 12),
                 Text('صور (اختياري)', style: AppText.label),
                 const SizedBox(height: 8),
-                const Align(
-                  alignment: AlignmentDirectional.centerStart,
-                  child: DashedCard(
-                    radius: 16,
-                    padding: 0,
-                    child: SizedBox(
-                      width: 76,
-                      height: 76,
-                      child: Center(
-                        child: AppSvgIcon(
-                          AppIcon.camera,
-                          color: AppColors.blue,
-                          size: 24,
+                Wrap(
+                  spacing: 12,
+                  runSpacing: 12,
+                  children: [
+                    for (final p in _photos)
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(16),
+                        child: AppImage(p, width: 76, height: 76, fit: BoxFit.cover),
+                      ),
+                    GestureDetector(
+                      onTap: () async {
+                        final p = await pickPhoto(camera: false);
+                        if (p != null && mounted) setState(() => _photos.add(p));
+                      },
+                      child: const DashedCard(
+                        radius: 16,
+                        padding: 0,
+                        child: SizedBox(
+                          width: 76,
+                          height: 76,
+                          child: Center(
+                            child: AppSvgIcon(
+                              AppIcon.camera,
+                              color: AppColors.blue,
+                              size: 24,
+                            ),
+                          ),
                         ),
                       ),
                     ),
-                  ),
+                  ],
                 ),
                 const SizedBox(height: 8),
                 const Text.rich(
@@ -360,8 +443,8 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                 const SizedBox(height: 14),
                 AppButton(
                   'دز الاعتراض',
-                  onPressed: () =>
-                      context.pushReplacement(Routes.disputeStatus),
+                  variant: ok ? AppButtonVariant.primary : AppButtonVariant.disabled,
+                  onPressed: ok ? _send : null,
                 ),
               ],
             ),
@@ -370,14 +453,22 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
       ),
     ),
   );
+  }
 }
 
 /// 50 · dispute status timeline.
-class DisputeStatusScreen extends StatelessWidget {
-  const DisputeStatusScreen({super.key});
+class DisputeStatusScreen extends ConsumerWidget {
+  const DisputeStatusScreen({super.key, this.id});
+
+  /// Dispute to show; null shows my latest one.
+  final String? id;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final d = id == null
+        ? ref.watch(myDisputesProvider).value?.firstOrNull
+        : ref.watch(disputeProvider(id!)).value;
+    if (d == null) return const Scaffold(body: LoadingBlock());
     Widget step(String t, String sub, bool done) => Padding(
       padding: const EdgeInsets.symmetric(vertical: 8),
       child: Row(
@@ -418,16 +509,22 @@ class DisputeStatusScreen extends StatelessWidget {
           children: [
             AppHeader(
               title: 'اعتراضك',
-              subtitle: const Text('رقم المتابعة CMP-30988'),
+              subtitle: Text('رقم المتابعة ${d.trackNo}'),
               onBack: () => context.pop(),
             ),
             _gap(
               AppCard(
                 child: Column(
                   children: [
-                    step('انفتح', '19/10 · 10:05 م', true),
+                    step('انفتح', dayTimeLabel(d.createdAt), true),
                     step('قيد المراجعة', 'فريقنا دا يشوف الأدلة', true),
-                    step('انحسم', 'خلال 48 ساعة · لحد 21/10 10:05 م', false),
+                    step(
+                      d.decided ? _statusLabel(d.status) : 'انحسم',
+                      d.decided
+                          ? d.decision ?? ''
+                          : 'لحد ${dayTimeLabel(d.decideBy)}',
+                      d.decided,
+                    ),
                   ],
                 ),
               ),
@@ -511,7 +608,9 @@ class DisputeStatusScreen extends StatelessWidget {
               child: AppButton(
                 'أضيف دليل',
                 variant: AppButtonVariant.ghost,
-                onPressed: () => context.push(Routes.disputeNew),
+                onPressed: () => context.push(
+                  d.orderId == null ? Routes.disputeNew : Routes.disputeFor(d.orderId!),
+                ),
               ),
             ),
           ],

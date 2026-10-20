@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
@@ -7,7 +8,10 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
+import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/loading_block.dart';
+import '../data/notifications_provider.dart';
 
 class _Notif {
   const _Notif(
@@ -28,61 +32,34 @@ class _Notif {
   final String? route;
 }
 
-// Mock feed until the notifications API lands; each opens its screen.
-final _items = [
-  _Notif(
-    AppIcon.zap,
-    'عرض جديد!',
-    'رياضة الكرادة دزتلك 39,000 د.ع',
-    'قبل 2 د',
-    unread: true,
-    titleIcon: AppIcon.flame,
-    route: Routes.offers('r1'),
-  ),
-  _Notif(
-    AppIcon.verified,
-    'لكيته! ستايل بغداد شافت رقمك',
-    'افتح الواتساب وكمّل',
-    'قبل 20 د',
-    unread: true,
-    route: Routes.chosen('r1'),
-  ),
-  _Notif(
-    AppIcon.pin,
-    'وسّعنا طلبك',
-    'ساعة كاسيو وصلت لبابل وديالى. تريد ترفع السعر؟',
-    'قبل ساعة',
-    route: '${Routes.liveRequest('r1')}?preview=widened',
-  ),
-  _Notif(
-    AppIcon.clock,
-    'وصلك الغرض؟',
-    'عطر عود · اضغط حتى تأكد',
-    'أمس',
-    route: Routes.orderStatus('o1'),
-  ),
-  _Notif(
-    AppIcon.alert,
-    'طلبك انتهى بدون عروض',
-    'آيفون 13 · عدّله وانشره مرة ثانية',
-    'أمس',
-    route: Routes.noOffers('r1'),
-  ),
-  const _Notif(
-    AppIcon.bell,
-    'عيد سعيد',
-    'عروض العيد على الملابس والهدايا',
-    '23/9',
-    titleIcon: AppIcon.moon,
-  ),
-];
+/// Icon by destination: offers, live request, order, dispute, standing.
+AppIcon _iconFor(String route) => switch (route) {
+  _ when route.endsWith('/offers') => AppIcon.zap,
+  _ when route.endsWith('/live') => AppIcon.pin,
+  _ when route.startsWith('/orders/') => AppIcon.clock,
+  _ when route.contains('dispute') => AppIcon.flag,
+  _ when route.contains('standing') => AppIcon.alert,
+  _ => AppIcon.bell,
+};
+
+_Notif _of(AppNotification n) => _Notif(
+  _iconFor(n.route),
+  n.title,
+  n.body,
+  agoLabel(n.at),
+  unread: !n.read,
+  titleIcon: n.route.endsWith('/offers') ? AppIcon.flame : null,
+  route: n.route.isEmpty || n.route == Routes.notifications ? null : n.route,
+);
 
 /// 26 · «الإشعارات» tab.
-class NotificationsScreen extends StatelessWidget {
+class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
+    final async = ref.watch(notificationsProvider);
+    final items = [for (final n in async.value ?? const <AppNotification>[]) _of(n)];
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -95,6 +72,8 @@ class NotificationsScreen extends StatelessWidget {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 const AppHeader(title: 'الإشعارات', showBack: false),
+                if (async.isLoading && !async.hasValue) const LoadingBlock(),
+                if (items.isNotEmpty)
                 Padding(
                   padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
                   child: AppCard(
@@ -103,12 +82,12 @@ class NotificationsScreen extends StatelessWidget {
                       borderRadius: BorderRadius.circular(22),
                       child: Column(
                         children: [
-                          for (var i = 0; i < _items.length; i++)
+                          for (var i = 0; i < items.length; i++)
                             _Row(
-                              n: _items[i],
-                              last: i == _items.length - 1,
+                              n: items[i],
+                              last: i == items.length - 1,
                               nextUnread:
-                                  i + 1 < _items.length && _items[i + 1].unread,
+                                  i + 1 < items.length && items[i + 1].unread,
                             ),
                         ],
                       ),

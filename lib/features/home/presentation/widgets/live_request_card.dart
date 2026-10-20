@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import '../../../../core/widgets/app_image.dart';
+
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import '../../../../core/l10n/app_strings.dart';
@@ -44,7 +46,7 @@ class LiveRequestCard extends StatelessWidget {
                 decoration: BoxDecoration(
                   borderRadius: BorderRadius.circular(16),
                   image: DecorationImage(
-                    image: AssetImage(r.image),
+                    image: appImage(r.image),
                     fit: BoxFit.cover,
                   ),
                 ),

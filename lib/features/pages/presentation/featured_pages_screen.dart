@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_image.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -83,7 +86,7 @@ class _FeaturedCard extends StatelessWidget {
                 image: page.image == null
                     ? null
                     : DecorationImage(
-                        image: AssetImage(page.image!),
+                        image: appImage(page.image!),
                         fit: BoxFit.cover,
                       ),
               ),

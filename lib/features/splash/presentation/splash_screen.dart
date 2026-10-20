@@ -1,7 +1,13 @@
 import 'dart:async';
 
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+
+import '../../../core/api/api_client.dart';
+import '../../../core/api/token_store.dart';
+import '../../../core/role/app_role.dart';
+import '../../seller/data/seller_controller.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
@@ -10,26 +16,39 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/brand_logo.dart';
 import '../../../core/widgets/ishtar_pattern.dart';
 
-class SplashScreen extends StatefulWidget {
-  const SplashScreen({super.key, this.autoAdvance = true});
-
-  final bool autoAdvance;
+class SplashScreen extends ConsumerStatefulWidget {
+  const SplashScreen({super.key});
 
   @override
-  State<SplashScreen> createState() => _SplashScreenState();
+  ConsumerState<SplashScreen> createState() => _SplashScreenState();
 }
 
-class _SplashScreenState extends State<SplashScreen> {
+class _SplashScreenState extends ConsumerState<SplashScreen> {
+  static const _hold = Duration(milliseconds: 1800);
   Timer? _timer;
 
   @override
   void initState() {
     super.initState();
-    if (widget.autoAdvance) {
-      _timer = Timer(const Duration(milliseconds: 1800), () {
-        if (mounted) context.go(Routes.onboarding);
-      });
+    _timer = Timer(_hold, _next);
+  }
+
+  /// Signed in → straight to my side of the app; otherwise onboarding.
+  Future<void> _next() async {
+    if (!ref.read(tokenStoreProvider).signedIn) {
+      if (mounted) context.go(Routes.onboarding);
+      return;
     }
+    final role = ref.read(appRoleProvider);
+    var to = role.home;
+    if (role == AppRole.seller) {
+      try {
+        to = sellerEntryRoute(await ref.read(sellerProvider.notifier).refresh());
+      } on ApiException {
+        to = Routes.offline;
+      }
+    }
+    if (mounted) context.go(to);
   }
 
   @override
