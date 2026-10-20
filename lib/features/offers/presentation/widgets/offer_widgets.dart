@@ -9,6 +9,9 @@ import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../domain/offer.dart';
 
+export '../../../../core/widgets/pill.dart';
+import '../../../../core/widgets/pill.dart';
+
 final _deg7 = -7 * 3.141592653589793 / 180;
 
 /// Icons only used in this flow (24×24, stroke 2, from 14/14b).
@@ -45,56 +48,6 @@ enum OfferIcon {
       height: size,
     );
   }
-}
-
-/// `.pill` (12px bold, pad 5/10) with optional custom padding.
-class Pill extends StatelessWidget {
-  const Pill(
-    this.label, {
-    super.key,
-    required this.bg,
-    required this.fg,
-    this.padding = const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
-    this.icon,
-    this.check = false,
-  });
-  final String label;
-  final Color bg;
-  final Color fg;
-  final EdgeInsets padding;
-  final AppIcon? icon;
-
-  /// Trailing check drawn as SVG (replaces the ✓ glyph).
-  final bool check;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    padding: padding,
-    decoration: BoxDecoration(
-      color: bg,
-      borderRadius: BorderRadius.circular(99),
-    ),
-    child: Row(
-      mainAxisSize: MainAxisSize.min,
-      children: [
-        if (icon != null) ...[
-          AppSvgIcon(icon!, size: 14, color: fg),
-          SizedBox(width: 6),
-        ],
-        Text(
-          label,
-          style: TextStyle(
-            fontSize: 12,
-            height: AppText.lh(12),
-            fontWeight: FontWeight.w700,
-            color: fg,
-          ),
-        ),
-        if (check)
-          AppSvgIcon(AppIcon.check, size: 11, color: fg, strokeWidth: 3),
-      ],
-    ),
-  );
 }
 
 /// SVG ✓ sized like the glyph at [size] font size, baseline-aligned.

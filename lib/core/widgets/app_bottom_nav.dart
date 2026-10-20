@@ -2,38 +2,52 @@ import 'package:flutter/material.dart';
 
 import '../l10n/app_strings.dart';
 import '../theme/app_colors.dart';
+import '../theme/app_spacing.dart';
 import 'app_icons.dart';
 
 enum NavTab { home, requests, notifications, account }
 
-/// Floating bottom bar with the gold "post" FAB in the middle.
-class AppBottomNav extends StatelessWidget {
-  const AppBottomNav({
+/// One tab of a [FloatingNav].
+class NavItem<T> {
+  const NavItem(this.value, this.icon, this.label);
+  final T value;
+  final AppIcon icon;
+  final String label;
+}
+
+/// Floating bottom bar with the gold FAB in the middle (customer and page apps).
+class FloatingNav<T> extends StatelessWidget {
+  const FloatingNav({
     super.key,
+    required this.items,
     required this.current,
     required this.onTab,
-    required this.onPost,
+    required this.onFab,
+    this.fabIcon = AppIcon.plus,
   });
 
-  final NavTab current;
-  final ValueChanged<NavTab> onTab;
-  final VoidCallback onPost;
+  /// Four items; the FAB sits between the 2nd and 3rd.
+  final List<NavItem<T>> items;
+  final T current;
+  final ValueChanged<T> onTab;
+  final VoidCallback onFab;
+  final AppIcon fabIcon;
 
   @override
   Widget build(BuildContext context) {
-    Widget item(NavTab t, AppIcon icon, String label) {
-      final on = t == current;
+    Widget item(NavItem<T> t) {
+      final on = t.value == current;
       final c = on ? AppColors.blue : AppColors.grey;
       return GestureDetector(
-        onTap: () => onTab(t),
+        onTap: () => onTab(t.value),
         behavior: HitTestBehavior.opaque,
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AppSvgIcon(icon, color: c, size: 22),
+            AppSvgIcon(t.icon, color: c, size: 22),
             const SizedBox(height: 3),
             Text(
-              label,
+              t.label,
               style: TextStyle(
                 fontSize: 11,
                 height: 1.510101,
@@ -47,7 +61,7 @@ class AppBottomNav extends StatelessWidget {
     }
 
     return Container(
-      height: 70,
+      height: AppSize.navHeight,
       decoration: BoxDecoration(
         color: AppColors.surface.withValues(alpha: .92),
         borderRadius: BorderRadius.circular(24),
@@ -63,15 +77,15 @@ class AppBottomNav extends StatelessWidget {
       child: Row(
         mainAxisAlignment: MainAxisAlignment.spaceAround,
         children: [
-          item(NavTab.home, AppIcon.home, AppStrings.navHome),
-          item(NavTab.requests, AppIcon.clipboard, AppStrings.navRequests),
+          item(items[0]),
+          item(items[1]),
           Transform.translate(
             offset: const Offset(0, -17),
             child: GestureDetector(
-              onTap: onPost,
+              onTap: onFab,
               child: Container(
-                width: 56,
-                height: 56,
+                width: AppSize.fab,
+                height: AppSize.fab,
                 decoration: BoxDecoration(
                   color: AppColors.gold,
                   borderRadius: BorderRadius.circular(18),
@@ -86,7 +100,7 @@ class AppBottomNav extends StatelessWidget {
                 ),
                 alignment: Alignment.center,
                 child: AppSvgIcon(
-                  AppIcon.plus,
+                  fabIcon,
                   color: AppColors.ink,
                   size: 26,
                   strokeWidth: 2.6,
@@ -94,10 +108,37 @@ class AppBottomNav extends StatelessWidget {
               ),
             ),
           ),
-          item(NavTab.notifications, AppIcon.bell, AppStrings.navNotifications),
-          item(NavTab.account, AppIcon.user, AppStrings.navAccount),
+          item(items[2]),
+          item(items[3]),
         ],
       ),
     );
   }
+}
+
+/// Customer app bar (06, 25, 26, 28).
+class AppBottomNav extends StatelessWidget {
+  const AppBottomNav({
+    super.key,
+    required this.current,
+    required this.onTab,
+    required this.onPost,
+  });
+
+  final NavTab current;
+  final ValueChanged<NavTab> onTab;
+  final VoidCallback onPost;
+
+  @override
+  Widget build(BuildContext context) => FloatingNav<NavTab>(
+    items: const [
+      NavItem(NavTab.home, AppIcon.home, AppStrings.navHome),
+      NavItem(NavTab.requests, AppIcon.clipboard, AppStrings.navRequests),
+      NavItem(NavTab.notifications, AppIcon.bell, AppStrings.navNotifications),
+      NavItem(NavTab.account, AppIcon.user, AppStrings.navAccount),
+    ],
+    current: current,
+    onTab: onTab,
+    onFab: onPost,
+  );
 }

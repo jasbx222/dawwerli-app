@@ -7,159 +7,27 @@ import '../../core/theme/app_colors.dart';
 import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
-import '../../core/widgets/app_header.dart';
 import '../../core/widgets/app_icons.dart';
 import '../../core/widgets/app_inputs.dart';
+import '../../core/widgets/app_page.dart';
+import '../../core/widgets/app_toggle.dart';
+import '../../core/widgets/notes.dart';
+import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/page_tile.dart';
 import '../auth/data/auth_providers.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
-import '../post/presentation/widgets/post_widgets.dart';
 import 'more_data.dart';
 
-void _back(BuildContext c) => c.canPop() ? c.pop() : c.go(Routes.home);
-
-/// Header + scrolling body shared by every screen in this file.
-class _Page extends StatelessWidget {
-  const _Page({
-    required this.title,
-    this.subtitle,
-    this.titleIcon,
-    required this.children,
-    this.bottom,
-  });
-  final String title;
-  final String? subtitle;
-  final Widget? titleIcon;
-  final List<Widget> children;
-  final Widget? bottom;
-
-  @override
-  Widget build(BuildContext context) => Scaffold(
-    body: Column(
-      crossAxisAlignment: CrossAxisAlignment.stretch,
-      children: [
-        Expanded(
-          child: ListView(
-            padding: const EdgeInsets.only(bottom: 24),
-            children: [
-              AppHeader(
-                title: title,
-                titleIcon: titleIcon,
-                subtitle: subtitle == null ? null : Text(subtitle!),
-                onBack: () => _back(context),
-              ),
-              ...children,
-            ],
-          ),
-        ),
-        if (bottom != null)
-          Padding(
-            padding: EdgeInsets.fromLTRB(
-              16,
-              8,
-              16,
-              16 + MediaQuery.viewPaddingOf(context).bottom,
-            ),
-            child: bottom,
-          ),
-      ],
-    ),
-  );
-}
-
-Widget _pad(Widget w, {double top = 14}) =>
-    Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: w);
-
-Widget _sectionLabel(String t) => Padding(
-  padding: const EdgeInsets.fromLTRB(20, 18, 20, 0),
-  child: Text(t, style: AppText.strong.copyWith(fontSize: 15)),
-);
-
-void _toast(BuildContext context, String text) => ScaffoldMessenger.of(context)
-  ..hideCurrentSnackBar()
-  ..showSnackBar(
-    SnackBar(
-      backgroundColor: Colors.transparent,
-      elevation: 0,
-      behavior: SnackBarBehavior.floating,
-      content: OfflineBanner(
-        text,
-        icon: AppIcon.check,
-        iconColor: AppColors.gold,
-      ),
-    ),
-  );
-
-/// `.tog` 44×26 switch (same as 27).
-class AppToggle extends StatelessWidget {
-  const AppToggle({
-    super.key,
-    required this.on,
-    this.onTap,
-    this.locked = false,
-  });
-  final bool on;
-  final bool locked;
-  final VoidCallback? onTap;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Opacity(
-      opacity: locked ? .5 : 1,
-      child: Container(
-        width: 44,
-        height: 26,
-        padding: const EdgeInsets.all(3),
-        decoration: BoxDecoration(
-          color: on ? AppColors.blue : AppColors.dotOff,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        alignment: on
-            ? AlignmentDirectional.centerEnd
-            : AlignmentDirectional.centerStart,
-        child: Container(
-          width: 20,
-          height: 20,
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            shape: BoxShape.circle,
-          ),
-        ),
-      ),
-    ),
-  );
-}
-
-Widget _avatar(String name, {double size = 44}) => Container(
-  width: size,
-  height: size,
-  decoration: BoxDecoration(
-    color: AppColors.blueTint,
-    borderRadius: BorderRadius.circular(size * .32),
-  ),
-  alignment: Alignment.center,
-  child: Text(
-    name.characters.first,
-    style: TextStyle(
-      fontSize: size * .41,
-      height: 1.5,
-      fontWeight: FontWeight.w700,
-      color: AppColors.blue,
-    ),
-  ),
-);
-
-Widget _stat(String value, String label) => Expanded(
-  child: Column(
-    children: [
-      Text(value, style: AppText.number.copyWith(fontSize: 18)),
-      Text(label, style: AppText.muted.copyWith(fontSize: 12)),
-    ],
-  ),
-);
+void _back(BuildContext c) => popOr(c);
+Widget _pad(Widget w, {double top = 14}) => Gap(w, top: top);
+Widget _sectionLabel(String t) => SectionLabel(t);
+void _toast(BuildContext c, String t) => showAppToast(c, t);
+Widget _avatar(String name, {double size = AppSize.iconTile}) =>
+    LetterAvatar(name, size: size);
+Widget _stat(String value, String label) =>
+    Expanded(child: StatTile(value, label));
 
 // ───────────────────────── Page profile ─────────────────────────
 
@@ -172,7 +40,7 @@ class PageProfileScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final p = pageById(pageId);
     final blocked = ref.watch(blockedProvider).contains(p.id);
-    return _Page(
+    return AppPage(
       title: p.name,
       titleIcon: const AppSvgIcon(
         AppIcon.verified,
@@ -337,7 +205,7 @@ class CategoriesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final gov = ref.watch(regionProvider).governorate;
-    return _Page(
+    return AppPage(
       title: 'كل الأصناف',
       subtitle: 'اختار صنف حتى تشوف صفحاته ب$gov',
       children: [
@@ -414,7 +282,7 @@ class CategoryScreen extends ConsumerWidget {
     final c = categoryById(categoryId);
     final gov = ref.watch(regionProvider).governorate;
     final pages = pagesInCategory(c.name);
-    return _Page(
+    return AppPage(
       title: c.name,
       subtitle: 'صفحات موثّقة تبيع ${c.name} وتوصّل ل$gov',
       bottom: AppButton(
@@ -476,7 +344,7 @@ class FeedScreen extends StatelessWidget {
   const FeedScreen({super.key});
 
   @override
-  Widget build(BuildContext context) => _Page(
+  Widget build(BuildContext context) => AppPage(
     title: 'هسه يدوّرون',
     subtitle: 'طلبات صارت بآخر ساعة بكل العراق',
     children: [
@@ -522,7 +390,7 @@ class _RegionScreenState extends ConsumerState<RegionScreen> {
   @override
   Widget build(BuildContext context) {
     final govs = ref.watch(governoratesProvider).value ?? const <String>[];
-    return _Page(
+    return AppPage(
       title: 'المحافظة والمنطقة',
       subtitle: 'طلباتك توصل للصفحات اللي توصّل لهنا',
       bottom: AppButton(
@@ -586,7 +454,7 @@ class NotificationSettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final prefs = ref.watch(notifPrefsProvider);
     final n = ref.read(notifPrefsProvider.notifier);
-    return _Page(
+    return AppPage(
       title: 'الإشعارات',
       subtitle: 'اختار شنو يوصلك',
       children: [
@@ -656,7 +524,7 @@ class BlockedPagesScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final ids = ref.watch(blockedProvider);
-    return _Page(
+    return AppPage(
       title: 'الصفحات المحظورة',
       subtitle: 'الصفحة المحظورة ما تشوف طلباتك',
       children: [
@@ -757,7 +625,7 @@ class TermsScreen extends StatelessWidget {
   ];
 
   @override
-  Widget build(BuildContext context) => _Page(
+  Widget build(BuildContext context) => AppPage(
     title: 'الشروط',
     subtitle: 'آخر تحديث 19/10/2026',
     children: [
@@ -859,7 +727,7 @@ class _ContactScreenState extends State<ContactScreen> {
   @override
   Widget build(BuildContext context) {
     final ok = _text.text.trim().length >= 10;
-    return _Page(
+    return AppPage(
       title: 'تواصل ويانا',
       subtitle: 'نرد خلال 48 ساعة',
       bottom: _sent
@@ -990,7 +858,7 @@ class CategoryPickerScreen extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final current = ref.watch(draftProvider).category;
-    return _Page(
+    return AppPage(
       title: 'غيّر الصنف',
       subtitle: 'الصنف يحدد أي صفحات يوصلها طلبك',
       children: [

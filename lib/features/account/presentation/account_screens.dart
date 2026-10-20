@@ -15,6 +15,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/settings_row.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
 import '../../more/more_data.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
@@ -30,27 +31,6 @@ class AccountScreen extends ConsumerWidget {
     final region = ref.watch(regionProvider);
     final notifOn = ref.watch(notifPrefsProvider).values.where((v) => v).length;
     final blocked = ref.watch(blockedProvider).length;
-    Widget group(List<Widget> rows) => Padding(
-      padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-      child: AppCard(
-        insets: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
-        child: Column(
-          children: [
-            for (var i = 0; i < rows.length; i++)
-              Container(
-                decoration: i == rows.length - 1
-                    ? null
-                    : BoxDecoration(
-                        border: Border(
-                          bottom: BorderSide(color: AppColors.divider),
-                        ),
-                      ),
-                child: rows[i],
-              ),
-          ],
-        ),
-      ),
-    );
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
@@ -116,66 +96,66 @@ class AccountScreen extends ConsumerWidget {
                     ],
                   ),
                 ),
-                group([
-                  _Item(
+                SettingsGroup([
+                  _item(
                     AppIcon.pin,
                     'المحافظة والمنطقة',
                     region.label,
                     () => context.push(Routes.region),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.bell,
                     'الإشعارات',
                     notifOn == 0 ? 'مطفية' : 'مفعّلة',
                     () => context.push(Routes.notificationSettings),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.sparkles,
                     'الوضع الليلي',
                     display.night.label,
                     displayCtl.nextNight,
                   ),
-                  _Item(
+                  _item(
                     AppIcon.text,
                     'حجم الخط',
                     display.font.label,
                     displayCtl.nextFont,
                   ),
                 ]),
-                group([
-                  _Item(
+                SettingsGroup([
+                  _item(
                     AppIcon.lock,
                     'الصفحات المحظورة',
                     blocked == 0 ? '' : '$blocked',
                     () => context.push(Routes.blocked),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.shieldCheck,
                     'سياسة الخصوصية',
                     '',
                     () => context.push(Routes.privacy),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.clipboard,
                     'الشروط',
                     '',
                     () => context.push(Routes.terms),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.chat,
                     'تواصل ويانا',
                     '',
                     () => context.push(Routes.contact),
                   ),
                 ]),
-                group([
-                  _Item(
+                SettingsGroup([
+                  _item(
                     AppIcon.refresh,
                     'سجّل خروج',
                     '',
                     () => context.go(Routes.login),
                   ),
-                  _Item(
+                  _item(
                     AppIcon.trash,
                     'احذف حسابي',
                     '',
@@ -213,53 +193,13 @@ class AccountScreen extends ConsumerWidget {
   }
 }
 
-class _Item extends StatelessWidget {
-  const _Item(
-    this.icon,
-    this.label,
-    this.value,
-    this.onTap, {
-    this.danger = false,
-  });
-  final AppIcon icon;
-  final String label;
-  final String value;
-  final VoidCallback onTap;
-  final bool danger;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    behavior: HitTestBehavior.opaque,
-    onTap: onTap,
-    child: Padding(
-      padding: const EdgeInsets.symmetric(vertical: 13),
-      child: Row(
-        children: [
-          AppSvgIcon(
-            icon,
-            color: danger ? const Color(0xFFB42318) : AppColors.blue,
-            size: 22,
-          ),
-          const SizedBox(width: 12),
-          Expanded(
-            child: Text(
-              label,
-              style: AppText.body.copyWith(
-                fontWeight: FontWeight.w600,
-                color: danger ? AppColors.danger : AppColors.ink,
-              ),
-            ),
-          ),
-          if (value.isNotEmpty) ...[
-            Text(value, style: AppText.muted),
-            const SizedBox(width: 12),
-          ],
-          AppSvgIcon(AppIcon.chevronLeft, color: AppColors.checkOff, size: 18),
-        ],
-      ),
-    ),
-  );
-}
+Widget _item(
+  AppIcon icon,
+  String label,
+  String value,
+  VoidCallback onTap, {
+  bool danger = false,
+}) => SettingsRow(icon, label, value: value, onTap: onTap, danger: danger);
 
 /// 29 · privacy policy.
 class PrivacyScreen extends StatelessWidget {

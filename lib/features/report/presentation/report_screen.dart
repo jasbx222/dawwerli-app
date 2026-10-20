@@ -1,4 +1,8 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/app_toggle.dart';
+import '../../../core/widgets/radio_row.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -71,7 +75,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                       for (var i = 0; i < ReportStrings.reasons.length; i++)
                         Padding(
                           padding: const EdgeInsets.only(bottom: 8),
-                          child: ReportRadio(
+                          child: RadioRow(
                             label: ReportStrings.reasons[i],
                             on: i == reason,
                             onTap: () => setState(() => reason = i),
@@ -141,7 +145,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                               style: TextStyle(fontSize: 13, height: 1.5),
                             ),
                             const Spacer(),
-                            _Toggle(on: block),
+                            AppToggle(on: block),
                           ],
                         ),
                       ),
@@ -223,81 +227,6 @@ class BlockSheet extends StatelessWidget {
         onPressed: onDismiss,
       ),
     ],
-  );
-}
-
-/// `.inp` row with a radio on the far side; selected = `.inp.f`.
-class ReportRadio extends StatelessWidget {
-  const ReportRadio({
-    super.key,
-    required this.label,
-    required this.on,
-    required this.onTap,
-  });
-  final String label;
-  final bool on;
-  final VoidCallback onTap;
-
-  @override
-  Widget build(BuildContext context) => GestureDetector(
-    onTap: onTap,
-    child: Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(16),
-        border: Border.all(
-          color: on ? AppColors.blue : AppColors.border,
-          width: 1.5,
-        ),
-        boxShadow: on
-            ? const [BoxShadow(color: Color(0x1F1F4E9C), spreadRadius: 4)]
-            : null,
-      ),
-      child: Row(
-        children: [
-          Text(label, style: const TextStyle(fontSize: 15, height: 1.5)),
-          const Spacer(),
-          Container(
-            width: 20,
-            height: 20,
-            decoration: BoxDecoration(
-              shape: BoxShape.circle,
-              border: Border.all(color: AppColors.blue, width: on ? 6 : 2),
-            ),
-          ),
-        ],
-      ),
-    ),
-  );
-}
-
-/// `.tog` (44×26); off = `.tog.x`.
-class _Toggle extends StatelessWidget {
-  const _Toggle({required this.on});
-  final bool on;
-
-  @override
-  Widget build(BuildContext context) => Container(
-    width: 44,
-    height: 26,
-    padding: const EdgeInsets.all(3),
-    decoration: BoxDecoration(
-      color: on ? AppColors.blue : AppColors.dotOff,
-      borderRadius: BorderRadius.circular(99),
-    ),
-    // RTL: on = knob left (CSS left:3px), off = right.
-    alignment: on
-        ? AlignmentDirectional.centerEnd
-        : AlignmentDirectional.centerStart,
-    child: Container(
-      width: 20,
-      height: 20,
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        shape: BoxShape.circle,
-      ),
-    ),
   );
 }
 

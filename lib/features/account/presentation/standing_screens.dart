@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/widgets/radio_row.dart';
+
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
@@ -10,7 +13,6 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
-import '../../report/presentation/report_screen.dart';
 
 const _red = Color(0xFF7A1A10);
 
@@ -265,7 +267,7 @@ class _DisputeNewScreenState extends State<DisputeNewScreen> {
                 for (var i = 0; i < _types.length; i++)
                   Padding(
                     padding: const EdgeInsets.only(bottom: 8),
-                    child: ReportRadio(
+                    child: RadioRow(
                       label: _types[i],
                       on: i == type,
                       onTap: () => setState(() => type = i),
