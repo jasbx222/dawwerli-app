@@ -7,7 +7,6 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
-import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../data/offers_providers.dart';
@@ -93,8 +92,20 @@ class OfferDetailsScreen extends ConsumerWidget {
                             color: AppColors.navy.withValues(alpha: .7),
                             borderRadius: BorderRadius.circular(10),
                           ),
-                          child: Text(
-                            o.photoStamp,
+                          child: Text.rich(
+                            TextSpan(
+                              text: '${o.photoStamp} ',
+                              children: [
+                                WidgetSpan(
+                                  alignment: PlaceholderAlignment.middle,
+                                  child: AppSvgIcon(
+                                    AppIcon.camera,
+                                    size: 12,
+                                    color: AppColors.white,
+                                  ),
+                                ),
+                              ],
+                            ),
                             textDirection: TextDirection.ltr,
                             style: TextStyle(
                               fontSize: 11,
@@ -246,19 +257,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                             horizontal: 14,
                             vertical: 12,
                           ),
-                          child: const Text(
-                            OfferStrings.noPrepay,
-                            strutStyle: StrutStyle(
-                              fontFamily: AppText.family,
-                              fontSize: 14,
-                              height: 1.5,
-                              forceStrutHeight: true,
-                            ),
-                            style: TextStyle(
-                              fontWeight: FontWeight.w700,
-                              color: AppColors.dangerText,
-                            ),
-                          ),
+                          child: const NoPrepayText(),
                         ),
                       ),
                       m(
@@ -266,8 +265,15 @@ class OfferDetailsScreen extends ConsumerWidget {
                         AppCard(
                           flat: true,
                           color: AppColors.warnBg,
-                          child: Text(
-                            OfferStrings.inspectTip,
+                          child: Text.rich(
+                            TextSpan(
+                              children: [
+                                iconSpan(OfferIcon.bulb, AppColors.gold, 15),
+                                const TextSpan(
+                                  text: ' ${OfferStrings.inspectTip}',
+                                ),
+                              ],
+                            ),
                             style: AppText.muted.copyWith(
                               color: AppColors.warnText,
                             ),
@@ -284,7 +290,38 @@ class OfferDetailsScreen extends ConsumerWidget {
             left: 16,
             right: 16,
             bottom: 30,
-            child: AppButton(OfferStrings.want, onPressed: () => back(true)),
+            child: GestureDetector(
+              onTap: () => back(true),
+              child: Container(
+                padding: const EdgeInsets.all(15),
+                decoration: BoxDecoration(
+                  color: AppColors.gold,
+                  borderRadius: BorderRadius.circular(18),
+                  boxShadow: const [
+                    BoxShadow(
+                      color: Color(0x99E8B33A),
+                      offset: Offset(0, 12),
+                      blurRadius: 24,
+                      spreadRadius: -10,
+                    ),
+                  ],
+                ),
+                child: Row(
+                  mainAxisAlignment: MainAxisAlignment.center,
+                  children: [
+                    Text(
+                      OfferStrings.want,
+                      style: AppText.button.copyWith(
+                        color: AppColors.navy,
+                        height: AppText.lh(16),
+                      ),
+                    ),
+                    const SizedBox(width: 6),
+                    OfferIcon.target.of(AppColors.navy, 18),
+                  ],
+                ),
+              ),
+            ),
           ),
         ],
       ),

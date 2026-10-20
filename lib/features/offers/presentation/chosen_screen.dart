@@ -138,7 +138,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
                 AppHeader(
-                  title: OfferStrings.foundIt.replaceAll(' 🎯', ''),
+                  title: OfferStrings.foundIt,
                   titleIcon: OfferIcon.target.of(AppColors.gold, 22),
                   subtitle: Text(OfferStrings.orderWaiting(s.orderNo)),
                   onBack: () => context.go(Routes.home),
@@ -449,8 +449,17 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                       OfferIcon.refresh.of(AppColors.white, 20),
                       const SizedBox(width: 10),
                       Expanded(
-                        child: Text(
-                          _toast!,
+                        child: Text.rich(
+                          TextSpan(
+                            text: '${_toast!} ',
+                            children: [
+                              iconSpan(
+                                OfferIcon.okHand,
+                                AppColors.goldSoft,
+                                16,
+                              ),
+                            ],
+                          ),
                           style: TextStyle(
                             fontSize: 13.5,
                             height: AppText.lh(13.5),

@@ -13,6 +13,16 @@ const _deg7 = -7 * 3.141592653589793 / 180;
 
 /// Icons only used in this flow (24×24, stroke 2, from 14/14b).
 enum OfferIcon {
+  fire(
+    '<path d="M12 22c4 0 7-2.8 7-7 0-3.5-2.2-6-4-8 0 2.5-1.5 4-3 4 0-3-1-6-4-9 0 4-5 7.5-5 13 0 4.2 3 7 7 7z"/>',
+  ),
+  truck(
+    '<path d="M3 6h11v10H3zM14 9h4l3 3v4h-7"/><circle cx="7" cy="17.5" r="1.8"/><circle cx="17" cy="17.5" r="1.8"/>',
+  ),
+  bulb(
+    '<path d="M9 18h6M10 21h4M12 3a6 6 0 0 0-4 10.5c.8.8 1 1.5 1 2.5h6c0-1 .2-1.7 1-2.5A6 6 0 0 0 12 3z"/>',
+  ),
+  okHand('<circle cx="12" cy="12" r="9"/><path d="m8 12.5 2.5 2.5L16 9.5"/>'),
   target(
     '<circle cx="12" cy="12" r="9"/><circle cx="12" cy="12" r="5"/><circle cx="12" cy="12" r="1.5"/>',
   ),
@@ -235,8 +245,15 @@ class OfferCard extends StatelessWidget {
                           ),
                           style: AppText.muted,
                         ),
-                      Text(
-                        OfferStrings.delivers(o.delivery),
+                      Text.rich(
+                        TextSpan(
+                          children: [
+                            iconSpan(OfferIcon.truck, AppColors.grey, 14),
+                            TextSpan(
+                              text: ' ${OfferStrings.delivers(o.delivery)}',
+                            ),
+                          ],
+                        ),
                         style: AppText.muted,
                       ),
                     ],
@@ -413,7 +430,7 @@ class NoPrepayText extends StatelessWidget {
           alignment: PlaceholderAlignment.middle,
           child: OfferIcon.ban.of(const Color(0xFFD92D20), 16),
         ),
-        TextSpan(text: OfferStrings.noPrepay.replaceFirst('🚫', '')),
+        TextSpan(text: ' ${OfferStrings.noPrepay}'),
       ],
     ),
     strutStyle: const StrutStyle(
@@ -428,3 +445,7 @@ class NoPrepayText extends StatelessWidget {
     ),
   );
 }
+
+/// Inline SVG icon span (replaces an emoji inside a text line).
+WidgetSpan iconSpan(OfferIcon i, Color c, double size) =>
+    WidgetSpan(alignment: PlaceholderAlignment.middle, child: i.of(c, size));

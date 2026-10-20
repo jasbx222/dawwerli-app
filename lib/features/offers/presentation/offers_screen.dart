@@ -96,6 +96,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           children: [
             AppHeader(
               title: OfferStrings.offersArrived(board.offers.length),
+              titleIcon: OfferIcon.fire.of(const Color(0xFFFF7A59), 22),
               subtitle: const Text(OfferStrings.pricesFixed),
               onBack: _back,
             ),
@@ -201,6 +202,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
             children: [
               AppHeader(
                 title: OfferStrings.offersArrived(board.offers.length),
+                titleIcon: OfferIcon.fire.of(const Color(0xFFFF7A59), 22),
                 onBack: _back,
               ),
               card(confirm),

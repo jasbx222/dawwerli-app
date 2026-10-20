@@ -42,7 +42,7 @@ class Offer {
   final String condition;
   final String note;
 
-  /// Watermark caption, e.g. «ستايل بغداد · 19/10 9:42 م 📷».
+  /// Watermark caption, e.g. «ستايل بغداد · 19/10 9:42 م» (camera icon drawn after it).
   final String photoStamp;
 
   /// «مُموّل»: pinned first, max one per request.

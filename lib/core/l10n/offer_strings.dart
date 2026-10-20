@@ -1,9 +1,9 @@
 /// Copy for the offers flow (11 → 14b), verbatim from the approved designs.
 abstract final class OfferStrings {
   static String offersArrived(int n) => switch (n) {
-    1 => 'عرض واحد وصلك 🔥',
-    2 => 'عرضين وصلوك 🔥',
-    _ => '$n عروض وصلتك 🔥',
+    1 => 'عرض واحد وصلك',
+    2 => 'عرضين وصلوك',
+    _ => '$n عروض وصلتك',
   };
   static const pricesFixed = 'الأسعار ثابتة وتشمل التوصيل';
   static const sortCheapest = 'الأرخص';
@@ -15,7 +15,7 @@ abstract final class OfferStrings {
   static const trusted = 'موثوقة';
   static String ratingDeals(String r, int d, {bool more = false}) =>
       ' $r · $d صفقة${more ? ' ·' : ''}';
-  static String delivers(String d) => '🚚 يوصل $d';
+  static String delivers(String d) => 'يوصل $d';
   static const iqd = 'د.ع';
   static String placesLeft(String places, int max) =>
       '$places، العروض تجي لحد $max';
@@ -32,10 +32,10 @@ abstract final class OfferStrings {
   static String deliveryIncluded(String d) => 'خلال $d · مشمول';
   static const condition = 'الحالة';
   static const pageNote = 'ملاحظة الصفحة';
-  static const noPrepay = '🚫 لا تحوّل ولا دينار مقدماً، الدفع بس عند الاستلام';
+  static const noPrepay = 'لا تحوّل ولا دينار مقدماً، الدفع بس عند الاستلام';
   static const inspectTip =
-      '💡 افحص الغرض قدام المندوب قبل ما تدفع. إذا تغيّر السعر بالواتساب بلّغنا.';
-  static const want = 'أريده 🎯';
+      'افحص الغرض قدام المندوب قبل ما تدفع. إذا تغيّر السعر بالواتساب بلّغنا.';
+  static const want = 'أريده';
 
   // 13
   static String confirmTitle(String name) => 'تختار $name؟';
@@ -50,7 +50,7 @@ abstract final class OfferStrings {
   static const confirmNo = 'لا، أرجع للعروض';
 
   // 14 / 14b
-  static const foundIt = 'لكيته! 🎯';
+  static const foundIt = 'لكيته!';
   static const foundSticker = 'لكيته!';
   static String orderWaiting(String no) => 'الطلب #$no · بانتظار التواصل';
   static String pageSawPhone(String name) => '$name شافت رقمك';
@@ -74,5 +74,5 @@ abstract final class OfferStrings {
   static const repost = 'أعد النشر';
   static const raisePrice = 'ارفع السعر';
   static String backToOffers(String name, String price) =>
-      'رجعناك للعروض: $name $price د.ع جاهزة 👌';
+      'رجعناك للعروض: $name $price د.ع جاهزة';
 }

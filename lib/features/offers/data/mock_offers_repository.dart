@@ -29,7 +29,7 @@ class MockOffersRepository implements OffersRepository {
       replyMinutes: 4,
       condition: 'جديد، أصلي',
       note: 'جلد طبيعي مع الكارتون',
-      photoStamp: 'رياضة الكرادة · 19/10 9:45 م 📷',
+      photoStamp: 'رياضة الكرادة · 19/10 9:45 م',
       sponsored: true,
     ),
     Offer(
@@ -46,7 +46,7 @@ class MockOffersRepository implements OffersRepository {
       replyMinutes: 6,
       condition: 'جديد، أصلي',
       note: 'نايك أصلي مع الكارتون',
-      photoStamp: 'ستايل بغداد · 19/10 9:42 م 📷',
+      photoStamp: 'ستايل بغداد · 19/10 9:42 م',
     ),
     Offer(
       id: 'o3',
@@ -62,7 +62,7 @@ class MockOffersRepository implements OffersRepository {
       replyMinutes: 12,
       condition: 'جديد',
       note: 'القياس 43 متوفر',
-      photoStamp: 'موبايل زون · 19/10 9:51 م 📷',
+      photoStamp: 'موبايل زون · 19/10 9:51 م',
     ),
   ];
 
