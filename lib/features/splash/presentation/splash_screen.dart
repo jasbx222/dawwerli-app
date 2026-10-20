@@ -62,13 +62,13 @@ class _SplashScreenState extends State<SplashScreen> {
                   const SizedBox(height: 6),
                   Text(
                     AppStrings.tagline,
-                    style: AppText.body.copyWith(fontSize: 17, fontWeight: FontWeight.w600, color: AppColors.goldSoft),
+                    style: AppText.body.copyWith(fontSize: 17, height: AppText.lh(17), fontWeight: FontWeight.w600, color: AppColors.goldSoft),
                   ),
                 ],
               ),
               Positioned(
                 bottom: 60,
-                child: Text(AppStrings.madeInIraq, style: AppText.body.copyWith(fontSize: 12, color: AppColors.splashFoot)),
+                child: Text(AppStrings.madeInIraq, style: AppText.body.copyWith(fontSize: 12, height: AppText.lh(12), color: AppColors.splashFoot)),
               ),
             ],
           ),

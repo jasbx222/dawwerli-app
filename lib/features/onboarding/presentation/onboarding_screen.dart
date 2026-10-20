@@ -27,7 +27,7 @@ class OnboardingScreen extends StatelessWidget {
                     TextSpan(text: AppStrings.onbTitle2, style: TextStyle(color: AppColors.blue)),
                   ]),
                   textAlign: TextAlign.center,
-                  style: AppText.big.copyWith(fontSize: 27),
+                  style: AppText.big.copyWith(fontSize: 27, height: AppText.lh(27)),
                 ),
                 const SizedBox(height: 12),
                 Text(
@@ -114,7 +114,7 @@ class _Hero extends StatelessWidget {
                 ),
                 child: Text(
                   AppStrings.onbSticker,
-                  style: AppText.body.copyWith(fontSize: 12, fontWeight: FontWeight.w700, color: AppColors.stickerText),
+                  style: AppText.body.copyWith(fontSize: 12, height: AppText.lh(12), fontWeight: FontWeight.w700, color: AppColors.stickerText),
                 ),
               ),
             ),
@@ -179,9 +179,9 @@ class _Slot extends StatelessWidget {
         children: [
           Text(price,
               style: AppText.body.copyWith(
-                  fontSize: 13.5, fontWeight: FontWeight.w700, color: chosen ? AppColors.white : AppColors.navy)),
+                  fontSize: 13.5, height: AppText.lh(13.5), fontWeight: FontWeight.w700, color: chosen ? AppColors.white : AppColors.navy)),
           Text(AppStrings.currency,
-              style: AppText.body.copyWith(fontSize: 10, color: chosen ? AppColors.blueRing : AppColors.grey)),
+              style: AppText.body.copyWith(fontSize: 10, height: AppText.lh(10), color: chosen ? AppColors.blueRing : AppColors.grey)),
         ],
       ),
     );

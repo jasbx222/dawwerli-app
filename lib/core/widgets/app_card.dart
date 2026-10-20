@@ -47,7 +47,7 @@ class AlertCard extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Text(title, style: const TextStyle(fontWeight: FontWeight.w700, color: AppColors.danger, fontSize: 14)),
-        Text(body, style: const TextStyle(fontSize: 12.5, color: AppColors.dangerText)),
+        Text(body, style: const TextStyle(fontSize: 12.5, height: 1.5200, color: AppColors.dangerText)),
       ],
     );
     return AppCard(

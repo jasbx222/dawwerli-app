@@ -2,9 +2,16 @@ import '../domain/auth_repository.dart';
 import '../domain/phone_number.dart';
 
 /// In-memory mock. Valid code: 481923. 5 wrong codes → 15-minute lock.
-/// After 3 SMS sends the 4th goes over WhatsApp.
+/// Channel rule: switch to WhatsApp only after 3 FAILED SMS deliveries (not 3 total sends).
+/// NOTE: the backend (POST /v1/auth/otp/request) must apply the same rule, counting failures from
+/// SMS provider delivery reports plus "not received" resends.
 class MockAuthRepository implements AuthRepository {
-  MockAuthRepository({DateTime Function()? clock}) : _now = clock ?? DateTime.now;
+  MockAuthRepository({DateTime Function()? clock, this.simulateSmsFailure = false}) : _now = clock ?? DateTime.now;
+
+  static const maxFailedSms = 3;
+
+  /// When true every SMS is reported undelivered by the (fake) provider.
+  final bool simulateSmsFailure;
 
   static const validCode = '481923';
   static const maxWrong = 5;
@@ -13,7 +20,8 @@ class MockAuthRepository implements AuthRepository {
 
   final DateTime Function() _now;
   final _wrong = <String, int>{};
-  final _sends = <String, int>{};
+  final _failedSms = <String, int>{};
+  final _lastChannel = <String, OtpChannel>{};
   final _issuedAt = <String, DateTime>{};
   final _lockedUntil = <String, DateTime>{};
 
@@ -25,15 +33,17 @@ class MockAuthRepository implements AuthRepository {
   }
 
   @override
-  Future<OtpRequestResult> requestOtp(PhoneNumber phone) async {
+  Future<OtpRequestResult> requestOtp(PhoneNumber phone, {bool smsNotReceived = false}) async {
     final k = phone.e164;
     final locked = _lockLeft(k);
     if (locked != null) return OtpLocked(locked);
-    final n = (_sends[k] ?? 0) + 1;
-    _sends[k] = n;
+    if (smsNotReceived && _lastChannel[k] == OtpChannel.sms) _failedSms[k] = (_failedSms[k] ?? 0) + 1;
+    final channel = (_failedSms[k] ?? 0) >= maxFailedSms ? OtpChannel.whatsapp : OtpChannel.sms;
+    if (channel == OtpChannel.sms && simulateSmsFailure) _failedSms[k] = (_failedSms[k] ?? 0) + 1;
+    _lastChannel[k] = channel;
     _issuedAt[k] = _now();
     return OtpSent(
-      channel: n > 3 ? OtpChannel.whatsapp : OtpChannel.sms,
+      channel: channel,
       expiresIn: codeTtl,
       resendIn: const Duration(seconds: 60),
     );

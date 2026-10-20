@@ -1,10 +1,15 @@
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../features/auth/domain/phone_number.dart';
 import '../../features/auth/presentation/login_phone_screen.dart';
 import '../../features/auth/presentation/otp_screen.dart';
 import '../../features/auth/presentation/otp_states_screen.dart';
-import '../../features/home/presentation/home_placeholder_screen.dart';
+import '../../features/home/data/home_providers.dart';
+import '../../features/home/data/mock_home_repository.dart';
+import '../../features/home/presentation/home_screen.dart';
+import '../../features/pages/presentation/featured_pages_screen.dart';
+import '../widgets/coming_soon_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -49,6 +54,16 @@ final appRouter = GoRouter(
           ? const ProfileSetupScreen(initialName: 'أبو علي', initialArea: 'الكرادة')
           : const ProfileSetupScreen(),
     ),
-    GoRoute(path: Routes.home, builder: (_, _) => const HomePlaceholderScreen()),
+    GoRoute(
+      path: Routes.home,
+      builder: (_, s) => _preview(s)
+          ? ProviderScope(
+              overrides: [homeRepositoryProvider.overrideWithValue(const MockHomeRepository(withData: true))],
+              child: const HomeScreen(),
+            )
+          : const HomeScreen(),
+    ),
+    GoRoute(path: Routes.featuredPages, builder: (_, _) => const FeaturedPagesScreen()),
+    GoRoute(path: Routes.comingSoon, builder: (_, _) => const ComingSoonScreen()),
   ],
 );

@@ -6,4 +6,6 @@ abstract final class Routes {
   static const otpStates = '/login/otp/states';
   static const profileSetup = '/profile/setup';
   static const home = '/home';
+  static const featuredPages = '/pages/featured';
+  static const comingSoon = '/soon';
 }

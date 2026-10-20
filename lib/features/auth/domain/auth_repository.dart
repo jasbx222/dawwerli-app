@@ -48,7 +48,9 @@ class OtpVerifyLocked extends OtpVerifyResult {
 
 /// Contract mirrors POST /v1/auth/otp/request, /v1/auth/otp/verify, PUT /v1/me (API comes later).
 abstract interface class AuthRepository {
-  Future<OtpRequestResult> requestOtp(PhoneNumber phone);
+  /// [smsNotReceived] = the user is resending because the previous SMS never arrived
+  /// (counts as a failed delivery, alongside provider delivery-failure reports).
+  Future<OtpRequestResult> requestOtp(PhoneNumber phone, {bool smsNotReceived = false});
   Future<OtpVerifyResult> verifyOtp(PhoneNumber phone, String code);
   Future<List<String>> governorates();
   Future<void> saveProfile({required String name, required String governorate, required String area});

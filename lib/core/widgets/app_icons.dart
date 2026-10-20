@@ -11,25 +11,39 @@ enum AppIcon {
   clock('<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>'),
   xCircle('<circle cx="12" cy="12" r="9"/><path d="m15 9-6 6M9 9l6 6"/>'),
   hourglass('<path d="M6 2h12M6 22h12M7 2c0 5 10 5 10 10S7 17 7 22M17 2c0 5-10 5-10 10s10 5 10 10"/>'),
-  pin('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>');
+  pin('<path d="M20 10c0 6-8 12-8 12s-8-6-8-12a8 8 0 0 1 16 0Z"/><circle cx="12" cy="10" r="3"/>'),
+  bell('<path d="M6 8a6 6 0 0 1 12 0c0 7 3 9 3 9H3s3-2 3-9"/><path d="M10.3 21a1.94 1.94 0 0 0 3.4 0"/>'),
+  home('<path d="m3 9 9-7 9 7v11a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 22V12h6v10"/>'),
+  clipboard(
+      '<rect x="8" y="2" width="8" height="4" rx="1"/><path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2"/><path d="M9 12h6M9 16h4"/>'),
+  user('<path d="M19 21v-2a4 4 0 0 0-4-4H9a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/>'),
+  plus('<path d="M12 5v14M5 12h14"/>'),
+  chevronLeft('<path d="m15 18-6-6 6-6"/>'),
+  verified('<circle cx="12" cy="12" r="9"/><path d="m9 12 2 2 4-4"/>'),
+  check('<path d="M5 12.5l4.5 4.5L19 7"/>'),
+  star('<path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-5.18 3.25L8 14.14 3 9.27l6.91-1.01z"/>', filled: true);
 
-  const AppIcon(this.body);
+  const AppIcon(this.body, {this.filled = false});
   final String body;
+  final bool filled;
 }
 
 class AppSvgIcon extends StatelessWidget {
-  const AppSvgIcon(this.icon, {super.key, required this.color, this.size = 24});
+  const AppSvgIcon(this.icon, {super.key, required this.color, this.size = 24, this.strokeWidth = 2});
 
   final AppIcon icon;
   final Color color;
   final double size;
+  final double strokeWidth;
 
   @override
   Widget build(BuildContext context) {
     final hex = '#${(color.toARGB32() & 0xFFFFFF).toRadixString(16).padLeft(6, '0')}';
     return SvgPicture.string(
-      '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="2" '
-      'stroke-linecap="round" stroke-linejoin="round">${icon.body}</svg>',
+      icon.filled
+          ? '<svg width="24" height="24" viewBox="0 0 24 24" fill="$hex">${icon.body}</svg>'
+          : '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="$hex" stroke-width="$strokeWidth" '
+              'stroke-linecap="round" stroke-linejoin="round">${icon.body}</svg>',
       width: size,
       height: size,
     );

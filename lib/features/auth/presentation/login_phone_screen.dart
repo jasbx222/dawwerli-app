@@ -87,7 +87,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                         textDirection: TextDirection.ltr,
                         child: Row(
                           children: [
-                            Text(AppStrings.countryCode, style: AppText.number.copyWith(fontSize: 18, color: AppColors.navy)),
+                            Text(AppStrings.countryCode, style: AppText.number.copyWith(fontSize: 18, height: AppText.lh(18), color: AppColors.navy)),
                             const SizedBox(width: 9),
                             Expanded(
                               child: BareTextField(
@@ -95,7 +95,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                                 focusNode: _focus,
                                 keyboardType: TextInputType.phone,
                                 textDirection: TextDirection.ltr,
-                                style: AppText.number.copyWith(fontSize: 18, color: AppColors.navy),
+                                style: AppText.number.copyWith(fontSize: 18, height: AppText.lh(18), color: AppColors.navy),
                                 onChanged: (_) => _errors.isEmpty ? null : setState(() => _errors = {}),
                               ),
                             ),

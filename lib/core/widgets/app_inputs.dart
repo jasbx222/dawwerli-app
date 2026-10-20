@@ -23,14 +23,18 @@ class InputShell extends StatelessWidget {
   @override
   Widget build(BuildContext context) {
     return Container(
-      padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
+      // Outer height = line + 2×13 padding + 2×1.5 border (CSS); focused uses a 2px border (UIUX),
+      // so padding shrinks by .5 to keep the same size.
+      padding: EdgeInsets.symmetric(horizontal: focused ? 13.5 : 14, vertical: focused ? 12.5 : 13),
       decoration: BoxDecoration(
         color: AppColors.white,
         borderRadius: BorderRadius.circular(AppRadius.input),
-        border: Border.all(color: focused ? AppColors.blue : AppColors.border, width: 1.5),
-        boxShadow: focused ? [BoxShadow(color: AppColors.blue.withValues(alpha: .12), spreadRadius: 4)] : null,
+        border: Border.all(color: focused ? AppColors.blue : AppColors.border, width: focused ? 2 : 1.5),
+        boxShadow: focused
+            ? [BoxShadow(color: AppColors.blue.withValues(alpha: .10), blurRadius: 6, offset: const Offset(0, 2))]
+            : null,
       ),
-      child: DefaultTextStyle.merge(style: const TextStyle(fontSize: 15, color: AppColors.navy), child: child),
+      child: DefaultTextStyle.merge(style: const TextStyle(fontSize: 15, height: 1.4667, color: AppColors.navy), child: child),
     );
   }
 }
@@ -62,7 +66,7 @@ class BareTextField extends StatelessWidget {
       keyboardType: keyboardType,
       textDirection: textDirection,
       onChanged: onChanged,
-      style: style ?? const TextStyle(fontFamily: AppText.family, fontSize: 15, color: AppColors.navy),
+      style: style ?? const TextStyle(fontFamily: AppText.family, fontSize: 15, height: 1.4667, color: AppColors.navy),
       decoration: const InputDecoration.collapsed(hintText: ''),
     );
   }
@@ -89,7 +93,7 @@ class AppChip extends StatelessWidget {
         child: Text(
           label,
           style: TextStyle(
-            fontSize: 13,
+            fontSize: 13, height: 1.4615,
             fontWeight: FontWeight.w600,
             color: selected ? AppColors.white : AppColors.navy,
           ),

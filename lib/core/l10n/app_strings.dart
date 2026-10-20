@@ -78,5 +78,63 @@ abstract final class AppStrings {
   static const profileDone = 'خلصنا، يلا 🚀';
 
   // Placeholder for screens of later groups
-  static const comingSoon = 'الرئيسية — بالمجموعة الجاية';
+  static const comingSoon = 'هاي الشاشة بالمجموعة الجاية';
+
+  // Home (06 / 06b)
+  static String hello(String name) => 'هلا $name 👋';
+  static const homeQ1 = 'شتدوّر اليوم؟';
+  static String homeQ2(String gov) => 'كول، و$gov تتسابق عليك';
+  static String locationLabel(String area, String gov) => '$area، $gov';
+  static const live = 'مباشر';
+  static String reachedPages(int n, String gov) => 'وصل لـ $n صفحة موثقة ب$gov';
+  static String pagesCompeting(int n) => '$n صفحات دا تتعارك عليك 🔥';
+  static String slotsLeft(int n) => switch (n) {
+        1 => 'باقي مكان واحد',
+        2 => 'باقي مكانين',
+        _ => 'باقي $n أماكن',
+      };
+  static const cheapest = 'الأرخص';
+  static const goodOffer = 'خوش عرض 👌';
+  static const closesIn = 'يتسكر بعد ';
+  static const compareOffers = 'قارن العروض';
+  static const postNew = 'انشر طلب جديد';
+  static const postNewSub = 'صوّر أو اكتب أو احجي، وخلّي العروض تجيك';
+  static String offersCount(int n) => switch (n) {
+        1 => 'عرض واحد',
+        2 => 'عرضين',
+        _ => '$n عروض',
+      };
+  static const statPages = 'صفحة موثقة';
+  static const statGovs = 'محافظة';
+  static const statFirstOffer = 'أول عرض بالمعدل';
+  static String minutesShort(int n) => '$n د';
+  static const statsSoon = 'الأرقام تطلع قريباً';
+  static const statsSoonSub = 'نعرضها أول ما تصير عدنا بيانات حقيقية كافية';
+  static const secTrending = 'شنو الناس تدوّر';
+  static const secNow = 'الناس هسه تطلب';
+  static const secDeals = 'صفقات تمت اليوم';
+  static const secAds = 'عروض اليوم';
+  static const secFeatured = 'صفحات مميزة';
+  static const seeAll = 'الكل';
+  static String trendingIn(String gov) => '🔥 ترند ب$gov';
+  static const badgeNew = 'جديد';
+  static const save = 'وفّر ';
+  static const vsHighest = ' عن أغلى عرض';
+  static const sponsored = 'إعلان · مُموّل';
+  static const discount = 'خصم';
+  static const viewPage = 'شوف الصفحة';
+  static const ad = 'إعلان';
+  static String dealsCount(int n) => '$n صفقة';
+
+  // Bottom nav
+  static const navHome = 'الرئيسية';
+  static const navRequests = 'طلباتي';
+  static const navNotifications = 'الإشعارات';
+  static const navAccount = 'حسابي';
+
+  // Featured pages (45)
+  static String featuredTitle(String cat, String gov) => 'أفضل صفحات $cat ب$gov';
+  static const featuredSub = 'تقييم 4 وفوق وبدون شكاوى مؤكدة';
+  static String inAppDeals(int n) => '$n صفقة بالتطبيق';
+  static const featuredFoot = 'الصفحات المعلّمة «إعلان» مدفوعة، الباقي حسب التقييم';
 }

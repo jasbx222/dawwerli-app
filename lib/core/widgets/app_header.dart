@@ -5,6 +5,7 @@ import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 import 'app_icons.dart';
 import 'ishtar_pattern.dart';
+import 'stripe.dart';
 
 /// Blue Ishtar header (`.top` in the designs): back button, title, subtitle, gold stripe.
 class AppHeader extends StatelessWidget {
@@ -54,47 +55,17 @@ class AppHeader extends StatelessWidget {
                 if (subtitle != null) ...[
                   const SizedBox(height: 8),
                   DefaultTextStyle.merge(
-                    style: const TextStyle(fontSize: 13, color: AppColors.headerSub),
+                    style: const TextStyle(fontSize: 13, height: 1.4615, color: AppColors.headerSub),
                     child: subtitle!,
                   ),
                 ],
               ],
             ),
           ),
-          const Positioned(left: 0, right: 0, bottom: 0, height: 10, child: _GoldStripe()),
+          const Positioned(left: 0, right: 0, bottom: 0, height: 10, child: GoldStripe()),
         ],
       ),
     );
   }
 }
 
-class _GoldStripe extends StatelessWidget {
-  const _GoldStripe();
-
-  @override
-  Widget build(BuildContext context) =>
-      Opacity(opacity: .35, child: CustomPaint(painter: _StripePainter(), size: Size.infinite));
-}
-
-class _StripePainter extends CustomPainter {
-  @override
-  void paint(Canvas canvas, Size size) {
-    // repeating-linear-gradient(135deg, gold 0 7px, transparent 7px 14px)
-    final p = Paint()..color = AppColors.goldSoft;
-    canvas.clipRect(Offset.zero & size);
-    const period = 14.0, band = 7.0;
-    const k = 1.4142135623730951; // diagonal stripes, period measured along 135°
-    for (var x = -size.height * 2; x < size.width + size.height * 2; x += period * k) {
-      final path = Path()
-        ..moveTo(x, 0)
-        ..lineTo(x + band * k, 0)
-        ..lineTo(x + band * k - size.height, size.height)
-        ..lineTo(x - size.height, size.height)
-        ..close();
-      canvas.drawPath(path, p);
-    }
-  }
-
-  @override
-  bool shouldRepaint(covariant CustomPainter oldDelegate) => false;
-}

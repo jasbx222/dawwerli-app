@@ -105,7 +105,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
   }
 
   Future<void> _resendCode() async {
-    final r = await ref.read(authRepositoryProvider).requestOtp(_phone!);
+    final r = await ref.read(authRepositoryProvider).requestOtp(_phone!, smsNotReceived: true);
     if (!mounted) return;
     setState(() {
       switch (r) {
@@ -269,7 +269,7 @@ class _Box extends StatelessWidget {
         borderRadius: BorderRadius.circular(16),
         boxShadow: [BoxShadow(color: active ? AppColors.blue : AppColors.border, spreadRadius: active ? 2 : 1.5)],
       ),
-      child: Text(char, style: AppText.number.copyWith(fontSize: 24, color: AppColors.navy)),
+      child: Text(char, style: AppText.number.copyWith(fontSize: 24, height: AppText.lh(24), color: AppColors.navy)),
     );
   }
 }

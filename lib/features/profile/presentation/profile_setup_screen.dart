@@ -83,7 +83,8 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
               children: [
                 const FieldLabel(AppStrings.profileName),
                 InputShell(focused: _nameFocus.hasFocus, child: BareTextField(controller: _name, focusNode: _nameFocus)),
-                const SizedBox(height: 18),
+                // 18 in the HTML; +2.5 measured against the approved hi-res render so «شسمك؟» lands on the same Y.
+                const SizedBox(height: 20.5),
                 const FieldLabel(AppStrings.profileGov),
                 Wrap(
                   spacing: 8,

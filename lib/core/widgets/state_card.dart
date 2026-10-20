@@ -49,9 +49,9 @@ class StateCard extends StatelessWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Text(title, style: TextStyle(fontSize: 15.5, fontWeight: FontWeight.w700, color: tone)),
+                    Text(title, style: TextStyle(fontSize: 15.5, height: 1.4839, fontWeight: FontWeight.w700, color: tone)),
                     const SizedBox(height: 3),
-                    Text.rich(body, style: AppText.muted.copyWith(height: 1.5)),
+                    Text.rich(body, style: AppText.muted.copyWith(height: 19 / 12.5)),
                   ],
                 ),
               ),
