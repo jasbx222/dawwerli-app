@@ -17,7 +17,11 @@ class AppHeader extends StatelessWidget {
     this.onBack,
     this.trailing,
     this.below,
+    this.showBack = true,
   });
+
+  /// Tab roots (e.g. 25) have no back button.
+  final bool showBack;
 
   final String title;
   final Widget? subtitle;
@@ -54,26 +58,28 @@ class AppHeader extends StatelessWidget {
               children: [
                 Row(
                   children: [
-                    GestureDetector(
-                      onTap: onBack ?? () => Navigator.of(context).maybePop(),
-                      child: Container(
-                        width: 40,
-                        height: 40,
-                        decoration: BoxDecoration(
-                          color: AppColors.white.withValues(alpha: .16),
-                          borderRadius: BorderRadius.circular(
-                            AppRadius.iconBox,
+                    if (showBack) ...[
+                      GestureDetector(
+                        onTap: onBack ?? () => Navigator.of(context).maybePop(),
+                        child: Container(
+                          width: 40,
+                          height: 40,
+                          decoration: BoxDecoration(
+                            color: AppColors.white.withValues(alpha: .16),
+                            borderRadius: BorderRadius.circular(
+                              AppRadius.iconBox,
+                            ),
+                          ),
+                          alignment: Alignment.center,
+                          child: const AppSvgIcon(
+                            AppIcon.back,
+                            color: AppColors.white,
+                            size: 20,
                           ),
                         ),
-                        alignment: Alignment.center,
-                        child: const AppSvgIcon(
-                          AppIcon.back,
-                          color: AppColors.white,
-                          size: 20,
-                        ),
                       ),
-                    ),
-                    const SizedBox(width: 12),
+                      const SizedBox(width: 12),
+                    ],
                     Text(
                       title,
                       style: AppText.title.copyWith(color: AppColors.white),

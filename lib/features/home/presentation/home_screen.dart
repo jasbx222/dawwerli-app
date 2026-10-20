@@ -78,7 +78,11 @@ class HomeScreen extends ConsumerWidget {
             bottom: 18 + MediaQuery.viewPaddingOf(context).bottom,
             child: AppBottomNav(
               current: NavTab.home,
-              onTab: (t) => t == NavTab.home ? null : soon(),
+              onTab: (t) => switch (t) {
+                NavTab.home => null,
+                NavTab.requests => context.go(Routes.myRequests),
+                _ => soon(),
+              },
               onPost: () => context.push(Routes.post),
             ),
           ),
@@ -102,7 +106,10 @@ class _Body extends StatelessWidget {
         if (d.liveRequest != null)
           Padding(
             padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: LiveRequestCard(request: d.liveRequest!, onCompare: () => context.push(Routes.offers(d.liveRequest!.id))),
+            child: LiveRequestCard(
+              request: d.liveRequest!,
+              onCompare: () => context.push(Routes.offers(d.liveRequest!.id)),
+            ),
           ),
         PostRequestCta(onTap: () => context.push(Routes.post)),
         ActivityTicker(items: d.ticker),

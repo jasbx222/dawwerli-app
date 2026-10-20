@@ -31,6 +31,7 @@ import '../../features/orders/data/orders_providers.dart';
 import '../../features/orders/domain/order.dart';
 import '../../features/orders/presentation/order_status_screen.dart';
 import '../../features/orders/presentation/rating_screen.dart';
+import '../../features/orders/presentation/my_requests_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -337,6 +338,11 @@ final appRouter = GoRouter(
           },
         ),
       ],
+    ),
+    // 25 · «طلباتي» tab.
+    GoRoute(
+      path: Routes.myRequests,
+      builder: (_, _) => const MyRequestsScreen(),
     ),
     GoRoute(
       path: Routes.comingSoon,
