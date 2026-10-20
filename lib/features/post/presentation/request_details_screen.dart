@@ -114,9 +114,11 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
         : w;
     final draft = ref.watch(draftProvider);
     // REQ-03: shoes can't continue without a size (price edit skips this).
+    // Price must be above zero (server rejects 0 too).
     final canContinue =
-        widget.editPriceFor != null ||
-        !(PostRules.needsSize(draft) && draft.size == null);
+        (draft.maxPrice ?? 0) > 0 &&
+        (widget.editPriceFor != null ||
+            !(PostRules.needsSize(draft) && draft.size == null));
     final notifier = ref.read(draftProvider.notifier);
     final schema = ref.watch(detailSchemaProvider(draft.category ?? '')).value;
     final priceFocused = edit || _priceFocus.hasFocus || draft.maxPrice != null;

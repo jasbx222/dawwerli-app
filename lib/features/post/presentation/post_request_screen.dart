@@ -27,7 +27,14 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
   static const _samplePhoto = 'assets/images/mock/cat_shoes_1.webp';
   late final _desc = TextEditingController(
     text: ref.read(draftProvider).description,
-  );
+  )..addListener(_saveDesc);
+
+  // Keep the typed text in the saved draft so a restart/reload doesn't lose it.
+  void _saveDesc() {
+    final t = _desc.text;
+    if (t == ref.read(draftProvider).description) return;
+    ref.read(draftProvider.notifier).update((d) => d.copyWith(description: t));
+  }
 
   @override
   void dispose() {

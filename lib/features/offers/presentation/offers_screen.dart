@@ -68,6 +68,8 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
     } finally {
       _busy = false;
     }
+    // The cached selection is still «none»; reload it or 14 bounces back here.
+    final _ = await ref.refresh(selectionProvider(widget.requestId).future);
     if (mounted) context.go(Routes.chosen(widget.requestId));
   }
 

@@ -265,7 +265,7 @@ final appRouter = GoRouter(
         final p = s.uri.queryParameters['preview'];
         if (p == null) return ChosenScreen(requestId: id);
         final none = p == 'nooffers';
-        final noReply = p == 'noreply' || none;
+        final noReply = p == 'noreply' || p == 'noreply_toast' || none;
         final elapsed = noReply
             ? const Duration(hours: 1, minutes: 2)
             : const Duration(minutes: 17, seconds: 50);
@@ -279,7 +279,8 @@ final appRouter = GoRouter(
           requestId: id,
           frozenElapsed: elapsed,
           noneLeft: none,
-          toast: noReply && !none
+          // Toast only after tapping «ما ردت»; `noreply_toast` = 14b design frame.
+          toast: p == 'noreply_toast'
               ? OfferStrings.backToOffers('رياضة الكرادة', '39,000')
               : null,
         );

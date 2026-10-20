@@ -100,6 +100,8 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
       );
       await Future<void>.delayed(const Duration(milliseconds: 1800));
     }
+    // Dropped offer must not show as «اخترت…» on 11.
+    final _ = await ref.refresh(selectionProvider(widget.requestId).future);
     if (mounted) context.go(Routes.offers(widget.requestId));
   }
 
@@ -108,7 +110,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
     final async = ref.watch(selectionProvider(widget.requestId));
     final s = async.value;
     if (s == null) {
-      if (async.hasValue) {
+      if (async.hasValue && !async.isLoading) {
         // Nothing selected (yet / any more): back to the offers.
         WidgetsBinding.instance.addPostFrameCallback(
           (_) => context.go(Routes.offers(widget.requestId)),
