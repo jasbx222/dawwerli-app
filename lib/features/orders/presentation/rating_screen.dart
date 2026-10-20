@@ -58,7 +58,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
           .read(ordersRepositoryProvider)
           .rate(
             widget.orderId,
-            Rating(stars: _stars, tags: _tags, comment: _comment.text),
+            Rating(stars: _stars, tags: {..._tags}, comment: _comment.text),
           );
     } on AlreadyRated {
       // falls through to the 16b state
