@@ -6,6 +6,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../domain/home_models.dart';
+import 'ticker_marquee.dart';
 
 const _ring = BoxShadow(color: AppColors.cardRing, spreadRadius: 1);
 
@@ -138,9 +139,7 @@ class ActivityTicker extends StatelessWidget {
                 child: Container(
                   color: AppColors.navy,
                   padding: const EdgeInsets.symmetric(vertical: 10),
-                  child: ListView(
-                    scrollDirection: Axis.horizontal,
-                    physics: const NeverScrollableScrollPhysics(),
+                  child: TickerMarquee(
                     children: [
                       for (final f in items)
                         Padding(

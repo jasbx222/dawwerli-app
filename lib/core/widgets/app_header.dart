@@ -15,6 +15,7 @@ class AppHeader extends StatelessWidget {
     this.subtitle,
     this.onBack,
     this.trailing,
+    this.below,
   });
 
   final String title;
@@ -23,6 +24,9 @@ class AppHeader extends StatelessWidget {
 
   /// Pushed to the far (left) end of the title row, e.g. a status pill (`.sp` spacer).
   final Widget? trailing;
+
+  /// Extra content under the title row (14px gap), e.g. the request summary on 10.
+  final Widget? below;
 
   @override
   Widget build(BuildContext context) {
@@ -73,6 +77,7 @@ class AppHeader extends StatelessWidget {
                     if (trailing != null) ...[const Spacer(), trailing!],
                   ],
                 ),
+                if (below != null) ...[const SizedBox(height: 14), below!],
                 if (subtitle != null) ...[
                   const SizedBox(height: 8),
                   DefaultTextStyle.merge(

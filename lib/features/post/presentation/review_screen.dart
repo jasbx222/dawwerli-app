@@ -44,9 +44,9 @@ class _ReviewScreenState extends ConsumerState<ReviewScreen> {
     if (!mounted) return;
     setState(() => _busy = false);
     switch (r) {
-      case Published():
+      case Published(:final requestId):
         ref.invalidate(openCountProvider);
-        context.go(Routes.home);
+        context.go(Routes.liveRequest(requestId));
       case Rejected(:final errors):
         setState(() => _errors = errors);
       case QueuedOffline():

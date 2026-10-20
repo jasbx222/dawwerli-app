@@ -1,3 +1,4 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -20,6 +21,10 @@ class DawwerliApp extends StatelessWidget {
       supportedLocales: const [Locale('ar', 'IQ')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,
       routerConfig: appRouter,
+      // Mouse/trackpad drag scrolls too (web + desktop), not just touch.
+      scrollBehavior: const MaterialScrollBehavior().copyWith(
+        dragDevices: PointerDeviceKind.values.toSet(),
+      ),
     );
   }
 }

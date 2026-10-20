@@ -4,7 +4,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
 
-enum AppButtonVariant { primary, navy, ghost, whatsapp, disabled }
+enum AppButtonVariant { primary, navy, ghost, whatsapp, danger, disabled }
 
 class AppButton extends StatelessWidget {
   const AppButton(
@@ -45,6 +45,11 @@ class AppButton extends StatelessWidget {
       ),
       AppButtonVariant.whatsapp => (
         AppColors.whatsapp,
+        AppColors.white,
+        <BoxShadow>[],
+      ),
+      AppButtonVariant.danger => (
+        const Color(0xFFB42318),
         AppColors.white,
         <BoxShadow>[],
       ),

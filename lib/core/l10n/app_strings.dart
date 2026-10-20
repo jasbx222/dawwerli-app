@@ -207,4 +207,34 @@ abstract final class AppStrings {
   static const errVoiceBody = 'أقصى طول للصوت 60 ثانية.';
   static const errPrice = 'السعر لازم يكون أكثر من صفر';
   static const errPriceBody = 'اكتب أعلى سعر تدفعه بالدينار.';
+
+  // Live waiting (10 / 10b / 10c)
+  static const liveTitle = 'طلبك مباشر';
+  static String priceCap(String p) => 'حد السعر $p د.ع';
+  static const statReached = 'صفحة وصلها';
+  static const statSeen = 'شافوه';
+  static const statOffers = 'عروض';
+  static String pagesFighting(int n) => '$n صفحات دا تتعارك عليك 🔥';
+  static const noOffersYet = 'بعد ما وصلت عروض';
+  static String placesLeft(int n) => switch (n) {
+    1 => 'باقي مكان واحد',
+    2 => 'باقي مكانين',
+    _ => 'باقي $n أماكن',
+  };
+  static String placesEmpty(int n) => '$n أماكن فاضية';
+  static const widensIn = ' يتوسع للمحافظات المجاورة بعد';
+  static String compareN(int n) => 'قارن العروض ($n)';
+  static const cancelIt = 'ألغيه';
+  static const cancelTitle = 'تلغي الطلب؟';
+  static const cancelBody =
+      'الصفحات اللي دزت عروض تتبلغ، ولا أحد ينخصم منه شي.';
+  static const cancelYes = 'إي، ألغيه';
+  static const cancelNo = 'لا، خليه';
+  static const widenedTitle = 'وسّعنا طلبك للمحافظات المجاورة 📍';
+  static String widenedBody(int min, String govs) =>
+      'مرت $min دقيقة بدون عروض، فوصلنا طلبك ل$govs.';
+  static String raiseTip(String p) =>
+      '💡 إذا ترفع حد السعر لـ $p د.ع، تزيد فرصتك';
+  static const raisePrice = 'ارفع السعر';
+  static const keepAsIs = 'خليه مثل ما هو';
 }

@@ -1,0 +1,320 @@
+import 'dart:async';
+import 'dart:ui' show ImageFilter;
+
+import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
+import 'package:go_router/go_router.dart';
+
+import '../../../core/l10n/app_strings.dart';
+import '../../../core/router/routes.dart';
+import '../../../core/theme/app_colors.dart';
+import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format.dart';
+import '../../../core/widgets/app_button.dart';
+import '../../../core/widgets/app_card.dart';
+import '../../../core/widgets/app_header.dart';
+import '../data/live_providers.dart';
+import '../domain/live_request.dart';
+import 'widgets/live_sheets.dart';
+import 'widgets/offer_slots.dart';
+
+enum _Sheet { none, cancel, widened }
+
+/// 10 · Live request waiting for offers; 10b cancel sheet; 10c widened sheet.
+class LiveWaitingScreen extends ConsumerStatefulWidget {
+  const LiveWaitingScreen({
+    super.key,
+    required this.requestId,
+    this.frozenClock = false,
+    this.openCancel = false,
+  });
+
+  final String requestId;
+
+  /// Design QA: keep the countdown at the server value.
+  final bool frozenClock;
+  final bool openCancel;
+
+  @override
+  ConsumerState<LiveWaitingScreen> createState() => _LiveWaitingScreenState();
+}
+
+class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
+  late _Sheet _sheet = widget.openCancel ? _Sheet.cancel : _Sheet.none;
+  bool _widenedSeen = false;
+  Timer? _timer;
+  int _elapsed = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (!widget.frozenClock) {
+      _timer = Timer.periodic(
+        const Duration(seconds: 1),
+        (_) => setState(() => _elapsed++),
+      );
+    }
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    super.dispose();
+  }
+
+  Future<void> _cancel() async {
+    await ref.read(liveRepositoryProvider).cancel(widget.requestId);
+    if (mounted) context.go(Routes.home);
+  }
+
+  Future<void> _raise(LiveRequest r) async {
+    await ref
+        .read(liveRepositoryProvider)
+        .raisePrice(r.id, r.suggestedPrice ?? r.maxPrice);
+    setState(() => _sheet = _Sheet.none);
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final live = ref.watch(liveRequestProvider(widget.requestId));
+    final r = live.value;
+    if (r == null) {
+      return const Scaffold(
+        body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
+      );
+    }
+    // Show the widened notice once, as soon as the server reports it.
+    if (r.widenedTo.isNotEmpty && !_widenedSeen && _sheet == _Sheet.none) {
+      _widenedSeen = true;
+      _sheet = _Sheet.widened;
+    }
+    final left = r.widensIn - Duration(seconds: _elapsed);
+    final content = _Content(
+      r: r,
+      widensIn: left.isNegative ? Duration.zero : left,
+      onCompare: () => context.push(Routes.comingSoon),
+      onCancel: () => setState(() => _sheet = _Sheet.cancel),
+    );
+    return PopScope(
+      canPop: _sheet == _Sheet.none,
+      onPopInvokedWithResult: (didPop, _) {
+        if (!didPop) setState(() => _sheet = _Sheet.none);
+      },
+      child: Scaffold(
+        body: Stack(
+          fit: StackFit.expand,
+          children: [
+            // CSS filter: blur(1px) behind the cancel sheet only (10b).
+            if (_sheet == _Sheet.cancel)
+              ImageFiltered(
+                imageFilter: ImageFilter.blur(sigmaX: 1, sigmaY: 1),
+                child: content,
+              )
+            else
+              content,
+            if (_sheet != _Sheet.none) ...[
+              GestureDetector(
+                onTap: () => setState(() => _sheet = _Sheet.none),
+                child: const ColoredBox(color: Color(0x8C070E1F)),
+              ),
+              Positioned(
+                left: 0,
+                right: 0,
+                bottom: 0,
+                child: _sheet == _Sheet.cancel
+                    ? CancelSheet(
+                        onConfirm: _cancel,
+                        onDismiss: () => setState(() => _sheet = _Sheet.none),
+                      )
+                    : WidenedSheet(
+                        request: r,
+                        onRaise: () => _raise(r),
+                        onKeep: () => setState(() => _sheet = _Sheet.none),
+                      ),
+              ),
+            ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Content extends StatelessWidget {
+  const _Content({
+    required this.r,
+    required this.widensIn,
+    required this.onCompare,
+    required this.onCancel,
+  });
+
+  final LiveRequest r;
+  final Duration widensIn;
+  final VoidCallback onCompare;
+  final VoidCallback onCancel;
+
+  @override
+  Widget build(BuildContext context) {
+    final n = r.offerPrices.length;
+    return SingleChildScrollView(
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          AppHeader(
+            title: AppStrings.liveTitle,
+            below: _Summary(r: r),
+          ),
+          _m(14, _Stats(r: r)),
+          _m(
+            14,
+            OffersCard(
+              offers: r.offerPrices,
+              maxOffers: r.maxOffers,
+              cheapest: r.cheapestIndex,
+              // Countdown hidden once the request already widened (10c).
+              widensIn: r.widenedTo.isEmpty ? widensIn : null,
+            ),
+          ),
+          if (r.sponsored != null) _m(14, SponsoredCard(page: r.sponsored!)),
+          Padding(
+            padding: const EdgeInsets.all(16),
+            child: Row(
+              children: [
+                Expanded(
+                  flex: 2,
+                  child: AppButton(
+                    AppStrings.compareN(n),
+                    variant: n == 0
+                        ? AppButtonVariant.disabled
+                        : AppButtonVariant.navy,
+                    onPressed: onCompare,
+                  ),
+                ),
+                const SizedBox(width: 10),
+                Expanded(
+                  child: AppButton(
+                    AppStrings.cancelIt,
+                    variant: AppButtonVariant.ghost,
+                    onPressed: onCancel,
+                  ),
+                ),
+              ],
+            ),
+          ),
+        ],
+      ),
+    );
+  }
+
+  static Widget _m(double top, Widget child) =>
+      Padding(padding: EdgeInsets.fromLTRB(16, top, 16, 0), child: child);
+}
+
+class _Summary extends StatelessWidget {
+  const _Summary({required this.r});
+  final LiveRequest r;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    children: [
+      ClipRRect(
+        borderRadius: BorderRadius.circular(16),
+        child: Image.asset(
+          r.image,
+          width: 52,
+          height: 52,
+          fit: BoxFit.cover,
+          alignment: Alignment.center,
+        ),
+      ),
+      const SizedBox(width: 12),
+      Expanded(
+        child: Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              r.title,
+              style: AppText.strong.copyWith(
+                color: AppColors.white,
+                height: AppText.lh(14),
+              ),
+            ),
+            Text(
+              AppStrings.priceCap(thousands(r.maxPrice)),
+              style: TextStyle(
+                fontSize: 13,
+                height: AppText.lh(13),
+                color: AppColors.headerSub,
+              ),
+            ),
+          ],
+        ),
+      ),
+      // `.pill.pl-t` "● مباشر": the ● is drawn as a 5px dot (measured on the hi-res;
+      // the glyph isn't in IBM Plex, so a text fallback renders it twice as large).
+      Container(
+        padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
+        decoration: BoxDecoration(
+          color: const Color(0xFFCCFBF1),
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            Container(
+              width: 5,
+              height: 5,
+              margin: const EdgeInsets.only(top: 2.4),
+              decoration: const BoxDecoration(
+                color: Color(0xFF0B6E66),
+                shape: BoxShape.circle,
+              ),
+            ),
+            const SizedBox(width: 4),
+            Text(
+              AppStrings.live,
+              style: TextStyle(
+                fontSize: 12,
+                height: AppText.lh(12),
+                fontWeight: FontWeight.w700,
+                color: const Color(0xFF0B6E66),
+              ),
+            ),
+          ],
+        ),
+      ),
+    ],
+  );
+}
+
+class _Stats extends StatelessWidget {
+  const _Stats({required this.r});
+  final LiveRequest r;
+
+  @override
+  Widget build(BuildContext context) {
+    Widget stat(String v, String label) => Column(
+      children: [
+        Text(
+          v,
+          style: AppText.number.copyWith(
+            fontSize: 22,
+            height: AppText.lh(22),
+            color: AppColors.blue,
+          ),
+        ),
+        Text(label, style: AppText.muted),
+      ],
+    );
+    return AppCard(
+      child: Row(
+        mainAxisAlignment: MainAxisAlignment.spaceAround,
+        children: [
+          stat('${r.reachedPages}', AppStrings.statReached),
+          stat('${r.seenBy}', AppStrings.statSeen),
+          stat('${r.offerPrices.length}/${r.maxOffers}', AppStrings.statOffers),
+        ],
+      ),
+    );
+  }
+}

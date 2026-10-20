@@ -10,5 +10,6 @@ abstract final class Routes {
   static const post = '/post';
   static const postDetails = '/post/details';
   static const postReview = '/post/review';
+  static String liveRequest(String id) => '/requests/$id/live';
   static const comingSoon = '/soon';
 }

@@ -9,6 +9,9 @@ import '../../features/auth/presentation/otp_states_screen.dart';
 import '../../features/home/data/home_providers.dart';
 import '../../features/home/data/mock_home_repository.dart';
 import '../../features/home/presentation/home_screen.dart';
+import '../../features/live/data/live_providers.dart';
+import '../../features/live/data/mock_live_repository.dart';
+import '../../features/live/presentation/live_waiting_screen.dart';
 import '../../features/post/data/post_providers.dart';
 import '../../features/post/domain/request_draft.dart';
 import '../../features/post/presentation/post_request_screen.dart';
@@ -118,6 +121,35 @@ final appRouter = GoRouter(
               : _seeded(s, const ReviewScreen()),
         ),
       ],
+    ),
+    // 10 · `?preview=1` freezes the countdown; `=cancel` opens 10b; `=widened` is 10c.
+    GoRoute(
+      path: '/requests/:id/live',
+      builder: (_, s) {
+        final id = s.pathParameters['id']!;
+        final p = s.uri.queryParameters['preview'];
+        final screen = LiveWaitingScreen(
+          requestId: id,
+          frozenClock: p != null,
+          openCancel: p == 'cancel',
+        );
+        return p == 'widened'
+            ? ProviderScope(
+                overrides: [
+                  liveRepositoryProvider.overrideWithValue(
+                    const MockLiveRequestRepository(widened: true),
+                  ),
+                  // Family must be scoped too, or it keeps reading the root repo.
+                  liveRequestProvider.overrideWith(
+                    (ref, id) =>
+                        const MockLiveRequestRepository(widened: true)
+                            .watch(id),
+                  ),
+                ],
+                child: screen,
+              )
+            : screen;
+      },
     ),
     GoRoute(
       path: Routes.comingSoon,
