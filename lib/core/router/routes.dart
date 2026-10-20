@@ -15,5 +15,7 @@ abstract final class Routes {
   static String offerDetails(String id, String offerId) =>
       '/requests/$id/offers/$offerId';
   static String chosen(String id) => '/requests/$id/chosen';
+  static String orderStatus(String id) => '/orders/$id';
+  static String rateOrder(String id) => '/orders/$id/rate';
   static const comingSoon = '/soon';
 }

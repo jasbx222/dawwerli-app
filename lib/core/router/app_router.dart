@@ -26,6 +26,11 @@ import '../../features/offers/data/offers_providers.dart';
 import '../../features/offers/presentation/chosen_screen.dart';
 import '../../features/offers/presentation/offer_details_screen.dart';
 import '../../features/offers/presentation/offers_screen.dart';
+import '../../features/orders/data/mock_orders_repository.dart';
+import '../../features/orders/data/orders_providers.dart';
+import '../../features/orders/domain/order.dart';
+import '../../features/orders/presentation/order_status_screen.dart';
+import '../../features/orders/presentation/rating_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -262,6 +267,41 @@ final appRouter = GoRouter(
               : null,
         );
       },
+    ),
+    // 15 · `?preview=1`; 16 under `/rate` (`?preview=1` = 4 stars filled,
+    // `=rated` is 16b).
+    GoRoute(
+      path: '/orders/:id',
+      builder: (_, s) => OrderStatusScreen(orderId: s.pathParameters['id']!),
+      routes: [
+        GoRoute(
+          path: 'rate',
+          builder: (context, s) {
+            final p = s.uri.queryParameters['preview'];
+            const sample = Rating(
+              stars: 4,
+              tags: {'نفس الصورة', 'توصيل سريع'},
+              comment: 'الحذاء أصلي ووصل قبل الموعد',
+            );
+            final repo = ProviderScope.containerOf(context)
+                .read(ordersRepositoryProvider);
+            if (p != null && repo is MockOrdersRepository) {
+              repo.seed(received: true, rating: p == 'rated' ? sample : null);
+              // 15 underneath already loaded the order; reload it seeded.
+              ProviderScope.containerOf(context)
+                  .invalidate(orderProvider(s.pathParameters['id']!));
+            }
+            return p == '1'
+                ? RatingScreen(
+                    orderId: s.pathParameters['id']!,
+                    initialStars: sample.stars,
+                    initialTags: sample.tags,
+                    initialComment: sample.comment,
+                  )
+                : RatingScreen(orderId: s.pathParameters['id']!);
+          },
+        ),
+      ],
     ),
     GoRoute(
       path: Routes.comingSoon,
