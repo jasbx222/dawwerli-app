@@ -9,6 +9,7 @@ import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/exact_line.dart';
 import '../data/orders_providers.dart';
 import '../domain/order.dart';
 import 'order_widgets.dart';
@@ -64,19 +65,25 @@ class OrderStatusScreen extends ConsumerWidget {
                 child: Column(
                   crossAxisAlignment: CrossAxisAlignment.stretch,
                   children: [
-                    Text.rich(
-                      TextSpan(
-                        text: '${OrderStrings.arrivedQ} ',
-                        children: [
-                          svgSpan(OrderIcon.box.of(AppColors.gold, 18)),
-                        ],
-                      ),
-                      style: AppText.strong.copyWith(
-                        fontSize: 17,
-                        height: AppText.lh(17),
+                    ExactLine(
+                      fontSize: 17,
+                      child: Text.rich(
+                        TextSpan(
+                          text: '${OrderStrings.arrivedQ} ',
+                          children: [
+                            svgSpan(OrderIcon.box.of(AppColors.gold, 16)),
+                          ],
+                        ),
+                        style: AppText.strong.copyWith(
+                          fontSize: 17,
+                          height: AppText.lh(17),
+                        ),
                       ),
                     ),
-                    const Text(OrderStrings.inspect, style: AppText.muted),
+                    const ExactLine(
+                      fontSize: 12.5,
+                      child: Text(OrderStrings.inspect, style: AppText.muted),
+                    ),
                     const SizedBox(height: 14),
                     LabelIconButton(
                       label: OrderStrings.yesReceived,
@@ -154,9 +161,15 @@ class _Step extends StatelessWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              Text(step.title, style: AppText.strong),
+              ExactLine(
+                fontSize: 14,
+                child: Text(step.title, style: AppText.strong),
+              ),
               if (step.detail.isNotEmpty)
-                Text(step.detail, style: AppText.muted),
+                ExactLine(
+                  fontSize: 12.5,
+                  child: Text(step.detail, style: AppText.muted),
+                ),
             ],
           ),
         ),

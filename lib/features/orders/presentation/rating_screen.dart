@@ -186,20 +186,24 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                         height: 90,
                         child: InputShell(
                           exactLine: false,
-                          child: TextField(
-                            controller: _comment,
-                            readOnly: locked,
-                            maxLines: null,
-                            expands: true,
-                            textAlignVertical: TextAlignVertical.top,
-                            style: const TextStyle(
-                              fontFamily: AppText.family,
-                              fontSize: 15,
-                              height: 1.492593,
-                              color: AppColors.navy,
-                            ),
-                            decoration: const InputDecoration.collapsed(
-                              hintText: '',
+                          // Caret margin offset, same as BareTextField (RTL).
+                          child: Transform.translate(
+                            offset: const Offset(3, 0),
+                            child: TextField(
+                              controller: _comment,
+                              readOnly: locked,
+                              maxLines: null,
+                              expands: true,
+                              textAlignVertical: TextAlignVertical.top,
+                              style: const TextStyle(
+                                fontFamily: AppText.family,
+                                fontSize: 15,
+                                height: 1.492593,
+                                color: AppColors.navy,
+                              ),
+                              decoration: const InputDecoration.collapsed(
+                                hintText: '',
+                              ),
                             ),
                           ),
                         ),
