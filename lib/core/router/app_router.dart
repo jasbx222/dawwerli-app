@@ -33,6 +33,7 @@ import '../../features/orders/presentation/order_status_screen.dart';
 import '../../features/orders/presentation/rating_screen.dart';
 import '../../features/orders/presentation/my_requests_screen.dart';
 import '../../features/report/presentation/report_screen.dart';
+import '../../features/states/state_screens.dart';
 import '../../features/account/presentation/account_screens.dart';
 import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
@@ -113,6 +114,17 @@ final appRouter = GoRouter(
     // Post-request flow shares one draft across 07 → 08 → 09.
     GoRoute(
       path: Routes.post,
+      // 37 · max 3 open requests.
+      redirect: (context, s) {
+        if (s.uri.path != Routes.post) return null;
+        final open = ProviderScope.containerOf(context)
+            .read(mockBackendProvider)
+            .requests
+            .values
+            .where((r) => r.status == MockRequestStatus.open)
+            .length;
+        return open >= 3 ? Routes.maxOpen : null;
+      },
       builder: (_, s) => _seeded(s, const PostRequestScreen()),
       routes: [
         GoRoute(
@@ -232,6 +244,7 @@ final appRouter = GoRouter(
           confirmId: s.uri.queryParameters['preview'] == 'confirm'
               ? 'o1'
               : s.uri.queryParameters['confirm'],
+          forceError: s.uri.queryParameters['preview'] == 'error',
         );
       },
       routes: [
@@ -367,6 +380,21 @@ final appRouter = GoRouter(
         GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
         GoRoute(path: 'delete', builder: (_, _) => const DeleteAccountScreen()),
       ],
+    ),
+    // 31, 35–38 full-screen states (34 is `offers?preview=error`).
+    GoRoute(path: Routes.offline, builder: (_, _) => const OfflineScreen()),
+    GoRoute(path: Routes.maxOpen, builder: (_, _) => const MaxOpenScreen()),
+    GoRoute(
+      path: Routes.forceUpdate,
+      builder: (_, _) => const ForceUpdateScreen(),
+    ),
+    GoRoute(
+      path: '/requests/:id/no-offers',
+      builder: (_, _) => const NoOffersScreen(),
+    ),
+    GoRoute(
+      path: '/requests/:id/no-pages',
+      builder: (_, _) => const NoPagesScreen(),
     ),
     // 26 · «الإشعارات» tab.
     GoRoute(

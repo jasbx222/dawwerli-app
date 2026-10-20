@@ -66,7 +66,7 @@ final _items = [
     'طلبك انتهى بدون عروض',
     'آيفون 13 · عدّله وانشره مرة ثانية',
     'أمس',
-    route: '${Routes.liveRequest('r1')}?preview=expired',
+    route: Routes.noOffers('r1'),
   ),
   const _Notif(
     AppIcon.bell,

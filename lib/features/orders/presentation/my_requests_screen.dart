@@ -102,7 +102,7 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
 
   void _open(_Item i) => context.push(switch (i.kind) {
     _Kind.live || _Kind.waiting => Routes.liveRequest('r1'),
-    _Kind.expired => '${Routes.liveRequest('r1')}?preview=expired',
+    _Kind.expired => Routes.noOffers('r1'),
     _Kind.chosen || _Kind.done => Routes.orderStatus('o1'),
   });
 

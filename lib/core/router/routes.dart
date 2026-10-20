@@ -25,5 +25,10 @@ abstract final class Routes {
   static const privacy = '/account/privacy';
   static const deleteAccount = '/account/delete';
   static const myRequests = '/requests';
+  static const offline = '/offline';
+  static const maxOpen = '/post-limit';
+  static const forceUpdate = '/update';
+  static String noOffers(String id) => '/requests/$id/no-offers';
+  static String noPages(String id) => '/requests/$id/no-pages';
   static const comingSoon = '/soon';
 }

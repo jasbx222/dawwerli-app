@@ -7,6 +7,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/l10n/offer_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../states/state_screens.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
@@ -22,7 +23,15 @@ import 'widgets/offer_widgets.dart';
 
 /// 11 · Compare offers; 13 · confirm-choice sheet over the list.
 class OffersScreen extends ConsumerStatefulWidget {
-  const OffersScreen({super.key, required this.requestId, this.confirmId});
+  const OffersScreen({
+    super.key,
+    required this.requestId,
+    this.confirmId,
+    this.forceError = false,
+  });
+
+  /// `?preview=error` shows 34.
+  final bool forceError;
 
   final String requestId;
 
@@ -64,7 +73,15 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final board = ref.watch(offersProvider(widget.requestId)).value;
+    final async = ref.watch(offersProvider(widget.requestId));
+    if (widget.forceError || (async.hasError && async.value == null)) {
+      return OffersErrorScreen(
+        onRetry: () => widget.forceError
+            ? context.go(Routes.offers(widget.requestId))
+            : ref.invalidate(offersProvider(widget.requestId)),
+      );
+    }
+    final board = async.value;
     if (board == null) {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
