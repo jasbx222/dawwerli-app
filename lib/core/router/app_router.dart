@@ -33,6 +33,8 @@ import '../../features/orders/presentation/order_status_screen.dart';
 import '../../features/orders/presentation/rating_screen.dart';
 import '../../features/orders/presentation/my_requests_screen.dart';
 import '../../features/report/presentation/report_screen.dart';
+import '../../features/account/presentation/account_screens.dart';
+import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
@@ -356,6 +358,20 @@ final appRouter = GoRouter(
           },
         ),
       ],
+    ),
+    // 28 · «حسابي» tab; 29 privacy; 30 delete.
+    GoRoute(
+      path: Routes.account,
+      builder: (_, _) => const AccountScreen(),
+      routes: [
+        GoRoute(path: 'privacy', builder: (_, _) => const PrivacyScreen()),
+        GoRoute(path: 'delete', builder: (_, _) => const DeleteAccountScreen()),
+      ],
+    ),
+    // 26 · «الإشعارات» tab.
+    GoRoute(
+      path: Routes.notifications,
+      builder: (_, _) => const NotificationsScreen(),
     ),
     // 25 · «طلباتي» tab.
     GoRoute(

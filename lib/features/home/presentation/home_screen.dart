@@ -45,7 +45,7 @@ class HomeScreen extends ConsumerWidget {
                 children: [
                   HomeHeader(
                     data: d,
-                    onBell: soon,
+                    onBell: () => context.go(Routes.notifications),
                     onLocation: soon,
                     onStory: (_) => soon(),
                   ),
@@ -81,7 +81,8 @@ class HomeScreen extends ConsumerWidget {
               onTab: (t) => switch (t) {
                 NavTab.home => null,
                 NavTab.requests => context.go(Routes.myRequests),
-                _ => soon(),
+                NavTab.notifications => context.go(Routes.notifications),
+                NavTab.account => context.go(Routes.account),
               },
               onPost: () => context.push(Routes.post),
             ),

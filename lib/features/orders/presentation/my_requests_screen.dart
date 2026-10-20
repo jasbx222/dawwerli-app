@@ -218,7 +218,8 @@ class _MyRequestsScreenState extends State<MyRequestsScreen> {
               onTab: (t) => switch (t) {
                 NavTab.home => context.go(Routes.home),
                 NavTab.requests => null,
-                _ => context.push(Routes.comingSoon),
+                NavTab.notifications => context.go(Routes.notifications),
+                NavTab.account => context.go(Routes.account),
               },
               onPost: () => context.push(Routes.post),
             ),

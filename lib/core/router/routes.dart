@@ -20,6 +20,10 @@ abstract final class Routes {
   static String report(String id, {int reason = 1}) =>
       '/orders/$id/report?reason=$reason';
   static String reportSent(String id) => '/orders/$id/report/sent';
+  static const notifications = '/notifications';
+  static const account = '/account';
+  static const privacy = '/account/privacy';
+  static const deleteAccount = '/account/delete';
   static const myRequests = '/requests';
   static const comingSoon = '/soon';
 }
