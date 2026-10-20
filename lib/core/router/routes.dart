@@ -34,5 +34,14 @@ abstract final class Routes {
   static const forceUpdate = '/update';
   static String noOffers(String id) => '/requests/$id/no-offers';
   static String noPages(String id) => '/requests/$id/no-pages';
-  static const comingSoon = '/soon';
+  static String pageProfile(String id) => '/pages/p/$id';
+  static const categories = '/categories';
+  static String category(String id) => '/categories/$id';
+  static const feed = '/feed';
+  static const region = '/account/region';
+  static const notificationSettings = '/account/notifications';
+  static const blocked = '/account/blocked';
+  static const terms = '/account/terms';
+  static const contact = '/account/contact';
+  static const postCategory = '/post/category';
 }

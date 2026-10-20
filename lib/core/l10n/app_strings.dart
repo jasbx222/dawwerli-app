@@ -86,9 +86,6 @@ abstract final class AppStrings {
   static const profileAreaHint = 'المنطقة ما تنعرض للصفحات، بس المحافظة.';
   static const profileDone = 'خلصنا، يلا';
 
-  // Placeholder for screens of later groups
-  static const comingSoon = 'هاي الشاشة بالمجموعة الجاية';
-
   // Home (06 / 06b)
   static String hello(String name) => 'هلا $name 👋';
   static const homeQ1 = 'شتدوّر اليوم؟';

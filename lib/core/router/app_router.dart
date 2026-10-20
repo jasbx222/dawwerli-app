@@ -20,7 +20,7 @@ import '../../features/post/presentation/post_request_screen.dart';
 import '../../features/post/presentation/request_details_screen.dart';
 import '../../features/post/presentation/review_screen.dart';
 import '../../features/pages/presentation/featured_pages_screen.dart';
-import '../widgets/coming_soon_screen.dart';
+import '../../features/more/more_screens.dart';
 import '../../features/offers/data/mock_offers_repository.dart';
 import '../../features/offers/data/offers_providers.dart';
 import '../../features/offers/presentation/chosen_screen.dart';
@@ -403,6 +403,14 @@ final appRouter = GoRouter(
           ],
         ),
         GoRoute(path: 'delete', builder: (_, _) => const DeleteAccountScreen()),
+        GoRoute(path: 'region', builder: (_, _) => const RegionScreen()),
+        GoRoute(
+          path: 'notifications',
+          builder: (_, _) => const NotificationSettingsScreen(),
+        ),
+        GoRoute(path: 'blocked', builder: (_, _) => const BlockedPagesScreen()),
+        GoRoute(path: 'terms', builder: (_, _) => const TermsScreen()),
+        GoRoute(path: 'contact', builder: (_, _) => const ContactScreen()),
       ],
     ),
     // 31, 35–38 full-screen states (34 is `offers?preview=error`).
@@ -438,8 +446,24 @@ final appRouter = GoRouter(
           MyRequestsScreen(preview: s.uri.queryParameters['preview']),
     ),
     GoRoute(
-      path: Routes.comingSoon,
-      builder: (_, _) => const ComingSoonScreen(),
+      path: '/pages/p/:id',
+      builder: (_, s) => PageProfileScreen(pageId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: Routes.categories,
+      builder: (_, _) => const CategoriesScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (_, s) =>
+              CategoryScreen(categoryId: s.pathParameters['id']!),
+        ),
+      ],
+    ),
+    GoRoute(path: Routes.feed, builder: (_, _) => const FeedScreen()),
+    GoRoute(
+      path: Routes.postCategory,
+      builder: (_, _) => const CategoryPickerScreen(),
     ),
   ],
 );

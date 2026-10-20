@@ -16,6 +16,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../live/presentation/widgets/live_sheets.dart';
+import '../../more/more_data.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
 
 /// 28 · «حسابي» tab. Mock profile until the account API lands.
@@ -26,7 +27,9 @@ class AccountScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final display = ref.watch(displaySettingsProvider);
     final displayCtl = ref.read(displaySettingsProvider.notifier);
-    void soon() => context.push(Routes.comingSoon);
+    final region = ref.watch(regionProvider);
+    final notifOn = ref.watch(notifPrefsProvider).values.where((v) => v).length;
+    final blocked = ref.watch(blockedProvider).length;
     Widget group(List<Widget> rows) => Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: AppCard(
@@ -117,10 +120,15 @@ class AccountScreen extends ConsumerWidget {
                   _Item(
                     AppIcon.pin,
                     'المحافظة والمنطقة',
-                    'بغداد · الكرادة',
-                    soon,
+                    region.label,
+                    () => context.push(Routes.region),
                   ),
-                  _Item(AppIcon.bell, 'الإشعارات', 'مفعّلة', soon),
+                  _Item(
+                    AppIcon.bell,
+                    'الإشعارات',
+                    notifOn == 0 ? 'مطفية' : 'مفعّلة',
+                    () => context.push(Routes.notificationSettings),
+                  ),
                   _Item(
                     AppIcon.sparkles,
                     'الوضع الليلي',
@@ -135,15 +143,30 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ]),
                 group([
-                  _Item(AppIcon.lock, 'الصفحات المحظورة', '2', soon),
+                  _Item(
+                    AppIcon.lock,
+                    'الصفحات المحظورة',
+                    blocked == 0 ? '' : '$blocked',
+                    () => context.push(Routes.blocked),
+                  ),
                   _Item(
                     AppIcon.shieldCheck,
                     'سياسة الخصوصية',
                     '',
                     () => context.push(Routes.privacy),
                   ),
-                  _Item(AppIcon.clipboard, 'الشروط', '', soon),
-                  _Item(AppIcon.chat, 'تواصل ويانا', '', soon),
+                  _Item(
+                    AppIcon.clipboard,
+                    'الشروط',
+                    '',
+                    () => context.push(Routes.terms),
+                  ),
+                  _Item(
+                    AppIcon.chat,
+                    'تواصل ويانا',
+                    '',
+                    () => context.push(Routes.contact),
+                  ),
                 ]),
                 group([
                   _Item(
