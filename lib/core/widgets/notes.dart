@@ -1,5 +1,7 @@
 import 'package:flutter/material.dart';
 
+import 'app_image.dart';
+
 import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import '../theme/app_typography.dart';
@@ -153,7 +155,7 @@ class PhotoThumb extends StatelessWidget {
   @override
   Widget build(BuildContext context) => ClipRRect(
     borderRadius: BorderRadius.circular(radius),
-    child: Image.asset(image, width: size, height: size, fit: BoxFit.cover),
+    child: AppImage(image, width: size, height: size, fit: BoxFit.cover),
   );
 }
 

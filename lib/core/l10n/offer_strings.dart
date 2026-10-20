@@ -39,6 +39,19 @@ abstract final class OfferStrings {
       ' $r · $d صفقة بالتطبيق · يرد بـ $m د';
   static const finalLocked = ' السعر النهائي، مقفول';
   static const delivery = 'التوصيل';
+
+  /// Delivery choices a page can promise, with their duration in hours.
+  static const deliveryChoices = [
+    ('اليوم', 24),
+    ('يومين', 48),
+    ('3 أيام', 72),
+    ('أسبوع', 168),
+  ];
+
+  /// Label for a promised delivery time (first choice that covers [hours]).
+  static String deliveryFor(int hours) =>
+      deliveryChoices.where((c) => hours <= c.$2).firstOrNull?.$1 ??
+      deliveryChoices.last.$1;
   static String deliveryIncluded(String d) => 'خلال $d · مشمول';
   static const condition = 'الحالة';
   static const pageNote = 'ملاحظة الصفحة';

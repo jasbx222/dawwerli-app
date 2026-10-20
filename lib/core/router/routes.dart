@@ -19,7 +19,8 @@ abstract final class Routes {
   static String rateOrder(String id) => '/orders/$id/rate';
   static String report(String id, {int reason = 1}) =>
       '/orders/$id/report?reason=$reason';
-  static String reportSent(String id) => '/orders/$id/report/sent';
+  static String reportSent(String id, String trackNo) =>
+      '/orders/$id/report/sent?no=$trackNo';
   static const notifications = '/notifications';
   static const account = '/account';
   static const privacy = '/account/privacy';
@@ -27,6 +28,8 @@ abstract final class Routes {
   static const standing = '/account/standing';
   static const disputeNew = '/account/dispute';
   static const disputeStatus = '/account/dispute/status';
+  static String disputeFor(String orderId) => '$disputeNew?orderId=$orderId';
+  static String disputeStatusOf(String id) => '$disputeStatus?id=$id';
   static String recoverOffers(String id) => '/requests/$id/others';
   static const myRequests = '/requests';
   static const offline = '/offline';
