@@ -148,9 +148,9 @@ class SellerAdsScreen extends ConsumerWidget {
                     slot.title,
                     sub: switch (slot) {
                       AdSlot.homeBanner =>
-                        '${s.settings.governorates.first} · ${slot.unit}',
+                        '${s.settings.governorates.firstOrNull ?? 'محافظتك'} · ${slot.unit}',
                       AdSlot.featuredPage =>
-                        'أفضل صفحات ${s.settings.categories.first} ب${s.settings.governorates.first} · ${slot.unit}',
+                        'أفضل صفحات ${s.settings.categories.firstOrNull ?? 'صنوفك'} ب${s.settings.governorates.firstOrNull ?? 'محافظتك'} · ${slot.unit}',
                       AdSlot.sponsoredOffer =>
                         'عرضك ينثبت أول · ضمن الـ ${c.maxOffers} · سعره ≤ حد الزبون',
                     },
@@ -356,8 +356,10 @@ class AdBookScreen extends ConsumerStatefulWidget {
 
 class _AdBookState extends ConsumerState<AdBookScreen> {
   final _text = TextEditingController();
-  late String _gov = ref.read(sellerProvider).settings.governorates.first;
-  late String _cat = ref.read(sellerProvider).settings.categories.first;
+  late String _gov =
+      ref.read(sellerProvider).settings.governorates.firstOrNull ?? '';
+  late String _cat =
+      ref.read(sellerProvider).settings.categories.firstOrNull ?? '';
   int _units = 1;
   String? _image;
   bool _busy = false;

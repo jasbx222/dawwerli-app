@@ -3,7 +3,9 @@ import 'package:go_router/go_router.dart';
 
 import '../../../../core/router/routes.dart';
 import '../../../../core/widgets/app_bottom_nav.dart';
+import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_icons.dart';
+import '../../../../core/widgets/app_sheet.dart';
 
 enum SellerTab { inbox, offers, wallet, account }
 
@@ -30,7 +32,29 @@ class SellerNav extends StatelessWidget {
     current: current,
     fabIcon: AppIcon.cameraFab,
     onTab: (t) => t == current ? null : context.go(route(t)),
-    // The FAB jumps to the inbox, where every open request has «قدّم عرض».
-    onFab: () => context.go(Routes.sellerInbox),
+    onFab: () => showModalBottomSheet<void>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (sheet) => AppSheet(
+        children: [
+          AppButton(
+            'قدّم عرض',
+            onPressed: () {
+              Navigator.pop(sheet);
+              context.go(Routes.sellerInbox);
+            },
+          ),
+          const SizedBox(height: 10),
+          AppButton(
+            'أضف إعلان',
+            variant: AppButtonVariant.navy,
+            onPressed: () {
+              Navigator.pop(sheet);
+              context.push(Routes.sellerAds);
+            },
+          ),
+        ],
+      ),
+    ),
   );
 }

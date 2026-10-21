@@ -675,16 +675,18 @@ class SponsoredBanner extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final image = ad.image;
+    final hasImage = image != null && image.isNotEmpty;
     return GestureDetector(
       onTap: onTap,
       child: Container(
         margin: const EdgeInsets.symmetric(horizontal: 16),
-        height: 150,
+        height: 180,
         clipBehavior: Clip.antiAlias,
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
+          border: Border.all(color: AppColors.gold, width: 1.5),
           gradient: const LinearGradient(
-            // CSS 120deg
             begin: Alignment(-0.866, -0.5),
             end: Alignment(0.866, 0.5),
             colors: [AppColors.navy, AppColors.blue, Color(0xFF2F5FD0)],
@@ -692,120 +694,106 @@ class SponsoredBanner extends StatelessWidget {
           ),
         ),
         child: Stack(
+          fit: StackFit.expand,
           children: [
-            Positioned(
-              left: -30,
-              bottom: -50,
-              width: 170,
-              height: 170,
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: AppColors.white.withValues(alpha: .08),
+            if (hasImage) AppImage(image, fit: BoxFit.cover),
+            DecoratedBox(
+              decoration: BoxDecoration(
+                gradient: LinearGradient(
+                  begin: Alignment.topCenter,
+                  end: Alignment.bottomCenter,
+                  colors: [
+                    AppColors.navy.withValues(alpha: hasImage ? .05 : .15),
+                    AppColors.navy.withValues(alpha: hasImage ? .78 : .45),
+                  ],
+                  stops: const [.35, 1],
                 ),
               ),
             ),
             Padding(
-              padding: const EdgeInsets.all(18),
-              child: DefaultTextStyle.merge(
-                style: const TextStyle(color: AppColors.white),
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Container(
-                      padding: const EdgeInsets.symmetric(
-                        horizontal: 9,
-                        vertical: 3,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.white.withValues(alpha: .18),
-                        borderRadius: BorderRadius.circular(99),
-                      ),
-                      child: const Text(
-                        AppStrings.sponsored,
-                        style: TextStyle(
-                          fontSize: 11,
-                          height: 1.510101,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
-                    ),
-                    const SizedBox(height: 8),
-                    Text(
-                      ad.pageName,
-                      style: const TextStyle(
-                        fontSize: 19,
-                        height: 1.501462,
-                        fontWeight: FontWeight.w700,
-                      ),
-                    ),
-                    const SizedBox(height: 2),
-                    Opacity(
-                      opacity: .85,
-                      child: Text(
-                        ad.headline,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 19.5000 / 13,
-                        ),
-                      ),
-                    ),
-                  ],
-                ),
-              ),
-            ),
-            Positioned(
-              left: 18,
-              top: 28,
-              // `.off`: two CSS line boxes; the 34px «20%» sits 8px into the first,
-              // «خصم» starts 70.16px below the box top (measured on the design).
+              padding: const EdgeInsets.all(16),
               child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const SizedBox(height: 8),
-                  Text(
-                    '${ad.discountPercent}%',
-                    style: const TextStyle(
-                      fontSize: 34,
-                      height: 1,
-                      fontWeight: FontWeight.w700,
-                      color: AppColors.goldSoft,
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 10,
+                      vertical: 4,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.gold,
+                      borderRadius: BorderRadius.circular(99),
+                    ),
+                    child: const Text(
+                      AppStrings.ad,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.navy,
+                      ),
                     ),
                   ),
-                  const SizedBox(height: 70.16 - 8 - 34),
-                  const Text(
-                    AppStrings.discount,
-                    style: TextStyle(
-                      fontSize: 12,
-                      height: 1.504630,
+                  const Spacer(),
+                  Text(
+                    ad.pageName,
+                    maxLines: 1,
+                    overflow: TextOverflow.ellipsis,
+                    style: const TextStyle(
+                      fontSize: 20,
+                      height: 1.4,
+                      fontWeight: FontWeight.w700,
                       color: AppColors.white,
+                    ),
+                  ),
+                  if (ad.headline.isNotEmpty)
+                    Text(
+                      ad.headline,
+                      maxLines: 2,
+                      overflow: TextOverflow.ellipsis,
+                      style: const TextStyle(
+                        fontSize: 14,
+                        height: 1.5,
+                        color: AppColors.white,
+                      ),
+                    ),
+                  const SizedBox(height: 8),
+                  Container(
+                    padding: const EdgeInsets.symmetric(
+                      horizontal: 12,
+                      vertical: 6,
+                    ),
+                    decoration: BoxDecoration(
+                      color: AppColors.surface,
+                      borderRadius: BorderRadius.circular(10),
+                    ),
+                    child: const Text(
+                      AppStrings.viewPage,
+                      style: TextStyle(
+                        fontSize: 12,
+                        height: 1.5,
+                        fontWeight: FontWeight.w700,
+                        color: AppColors.blue,
+                      ),
                     ),
                   ),
                 ],
               ),
             ),
-            Positioned(
-              right: 18,
-              bottom: 16,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 12,
-                  vertical: 6,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.surface,
-                  borderRadius: BorderRadius.circular(10),
-                ),
-                child: const Text(
-                  AppStrings.viewPage,
-                  style: TextStyle(
-                    fontSize: 12,
-                    height: 1.504630,
+            if (ad.discountPercent > 0)
+              Positioned(
+                left: 16,
+                top: 16,
+                child: Text(
+                  '${ad.discountPercent}% ${AppStrings.discount}',
+                  style: const TextStyle(
+                    fontSize: 22,
+                    height: 1,
                     fontWeight: FontWeight.w700,
-                    color: AppColors.blue,
+                    color: AppColors.goldSoft,
                   ),
                 ),
               ),
-            ),
           ],
         ),
       ),

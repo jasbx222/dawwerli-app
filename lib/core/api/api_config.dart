@@ -2,12 +2,12 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../storage/prefs.dart';
 
-/// Where the API lives. Build-time default via `--dart-define=API_BASE_URL=…`
-/// (emulator → host PC is 10.0.2.2); can be overridden at runtime from settings.
+/// Where the API lives. Build-time default via `--dart-define=API_BASE_URL=…`;
+/// can be overridden at runtime from settings.
 abstract final class ApiDefaults {
   static const baseUrl = String.fromEnvironment(
     'API_BASE_URL',
-    defaultValue: 'http://10.0.2.2:5080',
+    defaultValue: 'http://jassim.runasp.net',
   );
   static const appVersion = String.fromEnvironment(
     'APP_VERSION',

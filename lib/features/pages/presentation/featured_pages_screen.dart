@@ -75,6 +75,7 @@ class _FeaturedCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AppCard(
+        color: page.isAd ? const Color(0xFFFFF8E8) : null,
         child: Row(
           children: [
             Container(
@@ -108,11 +109,12 @@ class _FeaturedCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  RatingLine(
-                    text:
-                        '${page.rating} · ${AppStrings.inAppDeals(page.deals)}',
-                    fontSize: 12.5,
-                  ),
+                  if (!page.isAd || page.rating > 0 || page.deals > 0)
+                    RatingLine(
+                      text:
+                          '${page.rating} · ${AppStrings.inAppDeals(page.deals)}',
+                      fontSize: 12.5,
+                    ),
                 ],
               ),
             ),

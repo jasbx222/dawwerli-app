@@ -104,8 +104,10 @@ class OfferCard extends StatelessWidget {
               boxShadow: [
                 cardShadow,
                 BoxShadow(
-                  color: cheapest ? AppColors.gold : AppColors.cardRing,
-                  spreadRadius: cheapest ? 2 : 1,
+                  color: o.sponsored || cheapest
+                      ? AppColors.gold
+                      : AppColors.cardRing,
+                  spreadRadius: o.sponsored || cheapest ? 1.5 : 1,
                 ),
               ],
             ),
@@ -132,6 +134,15 @@ class OfferCard extends StatelessWidget {
                           height: AppText.lh(15),
                         ),
                       ),
+                      if (o.sponsored)
+                        const Padding(
+                          padding: EdgeInsets.only(top: 4),
+                          child: Pill(
+                            OfferStrings.sponsored,
+                            bg: AppColors.goldSoft,
+                            fg: AppColors.navy,
+                          ),
+                        ),
                       Text.rich(
                         TextSpan(
                           children: [
@@ -199,16 +210,6 @@ class OfferCard extends StatelessWidget {
               ],
             ),
           ),
-          if (o.sponsored)
-            const Positioned(
-              top: -10,
-              left: 14,
-              child: Pill(
-                OfferStrings.sponsored,
-                bg: AppColors.warnBg,
-                fg: AppColors.warn,
-              ),
-            ),
           if (cheapest)
             const Positioned(
               top: -12,

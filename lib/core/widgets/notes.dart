@@ -175,7 +175,7 @@ class LetterAvatar extends StatelessWidget {
     ),
     alignment: Alignment.center,
     child: Text(
-      name.characters.first,
+      name.characters.firstOrNull ?? '',
       style: TextStyle(
         fontSize: size * .41,
         height: 1.5,

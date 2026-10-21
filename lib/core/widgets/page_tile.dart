@@ -76,8 +76,11 @@ class PageTile extends StatelessWidget {
         decoration: BoxDecoration(
           color: AppColors.surface,
           borderRadius: BorderRadius.circular(18),
+          border: page.isAd
+              ? Border.all(color: AppColors.gold, width: 1.5)
+              : null,
           boxShadow: [
-            BoxShadow(color: Color(0x0A0F172A), offset: Offset(0, 1)),
+            const BoxShadow(color: Color(0x0A0F172A), offset: Offset(0, 1)),
             BoxShadow(color: AppColors.cardRing, spreadRadius: 1),
           ],
         ),
@@ -125,9 +128,10 @@ class PageTile extends StatelessWidget {
                     ),
                   ],
                 ),
-                RatingLine(
-                  text: '${page.rating} · ${AppStrings.dealsCount(page.deals)}',
-                ),
+                if (!page.isAd || page.rating > 0 || page.deals > 0)
+                  RatingLine(
+                    text: '${page.rating} · ${AppStrings.dealsCount(page.deals)}',
+                  ),
               ],
             ),
             const Spacer(),

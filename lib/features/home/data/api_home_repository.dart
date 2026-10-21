@@ -26,6 +26,9 @@ class ApiHomeRepository implements HomeRepository {
     final live = j.om('liveRequest');
     final ad = j.om('ad');
     final stats = j.m('stats');
+    final govId = gov;
+    final slotBanners = await _ads('homeBanner', govId);
+    final slotFeatured = await _ads('featuredPage', govId);
     return HomeData(
       firstName: j.os('firstName') ?? '',
       area: j.os('area') ?? '',
@@ -66,17 +69,78 @@ class ApiHomeRepository implements HomeRepository {
             image: d.os('image') ?? '',
           ),
       ],
-      ad: ad == null
-          ? null
-          : AdBanner(
-              pageName: ad.s('pageName'),
-              headline: ad.s('headline'),
-              discountPercent: ad.i('discountPercent'),
-              pageId: ad.os('pageId') ?? '',
-            ),
-      featuredPages: [for (final p in j.l('featuredPages')) pageSummaryFromJson(p)],
+      banners: _banners(ad, slotBanners),
+      featuredPages: _featured(
+        [for (final p in j.l('featuredPages')) pageSummaryFromJson(p)],
+        slotFeatured,
+      ),
     );
   }
+
+  /// Paid placements. A failure here must not blank the rest of home.
+  Future<List<Map<String, dynamic>>> _ads(String slot, int? gov) async {
+    try {
+      return asList(
+        await api.get<List<dynamic>>(
+          '/api/v1/ads',
+          query: {'slot': slot, 'governorateId': ?gov},
+        ),
+      );
+    } on ApiException {
+      return const [];
+    }
+  }
+}
+
+AdBanner _bannerFrom(Map<String, dynamic> a) => AdBanner(
+  pageName: a.s('pageName'),
+  headline: a.s('headline').isNotEmpty ? a.s('headline') : a.s('title'),
+  discountPercent: a.i('discountPercent'),
+  pageId: a.s('pageId').isNotEmpty ? a.s('pageId') : (a.os('pageId') ?? ''),
+  image: a.os('image'),
+);
+
+List<AdBanner> _banners(
+  Map<String, dynamic>? homeAd,
+  List<Map<String, dynamic>> slot,
+) {
+  final out = <AdBanner>[
+    for (final a in slot)
+      if (a.s('pageId').isNotEmpty || a.s('pageName').isNotEmpty) _bannerFrom(a),
+  ];
+  if (out.isEmpty && homeAd != null) out.add(_bannerFrom(homeAd));
+  return out;
+}
+
+/// Paid «صفحة مميزة» first, then organic pages. Same page is not repeated.
+List<PageSummary> _featured(
+  List<PageSummary> organic,
+  List<Map<String, dynamic>> slot,
+) {
+  final paidIds = <String>{};
+  final paid = <PageSummary>[];
+  for (final a in slot) {
+    final id = a.s('pageId');
+    if (id.isEmpty || !paidIds.add(id)) continue;
+    final existing = organic.where((p) => p.id == id).firstOrNull;
+    paid.add(
+      PageSummary(
+        id: id,
+        name: existing?.name.isNotEmpty == true ? existing!.name : a.s('pageName'),
+        rating: existing?.rating ?? 0,
+        deals: existing?.deals ?? 0,
+        image: existing?.image ?? a.os('image'),
+        isAd: true,
+      ),
+    );
+  }
+  return [
+    ...paid,
+    for (final p in organic)
+      if (p.isAd && paidIds.add(p.id)) p,
+    for (final p in organic)
+      if (!p.isAd && !paidIds.contains(p.id)) p,
+  ];
 }
 
 LiveRequest liveRequestFromJson(Map<String, dynamic> r) => LiveRequest(

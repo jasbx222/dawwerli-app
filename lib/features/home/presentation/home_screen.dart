@@ -152,6 +152,11 @@ class _Body extends StatelessWidget {
             ),
           ),
         PostRequestCta(onTap: onPost),
+        if (d.banners.isNotEmpty)
+          SponsoredBanner(
+            ad: d.banners.first,
+            onTap: () => context.push(Routes.pageProfile(d.banners.first.pageId)),
+          ),
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(
@@ -171,13 +176,6 @@ class _Body extends StatelessWidget {
         if (d.deals.isNotEmpty) ...[
           const SectionTitle(AppStrings.secDeals),
           DealsStrip(deals: d.deals),
-        ],
-        if (d.ad != null) ...[
-          const SectionTitle(AppStrings.secAds),
-          SponsoredBanner(
-            ad: d.ad!,
-            onTap: () => context.push(Routes.pageProfile(d.ad!.pageId)),
-          ),
         ],
         SectionTitle(
           AppStrings.secFeatured,

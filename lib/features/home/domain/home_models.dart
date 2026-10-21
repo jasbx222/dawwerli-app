@@ -105,11 +105,15 @@ class AdBanner {
     required this.headline,
     required this.discountPercent,
     required this.pageId,
+    this.image,
   });
   final String pageName;
   final String headline;
   final int discountPercent;
   final String pageId;
+
+  /// Uploaded banner creative. Empty when the slot has no image.
+  final String? image;
 }
 
 class PageSummary {
@@ -142,7 +146,7 @@ class HomeData {
     required this.categories,
     required this.feed,
     required this.deals,
-    required this.ad,
+    required this.banners,
     required this.featuredPages,
   });
   final String firstName;
@@ -158,6 +162,8 @@ class HomeData {
 
   /// Only completed in-app orders; section hidden when empty.
   final List<Deal> deals;
-  final AdBanner? ad;
+
+  /// Paid home banners (`homeBanner`). Shown above the fold.
+  final List<AdBanner> banners;
   final List<PageSummary> featuredPages;
 }

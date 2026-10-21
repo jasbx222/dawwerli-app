@@ -32,16 +32,25 @@ class SellerInboxScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(sellerProvider);
     final set = s.settings;
-    final scope =
-        '${set.governorates.first} · ${set.categories.take(2).join('، ')}';
+    final gov = set.governorates.firstOrNull;
+    final cats = set.categories.take(2).join('، ');
+    final scope = [
+      if (gov != null && gov.isNotEmpty) gov,
+      if (cats.isNotEmpty) cats,
+    ].join(' · ');
+    final open = s.inbox
+        .where((r) => !r.offeredByMe && !r.locked(s.config.maxOffers))
+        .firstOrNull;
     return AppPage(
       title: 'طلبات تناسبك',
       showBack: false,
-      trailing: Pill(
-        scope,
-        bg: AppColors.white.withValues(alpha: .18),
-        fg: AppColors.white,
-      ),
+      trailing: scope.isEmpty
+          ? null
+          : Pill(
+              scope,
+              bg: AppColors.white.withValues(alpha: .18),
+              fg: AppColors.white,
+            ),
       nav: const SellerNav(SellerTab.inbox),
       children: [
         if (s.status != VerifyStatus.verified)
@@ -72,6 +81,43 @@ class SellerInboxScreen extends ConsumerWidget {
             ),
           ),
         if (s.earlyAccess) const Gap(_EarlyBanner()),
+        Gap(
+          Row(
+            children: [
+              Expanded(
+                child: AppButton(
+                  'قدّم عرض',
+                  compact: true,
+                  onPressed: open == null
+                      ? () => showAppToast(
+                          context,
+                          'ماكو طلب مفتوح هسه. لمن يجي طلب، قدّم عرضك من هنا',
+                        )
+                      : () => context.push(Routes.sellerSubmit(open.id)),
+                ),
+              ),
+              const SizedBox(width: 8),
+              Expanded(
+                child: AppButton(
+                  'أضف إعلان',
+                  compact: true,
+                  variant: AppButtonVariant.ghost,
+                  onPressed: () => context.push(Routes.sellerAds),
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (s.inbox.isEmpty)
+          const Gap(
+            AppCard(
+              flat: true,
+              child: Text(
+                'ماكو طلبات تناسب صفحتك هسه. الطلب يطلع هنا، وتقدّم عرضك عليه. الإعلان من «أضف إعلان».',
+                textAlign: TextAlign.center,
+              ),
+            ),
+          ),
         for (final r in s.inbox) Gap(_RequestCard(r)),
         Gap(
           Text(

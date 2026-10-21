@@ -202,7 +202,7 @@ class SellerController extends Notifier<SellerState> {
       return state.status;
     }
     final cat = await _catalog;
-    final st = me.m('settings');
+    final st = me.om('settings') ?? const <String, dynamic>{};
     final status = _pageStatus[me.s('status')] ?? VerifyStatus.pending;
     state = state.copyWith(
       config: config,
@@ -229,17 +229,26 @@ class SellerController extends Notifier<SellerState> {
       ),
     );
     if (status == VerifyStatus.verified) {
+      // One failed section must not wipe the inbox or hide the rest.
       await Future.wait([
-        loadInbox(),
-        loadOffers(),
-        loadWallet(),
-        loadAds(),
-        loadStanding(),
-        loadRatings(),
-        loadNotices(),
+        _keep(loadInbox),
+        _keep(loadOffers),
+        _keep(loadWallet),
+        _keep(loadAds),
+        _keep(loadStanding),
+        _keep(loadRatings),
+        _keep(loadNotices),
       ]);
     }
     return state.status;
+  }
+
+  Future<void> _keep(Future<void> Function() load) async {
+    try {
+      await load();
+    } on Object {
+      // Leave the last good value for this section.
+    }
   }
 
   Future<void> loadInbox() async {
@@ -254,7 +263,9 @@ class SellerController extends Notifier<SellerState> {
             governorate: r.s('governorate'),
             condition: r.s('condition'),
             maxPrice: r.i('maxPrice'),
-            postedAt: r.t('postedAt'),
+            postedAt:
+                DateTime.tryParse(r.os('postedAt') ?? '')?.toLocal() ??
+                DateTime.now(),
             offers: r.i('offers'),
             earlyUntil: r.ot('earlyUntil'),
             earlyTaken: r.i('earlyTaken'),
@@ -270,13 +281,14 @@ class SellerController extends Notifier<SellerState> {
     state = state.copyWith(
       offers: [
         for (final o in list)
+          if (_enumByName(OfferState.values, o.s('state')) case final state?)
           SellerOffer(
             id: o.s('id'),
             requestId: o.s('requestId'),
             title: o.s('title'),
             image: o.os('image') ?? '',
             price: o.i('price'),
-            state: OfferState.values.byName(o.s('state')),
+            state: state,
             orderId: o.os('orderId'),
             orderNo: o.os('orderNo'),
             chosenAt: o.ot('chosenAt'),
@@ -325,13 +337,15 @@ class SellerController extends Notifier<SellerState> {
       openReport: !el.b('noOpenReports'),
       ads: [
         for (final a in list)
+          if (_enumByName(AdSlot.values, a.s('slot')) case final slot?)
+            if (_enumByName(AdStatus.values, a.s('status')) case final status?)
           AdCampaign(
             id: a.s('id'),
-            slot: AdSlot.values.byName(a.s('slot')),
+            slot: slot,
             title: a.s('title'),
             place: a.s('place'),
             image: a.os('image') ?? '',
-            status: AdStatus.values.byName(a.s('status')),
+            status: status,
             note: a.os('note'),
             impressions: a.i('impressions'),
             clicks: a.i('clicks'),
@@ -595,6 +609,10 @@ class SellerController extends Notifier<SellerState> {
 final sellerProvider = NotifierProvider<SellerController, SellerState>(
   SellerController.new,
 );
+
+T? _enumByName<T extends Enum>(List<T> values, String name) => values
+    .where((e) => e.name.toLowerCase() == name.toLowerCase())
+    .firstOrNull;
 
 /// Where the page app opens for a verification status.
 String sellerEntryRoute(VerifyStatus s) => switch (s) {
