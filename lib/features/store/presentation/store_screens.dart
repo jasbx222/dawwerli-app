@@ -14,7 +14,6 @@ import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/app_sheet.dart';
 import '../../../core/widgets/loading_block.dart';
 import '../../../core/widgets/page_tile.dart';
-import '../../../core/widgets/pill.dart';
 import '../../../core/widgets/radio_row.dart';
 import '../../guest/guest.dart';
 import '../../home/data/home_providers.dart';
@@ -125,13 +124,16 @@ class PageProductsScreen extends ConsumerWidget {
       subtitle: page?.name,
       bottom: cart.isEmpty
           ? null
-          : CartBar(cart: cart, onTap: () => context.push(Routes.cart)),
-      children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
-          child: PageProductsSection(pageId: pageId),
-        ),
-      ],
+          : StoreWidth(
+              top: 0,
+              padded: false,
+              maxWidth: 760,
+              child: CartBar(
+                cart: cart,
+                onTap: () => context.push(Routes.cart),
+              ),
+            ),
+      children: [StoreWidth(child: PageProductsSection(pageId: pageId))],
     );
   }
 }
@@ -149,10 +151,17 @@ class TopProductsScreen extends ConsumerWidget {
       subtitle: 'من الصفحات اللي زباينها راضين عنها',
       bottom: cart.isEmpty
           ? null
-          : CartBar(cart: cart, onTap: () => context.push(Routes.cart)),
+          : StoreWidth(
+              top: 0,
+              padded: false,
+              maxWidth: 760,
+              child: CartBar(
+                cart: cart,
+                onTap: () => context.push(Routes.cart),
+              ),
+            ),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        StoreWidth(
           child: products.when(
             loading: () => const ProductGrid(items: [], skeleton: 6),
             error: (e, _) => StoreMessage(
@@ -184,11 +193,18 @@ class _Gallery extends StatefulWidget {
     required this.favorite,
     required this.onFavorite,
     required this.soldOut,
+    required this.height,
+    this.rounded = false,
   });
   final List<String> images;
   final bool favorite;
   final VoidCallback onFavorite;
   final bool soldOut;
+  final double height;
+
+  /// Rounded on all corners inside a centered column (tablet / web); else
+  /// full-bleed under the status bar with a rounded bottom.
+  final bool rounded;
 
   @override
   State<_Gallery> createState() => _GalleryState();
@@ -216,20 +232,17 @@ class _GalleryState extends State<_Gallery> {
   @override
   Widget build(BuildContext context) {
     final images = widget.images;
-    final top = MediaQuery.viewPaddingOf(context).top;
-    final height = (MediaQuery.sizeOf(context).width * 1.05).clamp(
-      300.0,
-      460.0,
-    );
+    final top = widget.rounded ? 0.0 : MediaQuery.viewPaddingOf(context).top;
+    final height = widget.height;
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
         SizedBox(
           height: height,
           child: ClipRRect(
-            borderRadius: const BorderRadius.vertical(
-              bottom: Radius.circular(32),
-            ),
+            borderRadius: widget.rounded
+                ? BorderRadius.circular(28)
+                : const BorderRadius.vertical(bottom: Radius.circular(32)),
             child: Stack(
               fit: StackFit.expand,
               children: [
@@ -322,7 +335,12 @@ class _GalleryState extends State<_Gallery> {
             height: 76,
             child: ListView.separated(
               scrollDirection: Axis.horizontal,
-              padding: const EdgeInsets.fromLTRB(16, 12, 16, 0),
+              padding: EdgeInsets.fromLTRB(
+                widget.rounded ? 0 : 16,
+                12,
+                widget.rounded ? 0 : 16,
+                0,
+              ),
               itemCount: images.length,
               separatorBuilder: (_, _) => const SizedBox(width: 8),
               itemBuilder: (_, i) => Semantics(
@@ -490,8 +508,8 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       error: (e, _) => AppPage(
         title: 'المنتج',
         children: [
-          Padding(
-            padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          StoreWidth(
+            maxWidth: 760,
             child: e is ApiException && e.status == 404
                 ? StoreMessage(
                     title: 'هالمنتج ما بقى متوفر',
@@ -517,168 +535,183 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     final max = p.stock.clamp(1, _maxPerLine);
     if (_qty > max) _qty = max;
     final inset = MediaQuery.viewPaddingOf(context).bottom;
+    final layout = _DetailsLayout.of(context);
+    final gallery = _Gallery(
+      images: p.images,
+      favorite: favorite,
+      soldOut: !p.available,
+      height: layout.galleryHeight,
+      rounded: layout.kind != _DetailsKind.phone,
+      onFavorite: () => toggleFavorite(context, ref, p.id, widget.pageId),
+    );
+    final info = Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        _StockLine(product: p),
+        const SizedBox(height: 6),
+        Text(p.name, style: AppText.big.copyWith(fontSize: 22, height: 1.45)),
+        const SizedBox(height: 4),
+        Text.rich(
+          TextSpan(
+            text: thousandsIqd(p.price),
+            style: AppText.number.copyWith(
+              fontSize: 26,
+              fontWeight: FontWeight.w700,
+              color: AppColors.blue,
+            ),
+            children: [
+              TextSpan(
+                text: ' د.ع',
+                style: TextStyle(
+                  fontSize: 15,
+                  fontWeight: FontWeight.w600,
+                  color: AppColors.grey,
+                ),
+              ),
+            ],
+          ),
+        ),
+        if (p.ratingCount > 0) ...[
+          const SizedBox(height: 4),
+          Wrap(
+            spacing: 6,
+            crossAxisAlignment: WrapCrossAlignment.center,
+            children: [
+              StarRow(value: p.rating, size: 16),
+              Text(
+                '${p.rating.toStringAsFixed(1)} · ${p.ratingCount} تقييم',
+                style: AppText.muted.copyWith(fontSize: 13),
+              ),
+            ],
+          ),
+        ],
+        if (page != null) ...[
+          const SizedBox(height: 18),
+          _PageRow(
+            name: page.name,
+            rating: page.rating,
+            deals: page.deals,
+            image: page.image,
+            onTap: () => context.push(Routes.pageProfile(widget.pageId)),
+          ),
+        ],
+        const SizedBox(height: 22),
+        Text('الوصف', style: AppText.strong.copyWith(fontSize: 16)),
+        const SizedBox(height: 6),
+        Text(
+          p.description.isEmpty
+              ? 'الصفحة ما كتبت وصف لهالمنتج.'
+              : p.description,
+          style: AppText.body.copyWith(
+            height: 1.8,
+            color: p.description.isEmpty ? AppColors.grey : AppColors.ink,
+          ),
+        ),
+        _ReviewsSection(
+          productId: p.id,
+          pageId: widget.pageId,
+          productName: p.name,
+          rating: p.rating,
+          count: p.ratingCount,
+        ),
+        const SizedBox(height: 18),
+        AppCard(
+          flat: true,
+          color: AppColors.blueTint,
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              const AppSvgIcon(
+                AppIcon.shieldCheck,
+                color: AppColors.blue,
+                size: 22,
+              ),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'تدفع كاش عند الاستلام أو إلكتروني إذا متاح، وتتابع طلبك من «طلباتي». تكدر تلغيه ما دام بعده جديد.',
+                  style: TextStyle(
+                    fontSize: 13,
+                    height: 1.7,
+                    color: AppColors.infoText,
+                  ),
+                ),
+              ),
+            ],
+          ),
+        ),
+        const SizedBox(height: 14),
+        Center(
+          child: Semantics(
+            button: true,
+            child: GestureDetector(
+              onTap: () => memberOnly(context, ref, () => _report(p)),
+              behavior: HitTestBehavior.opaque,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  vertical: 8,
+                  horizontal: 12,
+                ),
+                child: Row(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    AppSvgIcon(AppIcon.flag, size: 16, color: AppColors.grey),
+                    const SizedBox(width: 6),
+                    Text(
+                      'شي غلط بهالمنتج؟ بلّغ عليه',
+                      style: AppText.muted.copyWith(
+                        decoration: TextDecoration.underline,
+                        decorationColor: AppColors.grey,
+                      ),
+                    ),
+                  ],
+                ),
+              ),
+            ),
+          ),
+        ),
+      ],
+    );
+    final top = MediaQuery.viewPaddingOf(context).top;
     return Scaffold(
       body: RefreshIndicator(
         onRefresh: () => ref.refresh(productProvider(_key).future),
         child: ListView(
           padding: EdgeInsets.zero,
-          children: [
-            _Gallery(
-              images: p.images,
-              favorite: favorite,
-              soldOut: !p.available,
-              onFavorite: () =>
-                  toggleFavorite(context, ref, p.id, widget.pageId),
-            ),
-            Padding(
-              padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  Wrap(
-                    spacing: 8,
-                    runSpacing: 8,
-                    children: [
-                      _stockPill(p),
-                      if (p.category.isNotEmpty)
-                        PillTone.stone.pill(p.category),
-                    ],
-                  ),
-                  const SizedBox(height: 12),
-                  Text(
-                    p.name,
-                    style: AppText.big.copyWith(fontSize: 22, height: 1.45),
-                  ),
-                  const SizedBox(height: 6),
-                  Text.rich(
-                    TextSpan(
-                      text: thousandsIqd(p.price),
-                      style: AppText.number.copyWith(
-                        fontSize: 26,
-                        fontWeight: FontWeight.w700,
-                        color: AppColors.blue,
-                      ),
-                      children: [
-                        TextSpan(
-                          text: ' د.ع',
-                          style: TextStyle(
-                            fontSize: 15,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.grey,
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  if (p.ratingCount > 0) ...[
-                    const SizedBox(height: 6),
-                    Row(
-                      children: [
-                        StarRow(value: p.rating, size: 17),
-                        const SizedBox(width: 6),
-                        Text(
-                          '${p.rating.toStringAsFixed(1)} · ${p.ratingCount} تقييم',
-                          style: AppText.muted.copyWith(fontSize: 13),
-                        ),
-                      ],
-                    ),
-                  ],
-                  if (page != null) ...[
-                    const SizedBox(height: 16),
-                    _PageRow(
-                      name: page.name,
-                      rating: page.rating,
-                      deals: page.deals,
-                      image: page.image,
-                      onTap: () =>
-                          context.push(Routes.pageProfile(widget.pageId)),
-                    ),
-                  ],
-                  const SizedBox(height: 18),
-                  Text('الوصف', style: AppText.strong.copyWith(fontSize: 16)),
-                  const SizedBox(height: 6),
-                  Text(
-                    p.description.isEmpty
-                        ? 'الصفحة ما كتبت وصف لهالمنتج.'
-                        : p.description,
-                    style: AppText.body.copyWith(
-                      height: 1.8,
-                      color: p.description.isEmpty
-                          ? AppColors.grey
-                          : AppColors.ink,
-                    ),
-                  ),
-                  _ReviewsSection(
-                    productId: p.id,
-                    pageId: widget.pageId,
-                    productName: p.name,
-                    rating: p.rating,
-                    count: p.ratingCount,
-                  ),
-                  const SizedBox(height: 18),
-                  AppCard(
-                    flat: true,
-                    color: AppColors.blueTint,
-                    child: Row(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        const AppSvgIcon(
-                          AppIcon.shieldCheck,
-                          color: AppColors.blue,
-                          size: 22,
-                        ),
-                        const SizedBox(width: 10),
-                        Expanded(
-                          child: Text(
-                            'تدفع كاش عند الاستلام أو إلكتروني إذا متاح، وتتابع طلبك من «طلباتي». تكدر تلغيه ما دام بعده جديد.',
-                            style: TextStyle(
-                              fontSize: 13,
-                              height: 1.7,
-                              color: AppColors.infoText,
-                            ),
-                          ),
-                        ),
-                      ],
-                    ),
-                  ),
-                  const SizedBox(height: 14),
-                  Center(
-                    child: Semantics(
-                      button: true,
-                      child: GestureDetector(
-                        onTap: () => memberOnly(context, ref, () => _report(p)),
-                        behavior: HitTestBehavior.opaque,
-                        child: Padding(
-                          padding: const EdgeInsets.symmetric(
-                            vertical: 8,
-                            horizontal: 12,
-                          ),
-                          child: Row(
-                            mainAxisSize: MainAxisSize.min,
-                            children: [
-                              AppSvgIcon(
-                                AppIcon.flag,
-                                size: 16,
-                                color: AppColors.grey,
-                              ),
-                              const SizedBox(width: 6),
-                              Text(
-                                'شي غلط بهالمنتج؟ بلّغ عليه',
-                                style: AppText.muted.copyWith(
-                                  decoration: TextDecoration.underline,
-                                  decorationColor: AppColors.grey,
-                                ),
-                              ),
-                            ],
-                          ),
-                        ),
-                      ),
-                    ),
-                  ),
-                ],
+          children: switch (layout.kind) {
+            _DetailsKind.phone => [
+              gallery,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
+                child: info,
               ),
-            ),
-          ],
+            ],
+            _DetailsKind.tablet => [
+              StoreWidth(
+                maxWidth: _DetailsLayout.column,
+                top: top + 16,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [gallery, const SizedBox(height: 20), info],
+                ),
+              ),
+              const SizedBox(height: 24),
+            ],
+            _DetailsKind.wide => [
+              StoreWidth(
+                top: top + 24,
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Expanded(child: gallery),
+                    const SizedBox(width: 36),
+                    Expanded(child: info),
+                  ],
+                ),
+              ),
+              const SizedBox(height: 32),
+            ],
+          },
         ),
       ),
       bottomNavigationBar: Container(
@@ -694,55 +727,64 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             ),
           ],
         ),
-        child: p.available
-            ? Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Row(
-                    children: [
-                      QuantityStepper(
-                        value: _qty,
-                        max: max,
-                        onChanged: (v) => setState(() => _qty = v),
-                      ),
-                      const SizedBox(width: 12),
-                      Expanded(
-                        child: AppButton(
-                          _adding
-                              ? 'دا نضيف...'
-                              : 'أضف للسلة · ${thousandsIqd(p.price * _qty)}',
-                          icon: _adding ? null : AppIcon.cart,
-                          onPressed: _adding
-                              ? null
-                              : () => memberOnly(context, ref, () => _add(p)),
+        child: StoreWidth(
+          top: 0,
+          padded: false,
+          maxWidth: _DetailsLayout.column,
+          child: p.available
+              ? Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Row(
+                      children: [
+                        QuantityStepper(
+                          value: _qty,
+                          max: max,
+                          onChanged: (v) => setState(() => _qty = v),
                         ),
-                      ),
-                    ],
-                  ),
-                ],
-              )
-            : const Column(
-                mainAxisSize: MainAxisSize.min,
-                crossAxisAlignment: CrossAxisAlignment.stretch,
-                children: [
-                  AppButton(
-                    ProductCard.soldOut,
-                    variant: AppButtonVariant.disabled,
-                  ),
-                ],
-              ),
+                        const SizedBox(width: 12),
+                        Expanded(
+                          // The total joins the label only when it fits.
+                          child: LayoutBuilder(
+                            builder: (context, box) {
+                              final scale = MediaQuery.textScalerOf(context)
+                                  .scale(1);
+                              final roomy = box.maxWidth / scale >= 250;
+                              return AppButton(
+                                _adding
+                                    ? 'دا نضيف...'
+                                    : roomy
+                                    ? 'أضف للسلة · ${thousandsIqd(p.price * _qty)}'
+                                    : 'أضف للسلة',
+                                icon: _adding ? null : AppIcon.cart,
+                                onPressed: _adding
+                                    ? null
+                                    : () => memberOnly(
+                                        context,
+                                        ref,
+                                        () => _add(p),
+                                      ),
+                              );
+                            },
+                          ),
+                        ),
+                      ],
+                    ),
+                  ],
+                )
+              : const Column(
+                  mainAxisSize: MainAxisSize.min,
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    AppButton(
+                      ProductCard.soldOut,
+                      variant: AppButtonVariant.disabled,
+                    ),
+                  ],
+                ),
+        ),
       ),
     );
-  }
-
-  Widget _stockPill(StoreProduct p) {
-    if (!p.available) {
-      return PillTone.red.pill(ProductCard.soldOut, icon: AppIcon.xCircle);
-    }
-    if (p.lowStock) {
-      return PillTone.gold.pill('باقي ${p.stock} بس', icon: AppIcon.hourglass);
-    }
-    return PillTone.teal.pill('متوفر', check: true);
   }
 
   Future<void> _add(StoreProduct p) async {
@@ -808,6 +850,67 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     if (sent == true && mounted) {
       showAppToast(context, 'وصلنا بلاغك، فريقنا يراجعه');
     }
+  }
+}
+
+enum _DetailsKind { phone, tablet, wide }
+
+/// Details screen breakpoints: full-bleed on phones, one centered column on
+/// tablets, gallery and info side by side on wide screens.
+class _DetailsLayout {
+  const _DetailsLayout(this.kind, this.galleryHeight);
+  final _DetailsKind kind;
+  final double galleryHeight;
+
+  static const column = 720.0;
+
+  static _DetailsLayout of(BuildContext context) {
+    final size = MediaQuery.sizeOf(context);
+    final w = size.width, h = size.height;
+    if (w >= 1000) {
+      final col = (w.clamp(0, 1120 + 48) - 48 - 36) / 2;
+      return _DetailsLayout(_DetailsKind.wide, col.clamp(320.0, h * .75));
+    }
+    if (w >= 700) {
+      return _DetailsLayout(
+        _DetailsKind.tablet,
+        (column * .72).clamp(300.0, h * .5),
+      );
+    }
+    return _DetailsLayout(_DetailsKind.phone, (w * .95).clamp(260.0, h * .52));
+  }
+}
+
+/// One quiet line: category and the stock state as a coloured dot.
+class _StockLine extends StatelessWidget {
+  const _StockLine({required this.product});
+  final StoreProduct product;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = product;
+    final (color, text) = !p.available
+        ? (AppColors.danger, ProductCard.soldOut)
+        : p.lowStock
+        ? (AppColors.warn, 'باقي ${p.stock} بس')
+        : (AppColors.success, 'متوفر');
+    return Wrap(
+      spacing: 6,
+      runSpacing: 2,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: [
+        if (p.category.isNotEmpty) ...[
+          Text(p.category, style: AppText.muted.copyWith(fontSize: 13)),
+          Text('·', style: AppText.muted),
+        ],
+        Container(
+          width: 7,
+          height: 7,
+          decoration: BoxDecoration(color: color, shape: BoxShape.circle),
+        ),
+        Text(text, style: AppText.label.copyWith(color: color, fontSize: 13)),
+      ],
+    );
   }
 }
 
@@ -1100,10 +1203,7 @@ class _DetailsSkeleton extends StatelessWidget {
         borderRadius: BorderRadius.circular(10),
       ),
     );
-    final height = (MediaQuery.sizeOf(context).width * 1.05).clamp(
-      300.0,
-      460.0,
-    );
+    final height = _DetailsLayout.of(context).galleryHeight;
     return Scaffold(
       body: ListView(
         padding: EdgeInsets.zero,
@@ -1200,8 +1300,8 @@ class CartScreen extends ConsumerWidget {
               ],
             ),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        StoreWidth(
+          maxWidth: 760,
           child: cart.when(
             loading: () => const LoadingBlock(),
             error: (e, _) => StoreMessage(
@@ -1270,20 +1370,29 @@ class CartScreen extends ConsumerWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: AppText.strong,
                                     ),
-                                    const SizedBox(height: 2),
-                                    Text(
-                                      '${l.quantity} × ${_money(l.price)}',
-                                      style: AppText.muted,
+                                    const SizedBox(height: 4),
+                                    Row(
+                                      children: [
+                                        Expanded(
+                                          child: Text(
+                                            '${l.quantity} × ${_money(l.price)}',
+                                            maxLines: 1,
+                                            overflow: TextOverflow.ellipsis,
+                                            style: AppText.muted,
+                                          ),
+                                        ),
+                                        const SizedBox(width: 8),
+                                        Text(
+                                          _money(l.price * l.quantity),
+                                          style: AppText.number.copyWith(
+                                            fontSize: 14.5,
+                                            fontWeight: FontWeight.w700,
+                                            color: AppColors.ink,
+                                          ),
+                                        ),
+                                      ],
                                     ),
                                   ],
-                                ),
-                              ),
-                              Text(
-                                _money(l.price * l.quantity),
-                                style: AppText.number.copyWith(
-                                  fontSize: 14.5,
-                                  fontWeight: FontWeight.w700,
-                                  color: AppColors.ink,
                                 ),
                               ),
                             ],
@@ -1590,10 +1699,17 @@ class FavoritesScreen extends ConsumerWidget {
       subtitle: 'المنتجات اللي حطيت عليها قلب',
       bottom: cart.isEmpty
           ? null
-          : CartBar(cart: cart, onTap: () => context.push(Routes.cart)),
+          : StoreWidth(
+              top: 0,
+              padded: false,
+              maxWidth: 760,
+              child: CartBar(
+                cart: cart,
+                onTap: () => context.push(Routes.cart),
+              ),
+            ),
       children: [
-        Padding(
-          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+        StoreWidth(
           child: list.when(
             skipLoadingOnReload: true,
             loading: () => const ProductGrid(items: [], skeleton: 4),
