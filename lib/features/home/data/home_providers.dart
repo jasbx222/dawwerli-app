@@ -33,3 +33,17 @@ final featuredPagesProvider =
     FutureProvider.family<FeaturedPages, FeaturedQuery>(
       (ref, q) => ref.watch(pagesRepositoryProvider).featured(q),
     );
+
+/// «منتجات أعلى الصفحات تقييماً» → «الكل». Falls back to the home strip when
+/// the server has no top-rated endpoint yet.
+final topRatedProductsProvider = FutureProvider.autoDispose<List<HomeProduct>>(
+  (ref) async {
+    try {
+      return await ref
+          .watch(homeRepositoryProvider)
+          .topRatedProducts(pages: 12, perPage: 6);
+    } on Object {
+      return (await ref.watch(homeDataProvider.future)).topProducts;
+    }
+  },
+);

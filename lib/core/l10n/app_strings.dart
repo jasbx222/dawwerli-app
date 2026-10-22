@@ -152,7 +152,7 @@ abstract final class AppStrings {
   static const secAds = 'عروض اليوم';
   static const secFeatured = 'صفحات مميزة';
   static const secSponsored = 'عروض مُموّلة';
-  static const secTopProducts = 'منتجات أعلى الصفحات';
+  static const secTopProducts = 'منتجات أعلى الصفحات تقييماً';
   static const seeAll = 'الكل';
   static String trendingIn(String gov) => '🔥 ترند ب$gov';
   static const badgeNew = 'جديد';

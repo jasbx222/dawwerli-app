@@ -112,21 +112,55 @@ class ApiHomeRepository implements HomeRepository {
 
   /// Products of the highest-rated pages. A failure must not blank home.
   Future<List<HomeProduct>> _topProducts(List<PageSummary> pages) async {
-    final ranked = [...pages]..sort((a, b) {
-      final byRating = b.rating.compareTo(a.rating);
-      return byRating != 0 ? byRating : b.deals.compareTo(a.deals);
-    });
+    try {
+      final top = await topRatedProducts(pages: 4, perPage: 2);
+      if (top.isNotEmpty) return top.take(8).toList();
+    } on Object {
+      // Older servers have no /products/top-rated; rank the pages here instead.
+    }
+    final ranked = [...pages]
+      ..sort((a, b) {
+        final byRating = b.rating.compareTo(a.rating);
+        return byRating != 0 ? byRating : b.deals.compareTo(a.deals);
+      });
     final rated = ranked.where((p) => p.rating > 0).take(4).toList();
     final picked = rated.isEmpty ? ranked.take(4).toList() : rated;
     final lists = await Future.wait(picked.map(_productsOf));
     return [for (final list in lists) ...list].take(8).toList();
   }
 
+  @override
+  Future<List<HomeProduct>> topRatedProducts({
+    int pages = 6,
+    int perPage = 3,
+  }) async {
+    final list = asList(
+      await api.get<List<dynamic>>(
+        '/api/v1/products/top-rated',
+        query: {'pages': pages, 'perPage': perPage},
+      ),
+    );
+    return [
+      for (final p in list)
+        if (p.s('id').isNotEmpty && p.b('available'))
+          HomeProduct(
+            pageId: p.s('pageId'),
+            pageName: p.s('pageName'),
+            id: p.s('id'),
+            name: p.s('name'),
+            price: p.i('price'),
+            image: p.os('imageUrl') ?? '',
+            description: p.s('description'),
+            stock: p.oi('stock'),
+            pageRating: p.d('pageRating'),
+          ),
+    ];
+  }
+
   Future<List<HomeProduct>> _productsOf(PageSummary page) async {
     try {
-      final list = asList(
-        await api.get<List<dynamic>>('/api/v1/pages/${page.id}/products'),
-      );
+      final raw = await api.get<Object?>('/api/v1/pages/${page.id}/products');
+      final list = raw is Map ? asList(raw['items']) : asList(raw);
       final out = <HomeProduct>[];
       for (final p in list) {
         if (p.containsKey('available') && p['available'] == false) continue;
@@ -144,7 +178,12 @@ class ApiHomeRepository implements HomeRepository {
             id: id,
             name: name,
             price: p.i('price'),
-            image: urls.isNotEmpty ? urls.first : (p.os('image') ?? ''),
+            image: urls.isNotEmpty
+                ? urls.first
+                : (p.os('imageUrl') ?? p.os('image') ?? ''),
+            description: p.s('description'),
+            stock: p.oi('stock'),
+            pageRating: page.rating,
           ),
         );
         if (out.length == 2) break;
@@ -170,7 +209,8 @@ List<AdBanner> _banners(
 ) {
   final out = <AdBanner>[
     for (final a in slot)
-      if (a.s('pageId').isNotEmpty || a.s('pageName').isNotEmpty) _bannerFrom(a),
+      if (a.s('pageId').isNotEmpty || a.s('pageName').isNotEmpty)
+        _bannerFrom(a),
   ];
   if (out.isEmpty && homeAd != null) out.add(_bannerFrom(homeAd));
   return out;
@@ -190,7 +230,9 @@ List<PageSummary> _sponsoredPages(
     out.add(
       PageSummary(
         id: id,
-        name: existing?.name.isNotEmpty == true ? existing!.name : a.s('pageName'),
+        name: existing?.name.isNotEmpty == true
+            ? existing!.name
+            : a.s('pageName'),
         rating: existing?.rating ?? 0,
         deals: existing?.deals ?? 0,
         image: existing?.image ?? a.os('image'),

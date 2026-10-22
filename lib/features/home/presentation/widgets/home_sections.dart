@@ -2,6 +2,9 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../store/presentation/widgets/product_card.dart';
+import '../../../store/presentation/widgets/store_widgets.dart';
+
 import '../../../../core/widgets/app_image.dart';
 
 import 'package:dawwerli/core/widgets/emoji_text.dart';
@@ -587,84 +590,32 @@ class LiveFeedCard extends StatelessWidget {
   );
 }
 
+/// Home «منتجات أعلى الصفحات تقييماً»: horizontal row of product cards.
+/// A plain Row (not a fixed-height ListView) so the cards keep their natural
+/// height under any text scale.
 class ProductStrip extends StatelessWidget {
-  const ProductStrip({super.key, required this.products, this.onTap});
+  const ProductStrip({super.key, required this.products});
   final List<HomeProduct> products;
-  final ValueChanged<HomeProduct>? onTap;
+
+  static const cardWidth = 196.0;
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 168,
-    child: ListView.separated(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: products.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 10),
-      itemBuilder: (_, i) {
-        final p = products[i];
-        return GestureDetector(
-          onTap: () => onTap?.call(p),
-          child: Container(
-            width: 150,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.cardRing),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                SizedBox(
-                  height: 86,
-                  width: double.infinity,
-                  child: p.image.isEmpty
-                      ? ColoredBox(color: AppColors.blueTint)
-                      : AppImage(p.image, fit: BoxFit.cover),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        p.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '${thousands(p.price)} د.ع',
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.blue,
-                        ),
-                      ),
-                      Text(
-                        p.pageName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          height: 1.4,
-                          color: AppColors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
-                ),
-              ],
-            ),
+  Widget build(BuildContext context) => SingleChildScrollView(
+    scrollDirection: Axis.horizontal,
+    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
+    clipBehavior: Clip.none,
+    child: Row(
+      crossAxisAlignment: CrossAxisAlignment.start,
+      children: [
+        for (var i = 0; i < products.length; i++) ...[
+          if (i > 0) const SizedBox(width: 12),
+          StoreProductCard(
+            data: homeProductCard(products[i]),
+            cta: ProductCardCta.pill,
+            width: cardWidth,
           ),
-        );
-      },
+        ],
+      ],
     ),
   );
 }

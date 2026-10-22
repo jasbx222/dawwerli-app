@@ -256,11 +256,11 @@ class _Body extends StatelessWidget {
           ),
         ],
         if (d.topProducts.isNotEmpty) ...[
-          const SectionTitle(AppStrings.secTopProducts),
-          ProductStrip(
-            products: d.topProducts,
-            onTap: (p) => context.push(Routes.product(p.pageId, p.id)),
+          SectionTitle(
+            AppStrings.secTopProducts,
+            onSeeAll: () => context.push(Routes.topProducts),
           ),
+          ProductStrip(products: d.topProducts),
         ],
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
