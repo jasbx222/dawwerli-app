@@ -16,12 +16,12 @@ import 'discover_widgets.dart';
 
 /// Tag of the [i]th product of a ranking.
 String? rankBadge(ProductRanking r, HomeProduct p, int i) {
-  final rank = i < 3 ? '#${i + 1}' : null;
+  // The top 3 keep just the rank so the tag fits a 360 card.
+  if (i < 3) return '#${i + 1}';
   if (r == ProductRanking.bestSelling && p.sold > 0) {
-    final sold = 'انباع ${compactCount(p.sold)}';
-    return rank == null ? sold : '$rank · $sold';
+    return 'انباع ${compactCount(p.sold)}';
   }
-  return rank;
+  return null;
 }
 
 /// Home slider of a ranking: the first 10 and «عرض المزيد».
