@@ -1,3 +1,5 @@
+import 'dart:typed_data';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/theme/app_colors.dart';
@@ -19,10 +21,8 @@ class ProductCardData {
     this.stock,
     this.caption,
     this.badge,
-    this.badgeIcon,
     this.rating = 0,
     this.ratingCount = 0,
-    this.captionRating,
   });
   final String id;
   final String pageId;
@@ -33,34 +33,25 @@ class ProductCardData {
   final bool available;
   final int? stock;
 
-  /// Small line above the title, e.g. the page name on home.
+  /// Muted line under the title (e.g. the page name on home). Falls back to
+  /// [description].
   final String? caption;
 
-  /// Corner tag on the image, e.g. the page rating or «باقي 2».
+  /// The one tag on the image, e.g. «باقي 2». Sold out replaces it.
   final String? badge;
-  final AppIcon? badgeIcon;
 
-  /// Product rating; the chip shows only once someone rated it.
+  /// Product rating; shown next to the muted line once someone rated it.
   final double rating;
   final int ratingCount;
-
-  /// Star value shown after [caption], e.g. the page rating on home.
-  final double? captionRating;
 }
 
-/// Where the add-to-cart action sits.
-enum ProductCardCta {
-  /// «أضف» pill next to the price. Needs ~190px of width.
-  pill,
-
-  /// Compact rounded cart button in the bottom corner. Fits 2-column grids.
-  corner,
-}
-
-/// Store product card: big rounded image, corner badge, favorite heart, bold
-/// title, two muted description lines and the price with the cart action.
+/// Store product card in the reference's notched style: a rounded image, a
+/// bold one-line title, one muted line, the price, and a single cart button
+/// sitting in a notch cut out of the bottom-end corner.
 ///
-/// Uses directional insets, so the badge and the heart swap sides in RTL.
+/// Its height depends only on its width and the text scale (fixed line
+/// counts, square image), so cards of the same width always line up. It has
+/// no intrinsic width: give it one (grid cell, strip item).
 class ProductCard extends StatelessWidget {
   const ProductCard({
     super.key,
@@ -69,8 +60,6 @@ class ProductCard extends StatelessWidget {
     this.onAdd,
     this.favorite = false,
     this.onFavorite,
-    this.cta = ProductCardCta.corner,
-    this.width,
     this.adding = false,
   });
 
@@ -79,79 +68,178 @@ class ProductCard extends StatelessWidget {
   final VoidCallback? onAdd;
   final bool favorite;
   final VoidCallback? onFavorite;
-  final ProductCardCta cta;
-  final double? width;
 
-  /// Shows a spinner on the cart action while the add request runs.
+  /// Shows a spinner on the cart button while the add request runs.
   final bool adding;
 
-  static const radius = 26.0;
-  static const imageRadius = 20.0;
-  static const inset = 7.0;
+  static const radius = 22.0;
+  static const imageRadius = 16.0;
+  static const inset = 6.0;
+
+  /// Cart button edge and the gap around it inside the notch.
+  static const button = 44.0;
+  static const notchGap = 6.0;
+  static const notch = button + notchGap;
   static const soldOut = 'نفدت الكمية';
-  static const addLabel = 'أضف';
+
+  static List<BoxShadow> get shadow => [
+    BoxShadow(
+      color: AppColors.navy.withValues(alpha: AppColors.dark ? .3 : .07),
+      offset: const Offset(0, 4),
+      blurRadius: 16,
+    ),
+  ];
 
   @override
   Widget build(BuildContext context) {
-    final card = Semantics(
-      button: onTap != null,
+    final hasCta = onAdd != null || !data.available;
+    return Semantics(
+      container: true,
       label:
           '${data.name}، ${thousands(data.price)} دينار'
           '${data.available ? '' : '، $soldOut'}',
-      child: GestureDetector(
-        onTap: onTap,
-        behavior: HitTestBehavior.opaque,
-        child: Container(
-          padding: const EdgeInsets.all(inset),
-          decoration: BoxDecoration(
-            color: AppColors.surface,
-            borderRadius: BorderRadius.circular(radius),
-            border: Border.all(color: AppColors.cardRing),
-            boxShadow: [
-              BoxShadow(
-                color: AppColors.navy.withValues(alpha: .07),
-                offset: const Offset(0, 10),
-                blurRadius: 24,
-                spreadRadius: -8,
-              ),
-            ],
-          ),
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.stretch,
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              _ImageArea(
-                data: data,
-                favorite: favorite,
-                onFavorite: onFavorite,
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(7, 10, 7, 3),
-                child: _Texts(data: data),
-              ),
-              Padding(
-                padding: const EdgeInsetsDirectional.fromSTEB(7, 8, 0, 0),
-                child: Row(
-                  crossAxisAlignment: CrossAxisAlignment.center,
+      child: Stack(
+        children: [
+          DecoratedBox(
+            decoration: ShapeDecoration(
+              color: AppColors.surface,
+              shadows: shadow,
+              shape: NotchedCardBorder(notch: hasCta ? notch : 0),
+            ),
+            child: Material(
+              type: MaterialType.transparency,
+              shape: NotchedCardBorder(notch: hasCta ? notch : 0),
+              clipBehavior: Clip.antiAlias,
+              child: InkWell(
+                onTap: onTap,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  mainAxisSize: MainAxisSize.min,
                   children: [
-                    Expanded(child: _Price(data: data)),
-                    const SizedBox(width: 6),
-                    _Cta(
-                      cta: cta,
-                      available: data.available,
-                      adding: adding,
-                      onAdd: onAdd,
+                    Padding(
+                      padding: const EdgeInsets.fromLTRB(
+                        inset,
+                        inset,
+                        inset,
+                        0,
+                      ),
+                      child: _ImageArea(
+                        data: data,
+                        favorite: favorite,
+                        onFavorite: onFavorite,
+                      ),
+                    ),
+                    Padding(
+                      padding: const EdgeInsetsDirectional.fromSTEB(
+                        12,
+                        10,
+                        12,
+                        0,
+                      ),
+                      child: _Texts(data: data),
+                    ),
+                    SizedBox(
+                      height: notch,
+                      child: Padding(
+                        padding: EdgeInsetsDirectional.only(
+                          start: 12,
+                          end: hasCta ? notch + 4 : 12,
+                        ),
+                        child: _Price(data: data),
+                      ),
                     ),
                   ],
                 ),
               ),
-            ],
+            ),
           ),
-        ),
+          if (hasCta)
+            PositionedDirectional(
+              end: 0,
+              bottom: 0,
+              child: _CartButton(
+                available: data.available,
+                adding: adding,
+                onAdd: onAdd,
+              ),
+            ),
+        ],
       ),
     );
-    return width == null ? card : SizedBox(width: width, child: card);
   }
+}
+
+/// Rounded card outline with a rounded notch cut from the bottom-end corner,
+/// with soft fillets where the notch meets the card edges. Mirrors in RTL.
+class NotchedCardBorder extends ShapeBorder {
+  const NotchedCardBorder({
+    this.radius = ProductCard.radius,
+    this.notch = ProductCard.notch,
+    this.fillet = 14,
+    this.inner = 16,
+  });
+  final double radius;
+  final double notch;
+  final double fillet;
+  final double inner;
+
+  @override
+  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
+
+  @override
+  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
+      getOuterPath(rect, textDirection: textDirection);
+
+  @override
+  Path getOuterPath(Rect rect, {TextDirection? textDirection}) {
+    final w = rect.width, h = rect.height;
+    final r = radius.clamp(0.0, w / 2).clamp(0.0, h / 2);
+    if (notch <= 0 || notch + fillet + r > w || notch + fillet + r > h) {
+      return Path()
+        ..addRRect(RRect.fromRectAndRadius(rect, Radius.circular(r)));
+    }
+    final n = notch, f = fillet, c = inner;
+    // Built for LTR (notch bottom-right), clockwise.
+    final p = Path()
+      ..moveTo(r, 0)
+      ..lineTo(w - r, 0)
+      ..arcToPoint(Offset(w, r), radius: Radius.circular(r))
+      ..lineTo(w, h - n - f)
+      ..arcToPoint(Offset(w - f, h - n), radius: Radius.circular(f))
+      ..lineTo(w - n + c, h - n)
+      ..arcToPoint(
+        Offset(w - n, h - n + c),
+        radius: Radius.circular(c),
+        clockwise: false,
+      )
+      ..lineTo(w - n, h - f)
+      ..arcToPoint(Offset(w - n - f, h), radius: Radius.circular(f))
+      ..lineTo(r, h)
+      ..arcToPoint(Offset(0, h - r), radius: Radius.circular(r))
+      ..lineTo(0, r)
+      ..arcToPoint(Offset(r, 0), radius: Radius.circular(r))
+      ..close();
+    final rtl = textDirection == TextDirection.rtl;
+    final m = Float64List(16)
+      ..[0] = rtl ? -1 : 1
+      ..[5] = 1
+      ..[10] = 1
+      ..[15] = 1
+      ..[12] = rect.left + (rtl ? w : 0)
+      ..[13] = rect.top;
+    return p.transform(m);
+  }
+
+  @override
+  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
+
+  @override
+  ShapeBorder scale(double t) => NotchedCardBorder(
+    radius: radius * t,
+    notch: notch * t,
+    fillet: fillet * t,
+    inner: inner * t,
+  );
 }
 
 class _ImageArea extends StatelessWidget {
@@ -165,96 +253,71 @@ class _ImageArea extends StatelessWidget {
   final VoidCallback? onFavorite;
 
   @override
-  Widget build(BuildContext context) => AspectRatio(
-    aspectRatio: 1,
-    child: ClipRRect(
-      borderRadius: BorderRadius.circular(ProductCard.imageRadius),
-      child: Stack(
-        fit: StackFit.expand,
-        children: [
-          ColoredBox(
-            color: AppColors.blueTint,
-            child: data.image.isEmpty
-                ? Center(
-                    child: AppSvgIcon(
-                      AppIcon.bag,
-                      size: 40,
-                      color: AppColors.blue.withValues(alpha: .35),
-                    ),
-                  )
-                : AppImage(data.image, fit: BoxFit.cover),
-          ),
-          if (!data.available)
+  Widget build(BuildContext context) {
+    final tag = !data.available ? ProductCard.soldOut : data.badge;
+    return AspectRatio(
+      aspectRatio: 1,
+      child: ClipRRect(
+        borderRadius: BorderRadius.circular(ProductCard.imageRadius),
+        child: Stack(
+          fit: StackFit.expand,
+          children: [
             ColoredBox(
-              color: AppColors.navy.withValues(alpha: .45),
-              child: Center(
-                child: Container(
-                  padding: const EdgeInsets.symmetric(
-                    horizontal: 12,
-                    vertical: 6,
-                  ),
-                  decoration: BoxDecoration(
-                    color: AppColors.white,
-                    borderRadius: BorderRadius.circular(99),
-                  ),
-                  child: Text(
-                    ProductCard.soldOut,
-                    style: AppText.label.copyWith(
-                      color: AppColors.navy,
-                      fontSize: 12,
-                    ),
-                  ),
+              color: AppColors.blueTint,
+              child: data.image.isEmpty
+                  ? Center(
+                      child: AppSvgIcon(
+                        AppIcon.bag,
+                        size: 36,
+                        color: AppColors.blue.withValues(alpha: .3),
+                      ),
+                    )
+                  : AppImage(data.image, fit: BoxFit.cover),
+            ),
+            if (!data.available)
+              ColoredBox(color: AppColors.white.withValues(alpha: .45)),
+            if (tag != null)
+              PositionedDirectional(
+                top: 8,
+                start: 8,
+                end: 46,
+                child: Align(
+                  alignment: AlignmentDirectional.topStart,
+                  child: _Tag(tag, soldOut: !data.available),
                 ),
               ),
-            ),
-          if (data.badge != null && data.available)
-            PositionedDirectional(
-              top: 9,
-              start: 9,
-              child: Container(
-                padding: const EdgeInsets.symmetric(
-                  horizontal: 10,
-                  vertical: 3,
-                ),
-                decoration: BoxDecoration(
-                  color: AppColors.gold,
-                  borderRadius: BorderRadius.circular(99),
-                ),
-                child: Row(
-                  mainAxisSize: MainAxisSize.min,
-                  children: [
-                    if (data.badgeIcon != null) ...[
-                      AppSvgIcon(
-                        data.badgeIcon!,
-                        size: 12,
-                        color: AppColors.navy,
-                      ),
-                      const SizedBox(width: 3),
-                    ],
-                    Text(
-                      data.badge!,
-                      style: AppText.label.copyWith(
-                        color: AppColors.navy,
-                        fontSize: 11.5,
-                      ),
-                    ),
-                  ],
-                ),
+            if (onFavorite != null)
+              PositionedDirectional(
+                top: 6,
+                end: 6,
+                child: FavoriteButton(on: favorite, onTap: onFavorite!),
               ),
-            ),
-          if (data.ratingCount > 0 && data.available)
-            PositionedDirectional(
-              bottom: 8,
-              start: 8,
-              child: RatingChip(rating: data.rating, count: data.ratingCount),
-            ),
-          if (onFavorite != null)
-            PositionedDirectional(
-              top: 7,
-              end: 7,
-              child: FavoriteButton(on: favorite, onTap: onFavorite!),
-            ),
-        ],
+          ],
+        ),
+      ),
+    );
+  }
+}
+
+class _Tag extends StatelessWidget {
+  const _Tag(this.text, {required this.soldOut});
+  final String text;
+  final bool soldOut;
+
+  @override
+  Widget build(BuildContext context) => Container(
+    padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
+    decoration: BoxDecoration(
+      color: soldOut ? AppColors.navy : AppColors.gold,
+      borderRadius: BorderRadius.circular(99),
+    ),
+    child: Text(
+      text,
+      maxLines: 1,
+      overflow: TextOverflow.ellipsis,
+      style: AppText.label.copyWith(
+        fontSize: 11,
+        color: soldOut ? AppColors.white : AppColors.navy,
       ),
     ),
   );
@@ -266,7 +329,7 @@ class FavoriteButton extends StatelessWidget {
     super.key,
     required this.on,
     required this.onTap,
-    this.size = 32,
+    this.size = 30,
   });
   final bool on;
   final VoidCallback onTap;
@@ -316,65 +379,44 @@ class _Texts extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    final desc = TextStyle(
-      fontFamily: AppText.family,
-      fontSize: 12.5,
-      height: 1.5,
-      color: AppColors.grey,
-    );
+    final line = (data.caption?.isNotEmpty ?? false)
+        ? data.caption!
+        : data.description;
+    final muted = AppText.muted.copyWith(fontSize: 12.5, height: 1.45);
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        if (data.caption != null && data.caption!.isNotEmpty)
-          Row(
-            children: [
-              Flexible(
-                child: Text(
-                  data.caption!,
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.label.copyWith(
-                    fontSize: 11.5,
-                    color: AppColors.blue,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ),
-              if ((data.captionRating ?? 0) > 0) ...[
-                const SizedBox(width: 4),
-                const AppSvgIcon(AppIcon.star, size: 11, color: AppColors.gold),
-                const SizedBox(width: 2),
-                Text(
-                  data.captionRating!.toStringAsFixed(1),
-                  style: AppText.label.copyWith(
-                    fontSize: 11,
-                    color: AppColors.grey,
-                    fontWeight: FontWeight.w600,
-                  ),
-                ),
-              ],
-            ],
-          ),
         Text(
           data.name,
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppText.strong.copyWith(fontSize: 15.5, height: 1.45),
+          style: AppText.strong.copyWith(fontSize: 15, height: 1.4),
         ),
-        const SizedBox(height: 2),
-        // Always two lines tall so cards in a row line up.
-        Stack(
+        const SizedBox(height: 1),
+        // Always one line tall, so every card has the same height.
+        Row(
           children: [
-            ExcludeSemantics(
-              child: Opacity(opacity: 0, child: Text(' \n ', style: desc)),
+            Expanded(
+              child: Text(
+                line.isEmpty ? ' ' : line.replaceAll('\n', ' '),
+                maxLines: 1,
+                overflow: TextOverflow.ellipsis,
+                style: muted,
+              ),
             ),
-            Text(
-              data.description,
-              maxLines: 2,
-              overflow: TextOverflow.ellipsis,
-              style: desc,
-            ),
+            if (data.ratingCount > 0) ...[
+              const SizedBox(width: 6),
+              const AppSvgIcon(AppIcon.star, size: 12, color: AppColors.gold),
+              const SizedBox(width: 2),
+              Text(
+                data.rating.toStringAsFixed(1),
+                style: muted.copyWith(
+                  color: AppColors.ink,
+                  fontWeight: FontWeight.w600,
+                ),
+              ),
+            ],
           ],
         ),
       ],
@@ -387,199 +429,170 @@ class _Price extends StatelessWidget {
   final ProductCardData data;
 
   @override
-  Widget build(BuildContext context) => FittedBox(
-    fit: BoxFit.scaleDown,
+  Widget build(BuildContext context) => Align(
     alignment: AlignmentDirectional.centerStart,
-    child: Text.rich(
-      TextSpan(
-        text: thousands(data.price),
-        style: AppText.number.copyWith(
-          fontSize: 16.5,
-          fontWeight: FontWeight.w700,
-          color: data.available ? AppColors.ink : AppColors.grey,
-        ),
-        children: [
-          TextSpan(
-            text: ' د.ع',
-            style: TextStyle(
-              fontSize: 11.5,
-              fontWeight: FontWeight.w600,
-              color: AppColors.grey,
-            ),
+    child: FittedBox(
+      fit: BoxFit.scaleDown,
+      alignment: AlignmentDirectional.centerStart,
+      child: Text.rich(
+        TextSpan(
+          text: thousands(data.price),
+          style: AppText.number.copyWith(
+            fontSize: 16,
+            fontWeight: FontWeight.w700,
+            color: data.available ? AppColors.ink : AppColors.grey,
           ),
-        ],
+          children: [
+            TextSpan(
+              text: ' د.ع',
+              style: TextStyle(
+                fontSize: 11.5,
+                fontWeight: FontWeight.w600,
+                color: AppColors.grey,
+              ),
+            ),
+          ],
+        ),
+        maxLines: 1,
       ),
     ),
   );
 }
 
-class _Cta extends StatelessWidget {
-  const _Cta({
-    required this.cta,
+/// The card's single add-to-cart action, sitting in the corner notch.
+class _CartButton extends StatelessWidget {
+  const _CartButton({
     required this.available,
     required this.adding,
     required this.onAdd,
   });
-  final ProductCardCta cta;
   final bool available;
   final bool adding;
   final VoidCallback? onAdd;
 
   @override
   Widget build(BuildContext context) {
-    if (onAdd == null && available) return const SizedBox.shrink();
-    final bg = available ? AppColors.gold : AppColors.disabledBg;
     final fg = available ? AppColors.navy : AppColors.disabledText;
-    final icon = adding
-        ? SizedBox(
-            width: 16,
-            height: 16,
-            child: CircularProgressIndicator(strokeWidth: 2, color: fg),
-          )
-        : AppSvgIcon(AppIcon.cart, size: 18, color: fg);
-    final child = switch (cta) {
-      ProductCardCta.pill => Container(
-        height: 38,
-        padding: const EdgeInsets.symmetric(horizontal: 14),
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            icon,
-            const SizedBox(width: 6),
-            Text(
-              available ? ProductCard.addLabel : 'نفدت',
-              style: AppText.label.copyWith(color: fg, fontSize: 13),
-            ),
-          ],
-        ),
-      ),
-      ProductCardCta.corner => Container(
-        width: 40,
-        height: 40,
-        alignment: Alignment.center,
-        decoration: BoxDecoration(
-          color: bg,
-          borderRadius: BorderRadius.circular(14),
-        ),
-        child: icon,
-      ),
-    };
     return Semantics(
       button: true,
       enabled: available,
       label: available ? 'أضف للسلة' : ProductCard.soldOut,
-      child: GestureDetector(
-        onTap: available && !adding ? onAdd : null,
-        behavior: HitTestBehavior.opaque,
-        child: child,
+      child: Material(
+        color: available ? AppColors.gold : AppColors.disabledBg,
+        borderRadius: BorderRadius.circular(16),
+        child: InkWell(
+          borderRadius: BorderRadius.circular(16),
+          onTap: available && !adding ? onAdd : null,
+          child: SizedBox.square(
+            dimension: ProductCard.button,
+            child: Center(
+              child: adding
+                  ? SizedBox.square(
+                      dimension: 18,
+                      child: CircularProgressIndicator(
+                        strokeWidth: 2,
+                        color: fg,
+                      ),
+                    )
+                  : AppSvgIcon(AppIcon.cart, size: 20, color: fg),
+            ),
+          ),
+        ),
       ),
     );
   }
 }
 
-/// Grey placeholder with the card's shape while products load.
+/// Placeholder with the card's exact shape and height while products load.
 class ProductCardSkeleton extends StatelessWidget {
-  const ProductCardSkeleton({super.key, this.width});
-  final double? width;
+  const ProductCardSkeleton({super.key});
 
   @override
   Widget build(BuildContext context) {
-    Widget bar(double w, double h) => Container(
-      width: w,
-      height: h,
-      decoration: BoxDecoration(
-        color: AppColors.tabTrack,
-        borderRadius: BorderRadius.circular(8),
+    Widget bar(double widthFactor, double h) => FractionallySizedBox(
+      alignment: AlignmentDirectional.centerStart,
+      widthFactor: widthFactor,
+      child: Container(
+        height: h,
+        decoration: BoxDecoration(
+          color: AppColors.tabTrack,
+          borderRadius: BorderRadius.circular(6),
+        ),
       ),
     );
-    final card = Container(
-      padding: const EdgeInsets.all(ProductCard.inset),
-      decoration: BoxDecoration(
-        color: AppColors.surface,
-        borderRadius: BorderRadius.circular(ProductCard.radius),
-        border: Border.all(color: AppColors.cardRing),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.start,
-        mainAxisSize: MainAxisSize.min,
+    final scale = MediaQuery.textScalerOf(context);
+    return ExcludeSemantics(
+      child: Stack(
         children: [
-          AspectRatio(
-            aspectRatio: 1,
-            child: Container(
-              decoration: BoxDecoration(
-                color: AppColors.tabTrack,
-                borderRadius: BorderRadius.circular(ProductCard.imageRadius),
-              ),
+          DecoratedBox(
+            decoration: ShapeDecoration(
+              color: AppColors.surface,
+              shadows: ProductCard.shadow,
+              shape: const NotchedCardBorder(),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              mainAxisSize: MainAxisSize.min,
+              children: [
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(
+                    ProductCard.inset,
+                    ProductCard.inset,
+                    ProductCard.inset,
+                    0,
+                  ),
+                  child: AspectRatio(
+                    aspectRatio: 1,
+                    child: Container(
+                      decoration: BoxDecoration(
+                        color: AppColors.tabTrack,
+                        borderRadius: BorderRadius.circular(
+                          ProductCard.imageRadius,
+                        ),
+                      ),
+                    ),
+                  ),
+                ),
+                Padding(
+                  padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 12, 0),
+                  child: SizedBox(
+                    height:
+                        scale.scale(15) * 1.4 + 1 + scale.scale(12.5) * 1.45,
+                    child: Column(
+                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                      children: [bar(.7, 12), bar(.45, 9)],
+                    ),
+                  ),
+                ),
+                SizedBox(
+                  height: ProductCard.notch,
+                  child: Padding(
+                    padding: const EdgeInsetsDirectional.only(
+                      start: 12,
+                      end: ProductCard.notch + 4,
+                    ),
+                    child: Center(child: bar(.6, 14)),
+                  ),
+                ),
+              ],
             ),
           ),
-          Padding(
-            padding: const EdgeInsets.fromLTRB(7, 12, 7, 4),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                bar(110, 14),
-                const SizedBox(height: 8),
-                bar(double.infinity, 10),
-                const SizedBox(height: 6),
-                bar(70, 10),
-                const SizedBox(height: 14),
-                bar(60, 16),
-              ],
+          PositionedDirectional(
+            end: 0,
+            bottom: 0,
+            child: Container(
+              width: ProductCard.button,
+              height: ProductCard.button,
+              decoration: BoxDecoration(
+                color: AppColors.tabTrack,
+                borderRadius: BorderRadius.circular(16),
+              ),
             ),
           ),
         ],
       ),
     );
-    return width == null ? card : SizedBox(width: width, child: card);
   }
-}
-
-/// White pill with a gold SVG star, the average and the count: «★ 4.5 (12)».
-class RatingChip extends StatelessWidget {
-  const RatingChip({super.key, required this.rating, required this.count});
-  final double rating;
-  final int count;
-
-  @override
-  Widget build(BuildContext context) => Semantics(
-    label: 'التقييم ${rating.toStringAsFixed(1)} من 5، $count تقييم',
-    child: ExcludeSemantics(
-      child: Container(
-        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
-        decoration: BoxDecoration(
-          color: AppColors.white,
-          borderRadius: BorderRadius.circular(99),
-        ),
-        child: Row(
-          mainAxisSize: MainAxisSize.min,
-          children: [
-            const AppSvgIcon(AppIcon.star, size: 12, color: AppColors.gold),
-            const SizedBox(width: 3),
-            Text(
-              rating.toStringAsFixed(1),
-              style: AppText.label.copyWith(
-                color: AppColors.navy,
-                fontSize: 11.5,
-              ),
-            ),
-            const SizedBox(width: 2),
-            Text(
-              '($count)',
-              style: AppText.label.copyWith(
-                color: const Color(0xFF5B6478),
-                fontSize: 11,
-                fontWeight: FontWeight.w500,
-              ),
-            ),
-          ],
-        ),
-      ),
-    ),
-  );
 }
 
 /// Five SVG stars, filled up to [value] (rounded to the nearest whole star).

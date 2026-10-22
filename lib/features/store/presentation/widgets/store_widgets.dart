@@ -51,7 +51,6 @@ ProductCardData homeProductCard(HomeProduct p) => ProductCardData(
   available: p.available,
   stock: p.stock,
   caption: p.pageName,
-  captionRating: p.pageRating,
   badge: p.stock != null && p.stock! > 0 && p.stock! <= 3
       ? 'باقي ${p.stock}'
       : null,
@@ -180,15 +179,8 @@ class OtherPageCartSheet extends StatelessWidget {
 
 /// [ProductCard] wired to favorites, quick add-to-cart and the details screen.
 class StoreProductCard extends ConsumerStatefulWidget {
-  const StoreProductCard({
-    super.key,
-    required this.data,
-    this.cta = ProductCardCta.corner,
-    this.width,
-  });
+  const StoreProductCard({super.key, required this.data});
   final ProductCardData data;
-  final ProductCardCta cta;
-  final double? width;
 
   @override
   ConsumerState<StoreProductCard> createState() => _StoreProductCardState();
@@ -210,8 +202,6 @@ class _StoreProductCardState extends ConsumerState<StoreProductCard> {
     final d = widget.data;
     return ProductCard(
       data: d,
-      cta: widget.cta,
-      width: widget.width,
       adding: _adding,
       favorite: ref.watch(favoritesProvider).contains(d.id),
       onFavorite: () => toggleFavorite(context, ref, d.id, d.pageId),
@@ -221,8 +211,9 @@ class _StoreProductCardState extends ConsumerState<StoreProductCard> {
   }
 }
 
-/// Two columns on phones, three on wide screens. Rows size to their content,
-/// so larger accessibility text never clips a card.
+/// Products in equal-width columns: 2 on phones, 3 on tablets, 4 on wide
+/// screens (a column is at least [minCard] wide). Each row takes the height
+/// of its tallest card, and cards stretch to it, so a row always lines up.
 class ProductGrid extends StatelessWidget {
   const ProductGrid({super.key, required this.items, this.skeleton = 0});
   final List<ProductCardData> items;
@@ -230,37 +221,83 @@ class ProductGrid extends StatelessWidget {
   /// When > 0, shows that many loading placeholders instead of [items].
   final int skeleton;
 
-  static const gap = 12.0;
+  static const minCard = 200.0;
+
+  static int columnsFor(double width) =>
+      ((width + 16) / (minCard + 16)).floor().clamp(2, 4);
+
+  static double gapFor(double width) => width >= 700 ? 18 : 12;
 
   @override
   Widget build(BuildContext context) => LayoutBuilder(
     builder: (context, box) {
-      final cols = box.maxWidth >= 600 ? 3 : 2;
+      final cols = columnsFor(box.maxWidth);
+      final gap = gapFor(box.maxWidth);
       final count = skeleton > 0 ? skeleton : items.length;
-      final rows = <Widget>[];
-      for (var r = 0; r * cols < count; r++) {
-        if (r > 0) rows.add(const SizedBox(height: gap));
-        rows.add(
-          Row(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              for (var c = 0; c < cols; c++) ...[
-                if (c > 0) const SizedBox(width: gap),
-                Expanded(
-                  child: r * cols + c >= count
-                      ? const SizedBox.shrink()
-                      : skeleton > 0
-                      ? const ProductCardSkeleton()
-                      : StoreProductCard(data: items[r * cols + c]),
+      return Column(
+        mainAxisSize: MainAxisSize.min,
+        children: [
+          for (var r = 0; r * cols < count; r++)
+            Padding(
+              padding: EdgeInsets.only(top: r == 0 ? 0 : gap),
+              child: IntrinsicHeight(
+                child: Row(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (var c = 0; c < cols; c++) ...[
+                      if (c > 0) SizedBox(width: gap),
+                      Expanded(
+                        child: r * cols + c >= count
+                            ? const SizedBox.shrink()
+                            : skeleton > 0
+                            ? const ProductCardSkeleton()
+                            : StoreProductCard(data: items[r * cols + c]),
+                      ),
+                    ],
+                  ],
                 ),
-              ],
-            ],
-          ),
-        );
-      }
-      return Column(mainAxisSize: MainAxisSize.min, children: rows);
+              ),
+            ),
+        ],
+      );
     },
   );
+}
+
+/// Centers store content with a readable max width and screen-edge padding
+/// that grows on tablets and the web.
+class StoreWidth extends StatelessWidget {
+  const StoreWidth({
+    super.key,
+    required this.child,
+    this.maxWidth = 1120,
+    this.top = 16,
+    this.padded = true,
+  });
+  final Widget child;
+  final double maxWidth;
+  final double top;
+
+  /// Adds the horizontal screen padding (16, or 24 from 700px).
+  final bool padded;
+
+  static double sideFor(double width) => width >= 700 ? 24 : 16;
+
+  @override
+  Widget build(BuildContext context) {
+    final side = padded ? sideFor(MediaQuery.sizeOf(context).width) : 0.0;
+    return Padding(
+      padding: EdgeInsets.fromLTRB(side, top, side, 0),
+      child: Align(
+        alignment: Alignment.topCenter,
+        heightFactor: 1,
+        child: ConstrainedBox(
+          constraints: BoxConstraints(maxWidth: maxWidth),
+          child: child,
+        ),
+      ),
+    );
+  }
 }
 
 /// Empty / error block for store lists, with an optional retry.

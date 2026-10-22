@@ -2,7 +2,6 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
-import '../../../store/presentation/widgets/product_card.dart';
 import '../../../store/presentation/widgets/store_widgets.dart';
 
 import '../../../../core/widgets/app_image.dart';
@@ -593,30 +592,52 @@ class LiveFeedCard extends StatelessWidget {
 /// Home «منتجات أعلى الصفحات تقييماً»: horizontal row of product cards.
 /// A plain Row (not a fixed-height ListView) so the cards keep their natural
 /// height under any text scale.
+/// Horizontal strip of product cards. Card width is a fraction of the
+/// screen (about 2.3 cards on phones, more on tablets and the web) so the
+/// next card always peeks in at the end edge; all cards share one height.
 class ProductStrip extends StatelessWidget {
   const ProductStrip({super.key, required this.products});
   final List<HomeProduct> products;
 
-  static const cardWidth = 196.0;
+  static const gap = 12.0;
+  static const side = 16.0;
+
+  /// Visible cards for a strip [width]; the fraction leaves the peek.
+  static double visibleFor(double width) => width < 600
+      ? 2.25
+      : width < 1000
+      ? 3.4
+      : 4.4;
+
+  static double cardWidthFor(double width) {
+    final v = visibleFor(width);
+    return ((width - side - gap * v.floor()) / v).clamp(148.0, 250.0);
+  }
 
   @override
-  Widget build(BuildContext context) => SingleChildScrollView(
-    scrollDirection: Axis.horizontal,
-    padding: const EdgeInsets.fromLTRB(16, 0, 16, 14),
-    clipBehavior: Clip.none,
-    child: Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        for (var i = 0; i < products.length; i++) ...[
-          if (i > 0) const SizedBox(width: 12),
-          StoreProductCard(
-            data: homeProductCard(products[i]),
-            cta: ProductCardCta.pill,
-            width: cardWidth,
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final w = cardWidthFor(box.maxWidth);
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        // Room for the card shadow; start/end follow RTL.
+        padding: const EdgeInsetsDirectional.fromSTEB(side, 4, side, 20),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < products.length; i++) ...[
+                if (i > 0) const SizedBox(width: gap),
+                SizedBox(
+                  width: w,
+                  child: StoreProductCard(data: homeProductCard(products[i])),
+                ),
+              ],
+            ],
           ),
-        ],
-      ],
-    ),
+        ),
+      );
+    },
   );
 }
 
@@ -749,7 +770,10 @@ class _AdSliderState extends State<AdSlider> {
   Widget build(BuildContext context) {
     final ads = widget.ads;
     if (ads.length == 1) {
-      return SponsoredBanner(ad: ads.first, onTap: () => widget.onTap(ads.first));
+      return SponsoredBanner(
+        ad: ads.first,
+        onTap: () => widget.onTap(ads.first),
+      );
     }
     return Column(
       children: [
@@ -759,10 +783,8 @@ class _AdSliderState extends State<AdSlider> {
             controller: _page,
             itemCount: ads.length,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) => SponsoredBanner(
-              ad: ads[i],
-              onTap: () => widget.onTap(ads[i]),
-            ),
+            itemBuilder: (_, i) =>
+                SponsoredBanner(ad: ads[i], onTap: () => widget.onTap(ads[i])),
           ),
         ),
         const SizedBox(height: 8),
