@@ -43,7 +43,9 @@ class _Item {
       _Kind.chosen => 'اخترت عرض · بانتظار الاستلام',
       _Kind.done => 'خلص الطلب',
       _Kind.expired =>
-        r.status == 'cancelled' ? 'ألغيته · ما انخصم شي' : 'انتهى الوقت · ما انخصم شي',
+        r.status == 'cancelled'
+            ? 'ألغيته · ما انخصم شي'
+            : 'انتهى الوقت · ما انخصم شي',
     };
     return _Item(kind, r.title, sub, r.image, r);
   }
@@ -73,7 +75,9 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
     _Kind.live || _Kind.waiting => Routes.liveRequest(i.r.id),
     _Kind.expired => Routes.noOffers(i.r.id),
     _Kind.chosen || _Kind.done =>
-      i.r.orderId == null ? Routes.offers(i.r.id) : Routes.orderStatus(i.r.orderId!),
+      i.r.orderId == null
+          ? Routes.offers(i.r.id)
+          : Routes.orderStatus(i.r.orderId!),
   });
 
   @override
@@ -81,7 +85,9 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
     final async = ref.watch(myRequestsProvider);
     final loading = async.isLoading && !async.hasValue;
     final failed = async.hasError && !async.hasValue;
-    final items = [for (final r in async.value ?? const <RequestSummary>[]) _Item.of(r)];
+    final items = [
+      for (final r in async.value ?? const <RequestSummary>[]) _Item.of(r),
+    ];
     final open = items
         .where((i) => i.kind == _Kind.live || i.kind == _Kind.waiting)
         .length;
@@ -214,29 +220,38 @@ class _StoreOrders extends ConsumerWidget {
     return orders.maybeWhen(
       data: (list) {
         if (list.isEmpty) return const SizedBox.shrink();
+        // Active orders first, then the latest finished ones.
+        final shown = [
+          ...list.where((o) => o.active),
+          ...list.where((o) => !o.active),
+        ].take(3);
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            const Padding(
-              padding: EdgeInsets.fromLTRB(20, 22, 20, 0),
-              child: Text('طلبات المتجر', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
-            ),
-            for (final o in list)
-              Padding(
-                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
-                child: GestureDetector(
-                  onTap: () => context.push(Routes.storeOrder(o.id)),
-                  child: AppCard(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text('${o.no} · ${o.pageName}', style: AppText.strong),
-                        const SizedBox(height: 4),
-                        Text('${o.items.join('، ')}\n${o.subtotal} د.ع', style: AppText.muted),
-                      ],
+            Padding(
+              padding: const EdgeInsets.fromLTRB(20, 22, 20, 0),
+              child: Row(
+                children: [
+                  Expanded(
+                    child: Text(
+                      'طلبات المتجر',
+                      style: AppText.strong.copyWith(fontSize: 18),
                     ),
                   ),
-                ),
+                  TextButton(
+                    onPressed: () => context.push(Routes.storeOrders),
+                    child: Text(
+                      'الكل (${list.length})',
+                      style: AppText.label.copyWith(color: AppColors.blue),
+                    ),
+                  ),
+                ],
+              ),
+            ),
+            for (final o in shown)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: OrderRowCard(order: o),
               ),
           ],
         );

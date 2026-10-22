@@ -60,6 +60,19 @@ class StoreProduct {
   }
 }
 
+/// Store order status codes as the app uses them. The API sends camelCase
+/// ("outForDelivery"); older builds send snake_case.
+String storeStatusCode(String raw) => raw
+    .replaceAllMapped(RegExp('[A-Z]'), (m) => '_${m[0]!.toLowerCase()}')
+    .toLowerCase();
+
+/// One reached step of an order's timeline.
+class StoreOrderStep {
+  const StoreOrderStep(this.status, this.at);
+  final String status;
+  final DateTime? at;
+}
+
 class StoreOrder {
   const StoreOrder({
     required this.id,
@@ -72,6 +85,12 @@ class StoreOrder {
     required this.items,
     this.lines = const [],
     this.pageId = '',
+    this.paymentStatus = '',
+    this.reason,
+    this.note,
+    this.createdAt,
+    this.statusChangedAt,
+    this.history = const [],
   });
   final String id;
   final String no;
@@ -83,31 +102,65 @@ class StoreOrder {
   final List<String> items;
   final List<StoreOrderLine> lines;
   final String pageId;
+  final String paymentStatus;
+  final String? reason;
+  final String? note;
+  final DateTime? createdAt;
+  final DateTime? statusChangedAt;
+
+  /// Reached steps, oldest first. Built from createdAt / statusChangedAt
+  /// when the API has no history yet (older builds).
+  final List<StoreOrderStep> history;
 
   bool get delivered => status == 'delivered';
+  bool get isNew => status == 'new';
+  bool get ended => status == 'cancelled' || status == 'rejected';
+  bool get active => !delivered && !ended;
+  int get count => lines.fold(0, (n, l) => n + l.quantity);
 
-  factory StoreOrder.fromJson(Map<String, dynamic> j) => StoreOrder(
-    id: j.s('id'),
-    no: j.s('no'),
-    pageName: j.s('pageName'),
-    status: j.s('status'),
-    payment: j.s('paymentMethod'),
-    address: j.s('address'),
-    subtotal: j.i('subtotal'),
-    items: [
-      for (final i in j.l('items')) '${i.s('name')} × ${i.i('quantity')}',
-    ],
-    pageId: j.s('pageId'),
-    lines: [
-      for (final i in j.l('items'))
-        StoreOrderLine(
-          productId: i.s('productId'),
-          name: i.s('name'),
-          quantity: i.i('quantity'),
-          image: i.os('imageUrl') ?? '',
-        ),
-    ],
-  );
+  factory StoreOrder.fromJson(Map<String, dynamic> j) {
+    final status = storeStatusCode(j.s('status'));
+    final created = j.ot('createdAt');
+    final changed = j.ot('statusChangedAt');
+    final raw = [
+      for (final e in j.l('history'))
+        StoreOrderStep(storeStatusCode(e.s('status')), e.ot('at')),
+    ];
+    return StoreOrder(
+      id: j.s('id'),
+      no: j.s('no'),
+      pageName: j.s('pageName'),
+      status: status,
+      payment: j.s('paymentMethod'),
+      paymentStatus: j.s('paymentStatus'),
+      address: j.s('address'),
+      subtotal: j.i('subtotal'),
+      reason: j.os('statusReason'),
+      note: j.os('note'),
+      createdAt: created,
+      statusChangedAt: changed,
+      history: raw.isNotEmpty
+          ? raw
+          : [
+              StoreOrderStep('new', created),
+              if (status != 'new') StoreOrderStep(status, changed),
+            ],
+      items: [
+        for (final i in j.l('items')) '${i.s('name')} × ${i.i('quantity')}',
+      ],
+      pageId: j.s('pageId'),
+      lines: [
+        for (final i in j.l('items'))
+          StoreOrderLine(
+            productId: i.s('productId'),
+            name: i.s('name'),
+            quantity: i.i('quantity'),
+            price: i.containsKey('unitPrice') ? i.i('unitPrice') : i.i('price'),
+            image: i.os('imageUrl') ?? '',
+          ),
+      ],
+    );
+  }
 }
 
 class StoreOrderLine {
@@ -116,10 +169,12 @@ class StoreOrderLine {
     required this.name,
     required this.quantity,
     required this.image,
+    this.price = 0,
   });
   final String productId;
   final String name;
   final int quantity;
+  final int price;
   final String image;
 }
 

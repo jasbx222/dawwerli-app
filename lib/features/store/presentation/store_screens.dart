@@ -24,6 +24,7 @@ import 'widgets/rating_sheet.dart';
 import 'widgets/store_widgets.dart';
 
 export '../data/store_data.dart';
+export 'store_order_screens.dart';
 
 String _money(int n) => storePrice(n);
 
@@ -48,18 +49,6 @@ class _StorePage extends StatelessWidget {
     ],
   );
 }
-
-String _status(String code) => switch (code) {
-  'new' => 'جديد',
-  'accepted' => 'مقبول',
-  'out_for_delivery' => 'بالتوصيل',
-  'delivered' => 'مستلم',
-  'cancelled' => 'ملغي',
-  'rejected' => 'مرفوض',
-  'cash' => 'كاش عند الاستلام',
-  'electronic' => 'دفع إلكتروني',
-  _ => code,
-};
 
 String _err(Object e) => storeError(e);
 
@@ -1513,175 +1502,6 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
         if (_error != null)
           Text(_error!, style: AppText.body.copyWith(color: AppColors.danger)),
       ],
-    );
-  }
-}
-
-class StoreOrdersScreen extends ConsumerWidget {
-  const StoreOrdersScreen({super.key});
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final orders = ref.watch(storeOrdersProvider);
-    return _StorePage(
-      title: 'طلبات المتجر',
-      children: [
-        orders.when(
-          loading: () => const LoadingBlock(),
-          error: (e, _) => Text(_err(e)),
-          data: (list) => list.isEmpty
-              ? Text('ماكو طلبات متجر', style: AppText.body)
-              : Column(
-                  children: [
-                    for (final o in list)
-                      Padding(
-                        padding: const EdgeInsets.only(bottom: 10),
-                        child: AppCard(
-                          child: ListTile(
-                            contentPadding: EdgeInsets.zero,
-                            title: Text(
-                              '${o.no} · ${o.pageName}',
-                              style: AppText.strong,
-                            ),
-                            subtitle: Text(
-                              '${_status(o.status)} · ${_money(o.subtotal)}',
-                              style: AppText.body,
-                            ),
-                            onTap: () => context.push(Routes.storeOrder(o.id)),
-                          ),
-                        ),
-                      ),
-                  ],
-                ),
-        ),
-      ],
-    );
-  }
-}
-
-class StoreOrderScreen extends ConsumerWidget {
-  const StoreOrderScreen({super.key, required this.id});
-  final String id;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final order = ref.watch(storeOrderProvider(id));
-    return order.when(
-      loading: () =>
-          const _StorePage(title: 'الطلب', children: [LoadingBlock()]),
-      error: (e, _) => _StorePage(title: 'الطلب', children: [Text(_err(e))]),
-      data: (current) => _StorePage(
-        title: current.no,
-        bottom: current.status == 'new'
-            ? AppButton(
-                'إلغاء الطلب',
-                variant: AppButtonVariant.danger,
-                onPressed: () async {
-                  try {
-                    await ref
-                        .read(apiClientProvider)
-                        .post<Map<String, dynamic>>(
-                          '/api/v1/store/orders/$id/cancel',
-                        );
-                    ref.invalidate(storeOrderProvider(id));
-                    ref.invalidate(storeOrdersProvider);
-                  } catch (e) {
-                    if (context.mounted) showAppToast(context, _err(e));
-                  }
-                },
-              )
-            : null,
-        children: [
-          Text(current.pageName, style: AppText.strong),
-          const SizedBox(height: 8),
-          Text('الحالة: ${_status(current.status)}', style: AppText.body),
-          Text('الدفع: ${_status(current.payment)}', style: AppText.body),
-          Text(current.address, style: AppText.body),
-          const SizedBox(height: 8),
-          if (current.delivered && current.lines.isNotEmpty) ...[
-            const SizedBox(height: 4),
-            Text('وصلك؟ قيّم اللي اشتريته', style: AppText.muted),
-            for (final l in current.lines)
-              Padding(
-                padding: const EdgeInsets.only(top: 8),
-                child: _RateLine(line: l, pageId: current.pageId),
-              ),
-          ] else
-            for (final line in current.items) Text(line, style: AppText.body),
-          const SizedBox(height: 8),
-          Text('المجموع ${_money(current.subtotal)}', style: AppText.strong),
-        ],
-      ),
-    );
-  }
-}
-
-/// Delivered order line with its rate / edit action.
-class _RateLine extends ConsumerWidget {
-  const _RateLine({required this.line, required this.pageId});
-  final StoreOrderLine line;
-  final String pageId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final mine = ref.watch(myRatingProvider(line.productId)).value;
-    return AppCard(
-      padding: 10,
-      child: Row(
-        children: [
-          ClipRRect(
-            borderRadius: BorderRadius.circular(12),
-            child: Container(
-              width: 48,
-              height: 48,
-              color: AppColors.blueTint,
-              child: line.image.isEmpty
-                  ? null
-                  : AppImage(
-                      line.image,
-                      width: 48,
-                      height: 48,
-                      fit: BoxFit.cover,
-                    ),
-            ),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(
-                  '${line.name} × ${line.quantity}',
-                  maxLines: 2,
-                  overflow: TextOverflow.ellipsis,
-                  style: AppText.strong.copyWith(fontSize: 13.5),
-                ),
-                if (mine?.stars != null)
-                  StarRow(value: mine!.stars!.toDouble(), size: 13),
-              ],
-            ),
-          ),
-          if (mine?.canRate == true)
-            TextButton.icon(
-              onPressed: () => showRateSheet(
-                context,
-                ref,
-                productId: line.productId,
-                productName: line.name,
-                pageId: pageId,
-              ),
-              icon: const AppSvgIcon(
-                AppIcon.star,
-                size: 16,
-                color: AppColors.gold,
-              ),
-              label: Text(
-                mine!.stars == null ? 'قيّم' : 'عدّل',
-                style: AppText.label.copyWith(color: AppColors.blue),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
