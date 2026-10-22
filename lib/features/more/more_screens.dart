@@ -18,6 +18,7 @@ import '../../core/widgets/notes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/page_tile.dart';
 import '../auth/data/auth_providers.dart';
+import '../store/presentation/store_screens.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
@@ -29,8 +30,15 @@ void _back(BuildContext c) => popOr(c);
 Widget _pad(Widget w, {double top = 14}) => Gap(w, top: top);
 Widget _sectionLabel(String t) => SectionLabel(t);
 void _toast(BuildContext c, String t) => showAppToast(c, t);
-Widget _avatar(String name, {double size = AppSize.iconTile}) =>
-    LetterAvatar(name, size: size);
+Widget _avatar(String name, {double size = AppSize.iconTile, String? image}) {
+  if (image != null && image.isNotEmpty) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size / 3),
+      child: AppImage(image, width: size, height: size, fit: BoxFit.cover),
+    );
+  }
+  return LetterAvatar(name, size: size);
+}
 Widget _stat(String value, String label) =>
     Expanded(child: StatTile(value, label));
 
@@ -96,7 +104,7 @@ class PageProfileScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _avatar(p.name, size: 58),
+                    _avatar(p.name, size: 58, image: p.image),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -125,6 +133,45 @@ class PageProfileScreen extends ConsumerWidget {
                 ),
               ],
             ),
+          ),
+        ),
+        _sectionLabel('المنتجات'),
+        _pad(
+          Builder(
+            builder: (context) {
+              final products = ref.watch(pageProductsProvider(pageId));
+              return products.when(
+                loading: () => const LoadingBlock(),
+                error: (_, _) => Text('ما قدرنا نجيب المنتجات', style: AppText.body),
+                data: (list) => list.isEmpty
+                    ? Text('ماكو منتجات بهالصفحة حالياً', style: AppText.body)
+                    : Column(
+                        children: [
+                          for (final item in list)
+                            Padding(
+                              padding: const EdgeInsets.only(bottom: 10),
+                              child: AppCard(
+                                child: ListTile(
+                                  contentPadding: EdgeInsets.zero,
+                                  leading: item.images.isEmpty
+                                      ? null
+                                      : ClipRRect(
+                                          borderRadius: BorderRadius.circular(12),
+                                          child: AppImage(item.images.first, width: 56, height: 56, fit: BoxFit.cover),
+                                        ),
+                                  title: Text(item.name, style: AppText.strong),
+                                  subtitle: Text(
+                                    item.available ? '${item.price} د.ع' : 'نفدت الكمية',
+                                    style: AppText.body,
+                                  ),
+                                  onTap: () => context.push(Routes.product(pageId, item.id)),
+                                ),
+                              ),
+                            ),
+                        ],
+                      ),
+              );
+            },
           ),
         ),
         _sectionLabel('شنو تبيع'),

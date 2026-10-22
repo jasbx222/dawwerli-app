@@ -1,3 +1,5 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
 
 import '../../../../core/widgets/app_image.dart';
@@ -255,14 +257,13 @@ class StatsRow extends StatelessWidget {
     final cells = <(String, String)>[
       if (stats.verifiedPages != null)
         (thousands(stats.verifiedPages!), AppStrings.statPages),
-      if (stats.governorates != null)
-        ('${stats.governorates}', AppStrings.statGovs),
       if (stats.avgFirstOfferMinutes != null)
         (
           AppStrings.minutesShort(stats.avgFirstOfferMinutes!),
           AppStrings.statFirstOffer,
         ),
     ];
+    if (cells.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Row(
@@ -586,6 +587,88 @@ class LiveFeedCard extends StatelessWidget {
   );
 }
 
+class ProductStrip extends StatelessWidget {
+  const ProductStrip({super.key, required this.products, this.onTap});
+  final List<HomeProduct> products;
+  final ValueChanged<HomeProduct>? onTap;
+
+  @override
+  Widget build(BuildContext context) => SizedBox(
+    height: 168,
+    child: ListView.separated(
+      scrollDirection: Axis.horizontal,
+      padding: const EdgeInsets.symmetric(horizontal: 16),
+      itemCount: products.length,
+      separatorBuilder: (_, _) => const SizedBox(width: 10),
+      itemBuilder: (_, i) {
+        final p = products[i];
+        return GestureDetector(
+          onTap: () => onTap?.call(p),
+          child: Container(
+            width: 150,
+            clipBehavior: Clip.antiAlias,
+            decoration: BoxDecoration(
+              color: AppColors.surface,
+              borderRadius: BorderRadius.circular(18),
+              border: Border.all(color: AppColors.cardRing),
+            ),
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                SizedBox(
+                  height: 86,
+                  width: double.infinity,
+                  child: p.image.isEmpty
+                      ? ColoredBox(color: AppColors.blueTint)
+                      : AppImage(p.image, fit: BoxFit.cover),
+                ),
+                Padding(
+                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(
+                        p.name,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: const TextStyle(
+                          fontSize: 13,
+                          height: 1.5,
+                          fontWeight: FontWeight.w700,
+                        ),
+                      ),
+                      Text(
+                        '${thousands(p.price)} د.ع',
+                        maxLines: 1,
+                        style: const TextStyle(
+                          fontSize: 12,
+                          height: 1.5,
+                          fontWeight: FontWeight.w700,
+                          color: AppColors.blue,
+                        ),
+                      ),
+                      Text(
+                        p.pageName,
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
+                        style: TextStyle(
+                          fontSize: 11,
+                          height: 1.4,
+                          color: AppColors.grey,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ],
+            ),
+          ),
+        );
+      },
+    ),
+  );
+}
+
 class DealsStrip extends StatelessWidget {
   const DealsStrip({super.key, required this.deals});
   final List<Deal> deals;
@@ -666,6 +749,91 @@ class DealsStrip extends StatelessWidget {
       },
     ),
   );
+}
+
+class AdSlider extends StatefulWidget {
+  const AdSlider({super.key, required this.ads, required this.onTap});
+  final List<AdBanner> ads;
+  final ValueChanged<AdBanner> onTap;
+
+  @override
+  State<AdSlider> createState() => _AdSliderState();
+}
+
+class _AdSliderState extends State<AdSlider> {
+  late final PageController _page = PageController();
+  Timer? _timer;
+  var _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.ads.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted || !_page.hasClients || widget.ads.length < 2) return;
+        final next = (_index + 1) % widget.ads.length;
+        _page.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(AdSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_index >= widget.ads.length) _index = 0;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _page.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ads = widget.ads;
+    if (ads.length == 1) {
+      return SponsoredBanner(ad: ads.first, onTap: () => widget.onTap(ads.first));
+    }
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: PageView.builder(
+            controller: _page,
+            itemCount: ads.length,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (_, i) => SponsoredBanner(
+              ad: ads[i],
+              onTap: () => widget.onTap(ads[i]),
+            ),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < ads.length; i++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: i == _index ? 14 : 6,
+                height: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  color: i == _index ? AppColors.gold : AppColors.grey,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class SponsoredBanner extends StatelessWidget {

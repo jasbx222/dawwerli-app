@@ -4,9 +4,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../account/presentation/server_url_sheet.dart';
 import '../../../core/l10n/app_strings.dart';
-import '../../../core/role/app_role.dart';
 import '../../../core/router/routes.dart';
-import '../../../core/widgets/seg_tabs.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
@@ -19,7 +17,7 @@ import '../domain/auth_repository.dart';
 import '../domain/phone_number.dart';
 import 'phone_field.dart';
 
-/// Phone + password sign-in for buyers and pages (role from the «أشتري/أبيع» choice).
+/// Phone + password sign-in. Buyer or seller is fixed from account creation.
 class PasswordLoginScreen extends ConsumerStatefulWidget {
   const PasswordLoginScreen({super.key});
 
@@ -112,14 +110,6 @@ class _PasswordLoginScreenState extends ConsumerState<PasswordLoginScreen> {
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.stretch,
                 children: [
-                  SegTabs(
-                    labels: const ['أشتري', 'أبيع'],
-                    selected: ref.watch(appRoleProvider).index,
-                    onSelect: (i) => ref
-                        .read(appRoleProvider.notifier)
-                        .set(AppRole.values[i]),
-                  ),
-                  const SizedBox(height: 16),
                   const FieldLabel(AppStrings.loginPhoneLabel),
                   PhoneField(
                     controller: _phone,

@@ -133,6 +133,24 @@ class PageSummary {
   final bool isAd;
 }
 
+/// A product from one of the highest-rated pages (GET /pages/{id}/products).
+class HomeProduct {
+  const HomeProduct({
+    required this.pageId,
+    required this.pageName,
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.image,
+  });
+  final String pageId;
+  final String pageName;
+  final String id;
+  final String name;
+  final int price;
+  final String image;
+}
+
 class HomeData {
   const HomeData({
     required this.firstName,
@@ -147,7 +165,9 @@ class HomeData {
     required this.feed,
     required this.deals,
     required this.banners,
+    required this.sponsored,
     required this.featuredPages,
+    required this.topProducts,
   });
   final String firstName;
   final String area;
@@ -165,5 +185,11 @@ class HomeData {
 
   /// Paid home banners (`homeBanner`). Shown above the fold.
   final List<AdBanner> banners;
+
+  /// Paid sponsored offers (`sponsoredOffer`), one card per page.
+  final List<PageSummary> sponsored;
   final List<PageSummary> featuredPages;
+
+  /// Products belonging to the highest-rated pages.
+  final List<HomeProduct> topProducts;
 }

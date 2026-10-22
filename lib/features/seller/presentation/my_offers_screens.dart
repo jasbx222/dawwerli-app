@@ -159,6 +159,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: 'عرضك مقفول',
         trailing: PillTone.blue.pill('بالانتظار'),
+        onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Row(
@@ -179,6 +180,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: 'عرضك مقفول',
         trailing: PillTone.stone.pill('الزبون اختار غيرك'),
+        onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
           child: Text('ما انخصم شي، الحجز رجع لرصيدك', style: AppText.muted),
@@ -189,6 +191,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: 'عرضك مقفول',
         trailing: PillTone.stone.pill('انتهى'),
+        onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
           child: Row(
@@ -515,6 +518,90 @@ class SellerRatingScreen extends ConsumerWidget {
           ),
         ),
       ],
+    );
+  }
+}
+
+class SellerOfferDetailsScreen extends ConsumerWidget {
+  const SellerOfferDetailsScreen({super.key, required this.offerId});
+  final String offerId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final offer = ref.watch(sellerProvider).offers.where((o) => o.id == offerId).firstOrNull;
+    if (offer == null) {
+      return const AppPage(title: 'تفاصيل العرض', children: [LoadingBlock()]);
+    }
+    final state = switch (offer.state) {
+      OfferState.chosen => 'الزبون اختارك',
+      OfferState.waiting => 'بانتظار الزبون',
+      OfferState.notChosen => 'الزبون اختار غيرك',
+      OfferState.withdrawn => 'سحبت العرض',
+      OfferState.closed => 'انتهى',
+    };
+    return AppPage(
+      title: 'تفاصيل العرض',
+      children: [
+          Gap(
+            AppCard(
+              child: Row(
+                children: [
+                  PhotoThumb(offer.image, size: 72),
+                  const SizedBox(width: 12),
+                  Expanded(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text(offer.title, style: AppText.strong),
+                        const SizedBox(height: 4),
+                        Text(state, style: AppText.muted),
+                      ],
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
+          Gap(
+            AppCard(
+              child: Column(
+                children: [
+                  _Detail('السعر', iqd(offer.price)),
+                  _Detail('المحافظة', offer.governorate),
+                  if ((offer.orderNo ?? '').isNotEmpty) _Detail('رقم الطلب', offer.orderNo!),
+                ],
+              ),
+            ),
+          ),
+          if (offer.state == OfferState.chosen)
+            Padding(
+              padding: const EdgeInsets.all(AppSpacing.lg),
+              child: AppButton(
+                'تواصل مع الزبون',
+                onPressed: () => context.push(Routes.sellerChosen(offer.id)),
+              ),
+            ),
+      ],
+    );
+  }
+}
+
+class _Detail extends StatelessWidget {
+  const _Detail(this.label, this.value);
+  final String label;
+  final String value;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: const EdgeInsets.symmetric(vertical: 8),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          SizedBox(width: 88, child: Text(label, style: AppText.muted)),
+          Expanded(child: Text(value, style: AppText.strong)),
+        ],
+      ),
     );
   }
 }

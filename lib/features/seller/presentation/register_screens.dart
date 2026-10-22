@@ -3,7 +3,7 @@ import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
-import '../../../core/role/app_role.dart';
+import '../../../core/api/picker.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
@@ -12,12 +12,12 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_form.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/notes.dart';
 import '../../../core/widgets/pill.dart';
 import '../../auth/data/auth_providers.dart';
 import '../../more/more_data.dart';
-import '../../auth/data/session.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 
@@ -36,6 +36,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
   late Set<String> _cats = {...s.settings.categories};
   late Set<String> _govs = {...s.settings.governorates};
   bool _terms = true;
+  String? _photo;
 
   @override
   void dispose() {
@@ -82,6 +83,40 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                   AppIcon.camera,
                   color: AppColors.blue,
                   size: 18,
+                ),
+              ),
+              const SizedBox(height: 14),
+              const _Label('صورة الصفحة'),
+              GestureDetector(
+                onTap: () async {
+                  final path = await pickPhoto(camera: false);
+                  if (path != null) setState(() => _photo = path);
+                },
+                child: AppCard(
+                  child: Row(
+                    children: [
+                      ClipRRect(
+                        borderRadius: BorderRadius.circular(14),
+                        child: _photo == null
+                            ? ColoredBox(
+                                color: AppColors.blueTint,
+                                child: const SizedBox(
+                                  width: 56,
+                                  height: 56,
+                                  child: Icon(Icons.add_a_photo_outlined),
+                                ),
+                              )
+                            : AppImage(_photo!, width: 56, height: 56, fit: BoxFit.cover),
+                      ),
+                      const SizedBox(width: 12),
+                      Expanded(
+                        child: Text(
+                          _photo == null ? 'اختار صورة للبيج' : 'تگدر تغيّر الصورة',
+                          style: AppText.body,
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
               ),
               const SizedBox(height: 14),
@@ -136,6 +171,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                               handle: _handle.text.trim(),
                               categories: _cats,
                               governorates: _govs,
+                              photo: _photo,
                             );
                         if (context.mounted) context.go(Routes.sellerVerify);
                       },
@@ -436,18 +472,6 @@ class SellerRejectedScreen extends ConsumerWidget {
                   style: AppText.muted.copyWith(height: 1.9),
                 ),
               ],
-            ),
-          ),
-        ),
-        Gap(
-          TextButton(
-            onPressed: () async {
-              final to = await switchAppRole(ref, AppRole.buyer);
-              if (context.mounted) context.go(to);
-            },
-            child: Text(
-              'رجوع لتطبيق الزبون',
-              style: AppText.strong.copyWith(color: AppColors.blue),
             ),
           ),
         ),

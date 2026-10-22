@@ -76,11 +76,31 @@ final pageProfileProvider = FutureProvider.autoDispose.family<PageProfile, Strin
 final categoryPagesProvider = FutureProvider.autoDispose.family<List<PageSummary>, String>((ref, categoryId) async {
   final cat = await ref.watch(catalogProvider.future);
   final gov = cat.governorateId(ref.watch(regionProvider).governorate);
-  final j = await ref.watch(apiClientProvider).get<Map<String, dynamic>>(
+  final api = ref.watch(apiClientProvider);
+  final id = int.tryParse(categoryId) ?? cat.category(categoryId)?.id;
+  final j = await api.get<Map<String, dynamic>>(
     '/api/v1/pages/featured',
-    query: {'categoryId': categoryId, 'governorateId': gov},
+    query: {'categoryId': id, 'governorateId': gov},
   );
-  return [for (final p in j.l('pages')) pageSummaryFromJson(p)];
+  List<Map<String, dynamic>> slot = const [];
+  try {
+    slot = asList(
+      await api.get<List<dynamic>>(
+        '/api/v1/ads',
+        query: {
+          'slot': 'featuredPage',
+          'governorateId': gov,
+          'categoryId': ?id,
+        },
+      ),
+    );
+  } on ApiException {
+    slot = const [];
+  }
+  return featuredWithPaid(
+    [for (final p in j.l('pages')) pageSummaryFromJson(p)],
+    slot,
+  );
 });
 
 PageSummary pageSummaryFromJson(Map<String, dynamic> p) => PageSummary(
@@ -91,6 +111,37 @@ PageSummary pageSummaryFromJson(Map<String, dynamic> p) => PageSummary(
   image: p.os('image'),
   isAd: p.b('isAd'),
 );
+
+/// Paid «صفحة مميزة» first, then organic pages. Same page is not repeated.
+List<PageSummary> featuredWithPaid(
+  List<PageSummary> organic,
+  List<Map<String, dynamic>> slot,
+) {
+  final paidIds = <String>{};
+  final paid = <PageSummary>[];
+  for (final a in slot) {
+    final id = a.s('pageId');
+    if (id.isEmpty || !paidIds.add(id)) continue;
+    final existing = organic.where((p) => p.id == id).firstOrNull;
+    paid.add(
+      PageSummary(
+        id: id,
+        name: existing?.name.isNotEmpty == true ? existing!.name : a.s('pageName'),
+        rating: existing?.rating ?? 0,
+        deals: existing?.deals ?? 0,
+        image: existing?.image ?? a.os('image'),
+        isAd: true,
+      ),
+    );
+  }
+  return [
+    ...paid,
+    for (final p in organic)
+      if (p.isAd && paidIds.add(p.id)) p,
+    for (final p in organic)
+      if (!p.isAd && !paidIds.contains(p.id)) p,
+  ];
+}
 
 FeedItem feedItemFromJson(Map<String, dynamic> f) => FeedItem(
   category: f.s('category'),

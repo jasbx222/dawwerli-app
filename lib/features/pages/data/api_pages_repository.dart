@@ -19,10 +19,31 @@ class ApiPagesRepository implements PagesRepository {
         'governorateId': cat.governorateId(q.governorate),
       },
     );
+    final pages = featuredWithPaid(
+      [for (final p in j.l('pages')) pageSummaryFromJson(p)],
+      await _slot(cat.category(q.categoryId)?.id, cat.governorateId(q.governorate)),
+    );
     return FeaturedPages(
       categoryName: j.s('categoryName'),
       governorate: j.s('governorate'),
-      pages: [for (final p in j.l('pages')) pageSummaryFromJson(p)],
+      pages: pages,
     );
+  }
+
+  Future<List<Map<String, dynamic>>> _slot(int? categoryId, int? gov) async {
+    try {
+      return asList(
+        await api.get<List<dynamic>>(
+          '/api/v1/ads',
+          query: {
+            'slot': 'featuredPage',
+            'governorateId': ?gov,
+            'categoryId': ?categoryId,
+          },
+        ),
+      );
+    } on ApiException {
+      return const [];
+    }
   }
 }

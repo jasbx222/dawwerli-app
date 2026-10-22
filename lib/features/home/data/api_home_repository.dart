@@ -28,7 +28,19 @@ class ApiHomeRepository implements HomeRepository {
     final stats = j.m('stats');
     final govId = gov;
     final slotBanners = await _ads('homeBanner', govId);
-    final slotFeatured = await _ads('featuredPage', govId);
+    final slotSponsored = await _ads('sponsoredOffer', govId);
+    final catIds = <int>{
+      for (final c in j.l('categories'))
+        if (c.i('id') != 0) c.i('id'),
+    };
+    final featuredBuckets = await Future.wait([
+      _ads('featuredPage', govId),
+      for (final id in catIds) _ads('featuredPage', govId, categoryId: id),
+    ]);
+    final slotFeatured = [for (final bucket in featuredBuckets) ...bucket];
+    final organicFeatured = [
+      for (final p in j.l('featuredPages')) pageSummaryFromJson(p),
+    ];
     return HomeData(
       firstName: j.os('firstName') ?? '',
       area: j.os('area') ?? '',
@@ -70,23 +82,75 @@ class ApiHomeRepository implements HomeRepository {
           ),
       ],
       banners: _banners(ad, slotBanners),
-      featuredPages: _featured(
-        [for (final p in j.l('featuredPages')) pageSummaryFromJson(p)],
-        slotFeatured,
-      ),
+      sponsored: _sponsoredPages(slotSponsored, organicFeatured),
+      featuredPages: featuredWithPaid(organicFeatured, slotFeatured),
+      topProducts: await _topProducts(organicFeatured),
     );
   }
 
   /// Paid placements. A failure here must not blank the rest of home.
-  Future<List<Map<String, dynamic>>> _ads(String slot, int? gov) async {
+  Future<List<Map<String, dynamic>>> _ads(
+    String slot,
+    int? gov, {
+    int? categoryId,
+  }) async {
     try {
       return asList(
         await api.get<List<dynamic>>(
           '/api/v1/ads',
-          query: {'slot': slot, 'governorateId': ?gov},
+          query: {
+            'slot': slot,
+            'governorateId': ?gov,
+            'categoryId': ?categoryId,
+          },
         ),
       );
     } on ApiException {
+      return const [];
+    }
+  }
+
+  /// Products of the highest-rated pages. A failure must not blank home.
+  Future<List<HomeProduct>> _topProducts(List<PageSummary> pages) async {
+    final ranked = [...pages]..sort((a, b) {
+      final byRating = b.rating.compareTo(a.rating);
+      return byRating != 0 ? byRating : b.deals.compareTo(a.deals);
+    });
+    final rated = ranked.where((p) => p.rating > 0).take(4).toList();
+    final picked = rated.isEmpty ? ranked.take(4).toList() : rated;
+    final lists = await Future.wait(picked.map(_productsOf));
+    return [for (final list in lists) ...list].take(8).toList();
+  }
+
+  Future<List<HomeProduct>> _productsOf(PageSummary page) async {
+    try {
+      final list = asList(
+        await api.get<List<dynamic>>('/api/v1/pages/${page.id}/products'),
+      );
+      final out = <HomeProduct>[];
+      for (final p in list) {
+        if (p.containsKey('available') && p['available'] == false) continue;
+        final name = p.s('name');
+        final id = p.s('id');
+        if (name.isEmpty || id.isEmpty) continue;
+        final urls = ((p['imageUrls'] as List?) ?? const [])
+            .whereType<String>()
+            .where((u) => u.isNotEmpty)
+            .toList();
+        out.add(
+          HomeProduct(
+            pageId: page.id,
+            pageName: page.name,
+            id: id,
+            name: name,
+            price: p.i('price'),
+            image: urls.isNotEmpty ? urls.first : (p.os('image') ?? ''),
+          ),
+        );
+        if (out.length == 2) break;
+      }
+      return out;
+    } on Object {
       return const [];
     }
   }
@@ -112,18 +176,18 @@ List<AdBanner> _banners(
   return out;
 }
 
-/// Paid «صفحة مميزة» first, then organic pages. Same page is not repeated.
-List<PageSummary> _featured(
-  List<PageSummary> organic,
+/// Paid «عرض مُموّل», one card per page.
+List<PageSummary> _sponsoredPages(
   List<Map<String, dynamic>> slot,
+  List<PageSummary> known,
 ) {
-  final paidIds = <String>{};
-  final paid = <PageSummary>[];
+  final ids = <String>{};
+  final out = <PageSummary>[];
   for (final a in slot) {
     final id = a.s('pageId');
-    if (id.isEmpty || !paidIds.add(id)) continue;
-    final existing = organic.where((p) => p.id == id).firstOrNull;
-    paid.add(
+    if (id.isEmpty || !ids.add(id)) continue;
+    final existing = known.where((p) => p.id == id).firstOrNull;
+    out.add(
       PageSummary(
         id: id,
         name: existing?.name.isNotEmpty == true ? existing!.name : a.s('pageName'),
@@ -134,13 +198,7 @@ List<PageSummary> _featured(
       ),
     );
   }
-  return [
-    ...paid,
-    for (final p in organic)
-      if (p.isAd && paidIds.add(p.id)) p,
-    for (final p in organic)
-      if (!p.isAd && !paidIds.contains(p.id)) p,
-  ];
+  return out;
 }
 
 LiveRequest liveRequestFromJson(Map<String, dynamic> r) => LiveRequest(
