@@ -37,7 +37,7 @@ const storeErrorText = <String, String>{
   'store_order.not_found': 'ما لكينا هالطلب',
   'account.banned': 'حسابك موقوف، تواصل ويانا',
   'report.duplicate': 'بلّغت عن هذا قبل، فريقنا يراجعه',
-  'rating.not_received': 'تكدر تقيّم بس المنتجات اللي استلمتها',
+  'rating.not_received': 'ما تكدر تقيّم هذا المنتج إلا بعد ما تطلبه ويوصلك',
   'rating.prohibited': 'التعليق بي كلمات ممنوعة',
   'rating.stars': 'اختار من نجمة لخمس نجوم',
   'rating.comment': 'التعليق طويل',
