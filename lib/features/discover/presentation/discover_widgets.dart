@@ -463,7 +463,11 @@ class PageDirectoryCard extends ConsumerWidget {
                             ),
                           ),
                           Text(
-                            '(${p.ratingCount}) · ${p.productCount} منتج · ${compactCount(followers)} متابع',
+                            '(${p.ratingCount}) · ${p.productCount} منتج ·',
+                            style: AppText.muted.copyWith(fontSize: 12),
+                          ),
+                          Text(
+                            '${compactCount(followers)} متابع',
                             style: AppText.muted.copyWith(fontSize: 12),
                           ),
                         ],
