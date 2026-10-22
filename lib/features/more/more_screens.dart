@@ -18,15 +18,13 @@ import '../../core/widgets/notes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/page_tile.dart';
 import '../auth/data/auth_providers.dart';
-import '../store/presentation/store_screens.dart';
-import '../store/presentation/widgets/store_widgets.dart';
-import '../../core/widgets/seg_tabs.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
 import '../../core/api/api_client.dart';
-import '../../core/widgets/loading_block.dart';
 import 'more_data.dart';
+
+export '../pages/presentation/page_profile_screen.dart';
 
 void _back(BuildContext c) => popOr(c);
 Widget _pad(Widget w, {double top = 14}) => Gap(w, top: top);
@@ -41,206 +39,9 @@ Widget _avatar(String name, {double size = AppSize.iconTile, String? image}) {
   }
   return LetterAvatar(name, size: size);
 }
-Widget _stat(String value, String label) =>
-    Expanded(child: StatTile(value, label));
 
-// ───────────────────────── Page profile ─────────────────────────
 
-/// Public page profile — opened from stories, «صفحات مميزة», 45 and ad banners.
-class PageProfileScreen extends ConsumerStatefulWidget {
-  const PageProfileScreen({super.key, required this.pageId});
-  final String pageId;
 
-  @override
-  ConsumerState<PageProfileScreen> createState() => _PageProfileScreenState();
-}
-
-class _PageProfileScreenState extends ConsumerState<PageProfileScreen> {
-  static const _productsTab = 0;
-  var _tab = _productsTab;
-
-  String get pageId => widget.pageId;
-
-  @override
-  Widget build(BuildContext context) {
-    final p = ref.watch(pageProfileProvider(pageId)).value;
-    if (p == null) return const AppPage(title: '', children: [LoadingBlock()]);
-    final blocked = ref.watch(blockedProvider).contains(p.id);
-    final cart = ref.watch(cartSummaryProvider);
-    final onProducts = _tab == _productsTab;
-    return AppPage(
-      title: p.name,
-      titleIcon: const AppSvgIcon(
-        AppIcon.verified,
-        color: AppColors.gold,
-        size: 18,
-        strokeWidth: 2.2,
-      ),
-      subtitle:
-          'صفحة موثّقة · ${p.governorate} · توصّل لـ ${p.deliversTo} محافظات',
-      // Products tab: the cart bar once something is in the cart.
-      // About tab: post a request / block, as before.
-      bottom: onProducts
-          ? (cart.isEmpty
-                ? null
-                : CartBar(cart: cart, onTap: () => context.push(Routes.cart)))
-          : Column(
-        mainAxisSize: MainAxisSize.min,
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          AppButton(
-            'انشر طلب وخليها تقدّم عرض',
-            icon: AppIcon.plus,
-            onPressed: blocked
-                ? null
-                : () =>
-                      memberOnly(context, ref, () => context.push(Routes.post)),
-            variant: blocked
-                ? AppButtonVariant.disabled
-                : AppButtonVariant.primary,
-          ),
-          const SizedBox(height: 10),
-          AppButton(
-            blocked ? 'الغي الحظر' : 'احظر هالصفحة',
-            icon: AppIcon.lock,
-            variant: AppButtonVariant.ghost,
-            onPressed: () => memberOnly(context, ref, () {
-              final n = ref.read(blockedProvider.notifier);
-              if (blocked) {
-                n.unblock(p.id);
-                _toast(context, 'لغيت حظر ${p.name}');
-              } else {
-                n.block(p.id, name: p.name);
-                _toast(context, 'حظرت ${p.name}، ما تشوف طلباتك بعد');
-              }
-            }),
-          ),
-        ],
-      ),
-      children: [
-        _pad(
-          AppCard(
-            child: Column(
-              children: [
-                Row(
-                  children: [
-                    _avatar(p.name, size: 58, image: p.image),
-                    const SizedBox(width: 12),
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            p.name,
-                            style: AppText.strong.copyWith(fontSize: 17),
-                          ),
-                          RatingLine(
-                            text: '${p.rating} · ${p.deals} صفقة بالتطبيق',
-                            fontSize: 12.5,
-                          ),
-                        ],
-                      ),
-                    ),
-                  ],
-                ),
-                const SizedBox(height: 14),
-                Row(
-                  children: [
-                    _stat('${p.rating}', 'التقييم'),
-                    _stat('${p.deals}', 'صفقة مؤكدة'),
-                    _stat('${p.replyMinutes} د', 'سرعة الرد'),
-                  ],
-                ),
-              ],
-            ),
-          ),
-        ),
-        _pad(
-          SegTabs(
-            labels: const ['المنتجات', 'عن الصفحة'],
-            icons: const [AppIcon.bag, AppIcon.shieldCheck],
-            selected: _tab,
-            onSelect: (i) => setState(() => _tab = i),
-          ),
-        ),
-        if (onProducts)
-          _pad(PageProductsSection(pageId: pageId))
-        else ...[
-        _sectionLabel('شنو تبيع'),
-        _pad(
-          Wrap(
-            spacing: 8,
-            runSpacing: 8,
-            children: [for (final c in p.categories) AppChip(c)],
-          ),
-          top: 10,
-        ),
-        _pad(
-          AppCard(
-            flat: true,
-            color: AppColors.blueTint,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const AppSvgIcon(
-                  AppIcon.shieldCheck,
-                  color: AppColors.blue,
-                  size: 22,
-                ),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'ما تكدر تراسل الصفحة من هنا. انشر طلبك، وإذا تبيع هالصنف وتوصّل لمحافظتك يوصلها وتقدّم عرض بسعر ثابت. رقمك ينكشف بس للصفحة اللي تختارها.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.7,
-                      color: AppColors.ink,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        _pad(
-          AppCard(
-            flat: true,
-            color: AppColors.warnBg,
-            child: Row(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                const AppSvgIcon(
-                  AppIcon.alert,
-                  color: AppColors.warn,
-                  size: 22,
-                ),
-                const SizedBox(width: 10),
-                const Expanded(
-                  child: Text(
-                    'افحص الغرض قدام المندوب قبل ما تدفع. الدفع عند الاستلام بس، لا تحوّل عربون.',
-                    style: TextStyle(
-                      fontSize: 13,
-                      height: 1.7,
-                      color: AppColors.warnText,
-                    ),
-                  ),
-                ),
-              ],
-            ),
-          ),
-        ),
-        ],
-        if (blocked)
-          _pad(
-            const AlertCard(
-              title: 'هالصفحة محظورة',
-              body: 'ما تشوف طلباتك ولا تكدر تقدّملك عروض.',
-            ),
-          ),
-      ],
-    );
-  }
-}
 
 // ───────────────────────── Categories ─────────────────────────
 
@@ -327,7 +128,8 @@ class CategoryScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final c = ref.watch(catalogCategoriesProvider).byId(categoryId);
     final gov = ref.watch(regionProvider).governorate;
-    final pages = ref.watch(categoryPagesProvider(categoryId)).value ?? const [];
+    final pages =
+        ref.watch(categoryPagesProvider(categoryId)).value ?? const [];
     return AppPage(
       title: c.name,
       subtitle: 'صفحات موثّقة تبيع ${c.name} وتوصّل ل$gov',
@@ -394,7 +196,10 @@ class FeedScreen extends ConsumerWidget {
     title: 'هسه يدوّرون',
     subtitle: 'طلبات صارت بآخر ساعة بكل العراق',
     children: [
-      _pad(LiveFeedCard(items: ref.watch(fullFeedProvider).value ?? const []), top: 14),
+      _pad(
+        LiveFeedCard(items: ref.watch(fullFeedProvider).value ?? const []),
+        top: 14,
+      ),
       _pad(
         Text(
           'نعرض الصنف والمحافظة وعدد العروض بس، بدون صورة أو اسم أو منطقة الزبون.',
@@ -650,7 +455,9 @@ class TermsScreen extends ConsumerWidget {
           child: Column(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              for (final (t, b) in ref.watch(legalProvider('terms')).value ?? const <(String, String)>[]) ...[
+              for (final (t, b)
+                  in ref.watch(legalProvider('terms')).value ??
+                      const <(String, String)>[]) ...[
                 const SizedBox(height: 8),
                 Text(
                   t,
@@ -741,7 +548,10 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
       );
 
   Future<void> _send() async {
-    await ref.read(apiClientProvider).post<void>('/api/v1/contact', {'topic': _topic, 'text': _text.text.trim()});
+    await ref.read(apiClientProvider).post<void>('/api/v1/contact', {
+      'topic': _topic,
+      'text': _text.text.trim(),
+    });
     if (mounted) setState(() => _sent = true);
   }
 
@@ -888,7 +698,8 @@ class CategoryPickerScreen extends ConsumerWidget {
             insets: const EdgeInsets.symmetric(horizontal: 16, vertical: 4),
             child: Column(
               children: [
-                for (final (i, c) in ref.watch(catalogCategoriesProvider).indexed)
+                for (final (i, c)
+                    in ref.watch(catalogCategoriesProvider).indexed)
                   GestureDetector(
                     behavior: HitTestBehavior.opaque,
                     onTap: () {
@@ -899,7 +710,8 @@ class CategoryPickerScreen extends ConsumerWidget {
                     },
                     child: Container(
                       padding: const EdgeInsets.symmetric(vertical: 10),
-                      decoration: i == ref.watch(catalogCategoriesProvider).length - 1
+                      decoration:
+                          i == ref.watch(catalogCategoriesProvider).length - 1
                           ? null
                           : BoxDecoration(
                               border: Border(
