@@ -75,6 +75,8 @@ class SellerRequest {
     this.earlyTaken = 0,
     this.offeredByMe = false,
     this.cancelled = false,
+    this.category = '',
+    this.categoryId = 0,
   });
   final String id;
   final String title;
@@ -92,6 +94,8 @@ class SellerRequest {
   final int earlyTaken;
   final bool offeredByMe;
   final bool cancelled;
+  final String category;
+  final int categoryId;
 
   bool isEarly(DateTime now) => earlyUntil != null && now.isBefore(earlyUntil!);
   bool locked(int max) => cancelled || offers >= max;
@@ -110,7 +114,78 @@ class SellerRequest {
         earlyTaken: earlyTaken ?? this.earlyTaken,
         offeredByMe: offeredByMe ?? this.offeredByMe,
         cancelled: cancelled,
+        category: category,
+        categoryId: categoryId,
       );
+}
+
+/// Home feed filters (GET /pages/me/feed). Null = no filter.
+enum FeedSince { all, today, week, month }
+
+enum FeedSort { newest, oldest, priceAsc, priceDesc }
+
+class FeedFilter {
+  const FeedFilter({
+    this.categoryId,
+    this.since = FeedSince.all,
+    this.sort = FeedSort.newest,
+    this.minPrice,
+    this.maxPrice,
+  });
+  final int? categoryId;
+  final FeedSince since;
+  final FeedSort sort;
+  final int? minPrice;
+  final int? maxPrice;
+
+  /// Filters other than the default sort (the badge on «فلترة»).
+  int get active =>
+      (categoryId != null ? 1 : 0) +
+      (since != FeedSince.all ? 1 : 0) +
+      (sort != FeedSort.newest ? 1 : 0) +
+      (minPrice != null || maxPrice != null ? 1 : 0);
+
+  FeedFilter copyWith({
+    int? Function()? categoryId,
+    FeedSince? since,
+    FeedSort? sort,
+    int? Function()? minPrice,
+    int? Function()? maxPrice,
+  }) => FeedFilter(
+    categoryId: categoryId == null ? this.categoryId : categoryId(),
+    since: since ?? this.since,
+    sort: sort ?? this.sort,
+    minPrice: minPrice == null ? this.minPrice : minPrice(),
+    maxPrice: maxPrice == null ? this.maxPrice : maxPrice(),
+  );
+
+  Map<String, Object?> query(int page, int pageSize) => {
+    'categoryId': ?categoryId,
+    if (since != FeedSince.all) 'since': since.name,
+    'sort': sort.name,
+    'minPrice': ?minPrice,
+    'maxPrice': ?maxPrice,
+    'page': page,
+    'pageSize': pageSize,
+  };
+
+  @override
+  bool operator ==(Object other) =>
+      other is FeedFilter &&
+      other.categoryId == categoryId &&
+      other.since == since &&
+      other.sort == sort &&
+      other.minPrice == minPrice &&
+      other.maxPrice == maxPrice;
+
+  @override
+  int get hashCode => Object.hash(categoryId, since, sort, minPrice, maxPrice);
+}
+
+class FeedPage {
+  const FeedPage(this.items, this.total);
+  final List<SellerRequest> items;
+  final int total;
 }
 
 enum OfferState { chosen, waiting, notChosen, closed, withdrawn }
@@ -131,7 +206,14 @@ class SellerOffer {
     this.selectionNo,
     this.governorate = 'بغداد',
     this.customerPhone,
+    this.sentAt,
+    this.category = '',
+    this.requestMaxPrice,
   });
+
+  final DateTime? sentAt;
+  final String category;
+  final int? requestMaxPrice;
 
   /// Only while the order is Selected/InProgress; null afterwards (§16).
   final String? customerPhone;
@@ -168,6 +250,9 @@ class SellerOffer {
     selectionNo: selectionNo,
     governorate: governorate,
     customerPhone: customerPhone,
+    sentAt: sentAt,
+    category: category,
+    requestMaxPrice: requestMaxPrice,
   );
 }
 

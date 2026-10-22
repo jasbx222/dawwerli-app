@@ -41,7 +41,8 @@ abstract final class Routes {
   static String noPages(String id) => '/requests/$id/no-pages';
   static String pageProfile(String id) => '/pages/p/$id';
   static String pageProducts(String id) => '/pages/p/$id/products';
-  static String product(String pageId, String id) => '/pages/p/$pageId/products/$id';
+  static String product(String pageId, String id) =>
+      '/pages/p/$pageId/products/$id';
   static const cart = '/store/cart';
   static const topProducts = '/store/top-products';
   static const favorites = '/store/favorites';
@@ -63,12 +64,18 @@ abstract final class Routes {
   static const sellerRegister = '/seller/register';
   static const sellerVerify = '/seller/verify';
   static const sellerRejected = '/seller/verify/rejected';
-  static const sellerInbox = '/seller';
+  static const sellerHome = '/seller';
+
+  /// Old name of [sellerHome]; `/seller/inbox` links redirect there.
+  static const sellerInbox = sellerHome;
+  static const sellerOrders = '/seller/orders';
+  static String sellerOrder(String id) => '/seller/orders/$id';
   static String sellerSubmit(String requestId) =>
       '/seller/requests/$requestId/offer';
   static const sellerOffers = '/seller/offers';
   static String sellerChosen(String offerId) => '/seller/offers/$offerId';
-  static String sellerOfferView(String offerId) => '/seller/offers/$offerId/view';
+  static String sellerOfferView(String offerId) =>
+      '/seller/offers/$offerId/view';
   static const sellerRating = '/seller/rating';
   static const sellerWallet = '/seller/wallet';
   static const sellerAds = '/seller/ads';

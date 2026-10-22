@@ -108,7 +108,7 @@ class _SubmitState extends ConsumerState<SubmitOfferScreen> {
         if (_error == OfferError.earlySlotsFull) {
           showAppToast(context, 'نبهك أول ما ينفتح الطلب للكل');
         }
-        context.go(Routes.sellerInbox);
+        context.go(Routes.sellerHome);
       case OfferError.noBalance:
         TopupSheet.show(context);
       default:
@@ -345,7 +345,7 @@ class _CameraArea extends StatelessWidget {
           top: 50,
           right: 16,
           child: GestureDetector(
-            onTap: () => popOr(context, Routes.sellerInbox),
+            onTap: () => popOr(context, Routes.sellerHome),
             child: Container(
               width: 40,
               height: 40,

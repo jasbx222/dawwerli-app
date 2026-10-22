@@ -22,15 +22,16 @@ class FloatingNav<T> extends StatelessWidget {
     required this.items,
     required this.current,
     required this.onTab,
-    required this.onFab,
+    this.onFab,
     this.fabIcon = AppIcon.plus,
   });
 
-  /// Four items; the FAB sits between the 2nd and 3rd.
+  /// Four items with the FAB between the 2nd and 3rd, or any number of
+  /// evenly spaced items when [onFab] is null.
   final List<NavItem<T>> items;
   final T current;
   final ValueChanged<T> onTab;
-  final VoidCallback onFab;
+  final VoidCallback? onFab;
   final AppIcon fabIcon;
 
   @override
@@ -74,44 +75,46 @@ class FloatingNav<T> extends StatelessWidget {
           ),
         ],
       ),
-      child: Row(
-        mainAxisAlignment: MainAxisAlignment.spaceAround,
-        children: [
-          item(items[0]),
-          item(items[1]),
-          Transform.translate(
-            offset: const Offset(0, -17),
-            child: GestureDetector(
-              onTap: onFab,
-              child: Container(
-                width: AppSize.fab,
-                height: AppSize.fab,
-                decoration: BoxDecoration(
-                  color: AppColors.gold,
-                  borderRadius: BorderRadius.circular(18),
-                  boxShadow: const [
-                    BoxShadow(
-                      color: Color(0xB3E8B33A),
-                      offset: Offset(0, 10),
-                      blurRadius: 20,
-                      spreadRadius: -6,
+      child: onFab == null
+          ? Row(children: [for (final t in items) Expanded(child: item(t))])
+          : Row(
+              mainAxisAlignment: MainAxisAlignment.spaceAround,
+              children: [
+                item(items[0]),
+                item(items[1]),
+                Transform.translate(
+                  offset: const Offset(0, -17),
+                  child: GestureDetector(
+                    onTap: onFab,
+                    child: Container(
+                      width: AppSize.fab,
+                      height: AppSize.fab,
+                      decoration: BoxDecoration(
+                        color: AppColors.gold,
+                        borderRadius: BorderRadius.circular(18),
+                        boxShadow: const [
+                          BoxShadow(
+                            color: Color(0xB3E8B33A),
+                            offset: Offset(0, 10),
+                            blurRadius: 20,
+                            spreadRadius: -6,
+                          ),
+                        ],
+                      ),
+                      alignment: Alignment.center,
+                      child: AppSvgIcon(
+                        fabIcon,
+                        color: AppColors.ink,
+                        size: 26,
+                        strokeWidth: 2.6,
+                      ),
                     ),
-                  ],
+                  ),
                 ),
-                alignment: Alignment.center,
-                child: AppSvgIcon(
-                  fabIcon,
-                  color: AppColors.ink,
-                  size: 26,
-                  strokeWidth: 2.6,
-                ),
-              ),
+                item(items[2]),
+                item(items[3]),
+              ],
             ),
-          ),
-          item(items[2]),
-          item(items[3]),
-        ],
-      ),
     );
   }
 }

@@ -17,7 +17,8 @@ import '../../features/pages/presentation/featured_pages_screen.dart';
 import '../../features/more/more_screens.dart';
 import '../../features/seller/domain/seller_models.dart';
 import '../../features/seller/presentation/ads_screens.dart';
-import '../../features/seller/presentation/inbox_screen.dart';
+import '../../features/seller/presentation/page_home_screen.dart';
+import '../../features/seller/presentation/page_store_orders_screens.dart';
 import '../../features/seller/presentation/my_offers_screens.dart';
 import '../../features/seller/presentation/page_account_screens.dart';
 import '../../features/seller/presentation/reports_screen.dart';
@@ -239,22 +240,35 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'products',
-          builder: (_, s) => PageProductsScreen(pageId: s.pathParameters['id']!),
+          builder: (_, s) =>
+              PageProductsScreen(pageId: s.pathParameters['id']!),
           routes: [
             GoRoute(
               path: ':productId',
-              builder: (_, s) => ProductDetailsScreen(pageId: s.pathParameters['id']!, productId: s.pathParameters['productId']!),
+              builder: (_, s) => ProductDetailsScreen(
+                pageId: s.pathParameters['id']!,
+                productId: s.pathParameters['productId']!,
+              ),
             ),
           ],
         ),
       ],
     ),
     GoRoute(path: Routes.cart, builder: (_, _) => const CartScreen()),
-    GoRoute(path: Routes.topProducts, builder: (_, _) => const TopProductsScreen()),
+    GoRoute(
+      path: Routes.topProducts,
+      builder: (_, _) => const TopProductsScreen(),
+    ),
     GoRoute(path: Routes.favorites, builder: (_, _) => const FavoritesScreen()),
     GoRoute(path: Routes.checkout, builder: (_, _) => const CheckoutScreen()),
-    GoRoute(path: Routes.storeOrders, builder: (_, _) => const StoreOrdersScreen()),
-    GoRoute(path: '/store/orders/:id', builder: (_, s) => StoreOrderScreen(id: s.pathParameters['id']!)),
+    GoRoute(
+      path: Routes.storeOrders,
+      builder: (_, _) => const StoreOrdersScreen(),
+    ),
+    GoRoute(
+      path: '/store/orders/:id',
+      builder: (_, s) => StoreOrderScreen(id: s.pathParameters['id']!),
+    ),
     GoRoute(
       path: Routes.categories,
       builder: (_, _) => const CategoriesScreen(),
@@ -279,8 +293,20 @@ final appRouter = GoRouter(
       builder: (_, _) => const SellerRejectedScreen(),
     ),
     GoRoute(
-      path: Routes.sellerInbox,
-      builder: (_, _) => const SellerInboxScreen(),
+      path: Routes.sellerHome,
+      builder: (_, _) => const SellerHomeScreen(),
+    ),
+    GoRoute(path: '/seller/inbox', redirect: (_, _) => Routes.sellerHome),
+    GoRoute(
+      path: Routes.sellerOrders,
+      builder: (_, _) => const SellerStoreOrdersScreen(),
+      routes: [
+        GoRoute(
+          path: ':id',
+          builder: (_, s) =>
+              SellerStoreOrderScreen(orderId: s.pathParameters['id']!),
+        ),
+      ],
     ),
     GoRoute(
       path: '/seller/requests/:id/offer',
@@ -296,7 +322,8 @@ final appRouter = GoRouter(
       routes: [
         GoRoute(
           path: 'view',
-          builder: (_, s) => SellerOfferDetailsScreen(offerId: s.pathParameters['id']!),
+          builder: (_, s) =>
+              SellerOfferDetailsScreen(offerId: s.pathParameters['id']!),
         ),
       ],
     ),

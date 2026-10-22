@@ -192,7 +192,9 @@ class SellerController extends Notifier<SellerState> {
 
   /// GET /pages/me (+ everything a verified page sees). Returns the verification status.
   Future<VerifyStatus> refresh() async {
-    final config = SellerConfig.fromJson(await ref.read(appConfigProvider.future));
+    final config = SellerConfig.fromJson(
+      await ref.read(appConfigProvider.future),
+    );
     final Map<String, dynamic> me;
     try {
       me = await _api.get<Map<String, dynamic>>('/api/v1/pages/me');
@@ -221,8 +223,12 @@ class SellerController extends Notifier<SellerState> {
       settings: PageSettings(
         receiving: st.b('receiving'),
         sound: st.b('sound'),
-        categories: cat.categoryNames(st.list<num>('categoryIds').map((e) => e.toInt())),
-        governorates: cat.governorateNames(st.list<num>('governorateIds').map((e) => e.toInt())),
+        categories: cat.categoryNames(
+          st.list<num>('categoryIds').map((e) => e.toInt()),
+        ),
+        governorates: cat.governorateNames(
+          st.list<num>('governorateIds').map((e) => e.toInt()),
+        ),
         from: st.i('from'),
         to: st.i('to'),
         days: st.list<num>('days').map((e) => e.toInt()).toSet(),
@@ -252,52 +258,77 @@ class SellerController extends Notifier<SellerState> {
   }
 
   Future<void> loadInbox() async {
-    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/inbox'));
-    state = state.copyWith(
-      inbox: [
-        for (final r in list)
-          SellerRequest(
-            id: r.s('id'),
-            title: r.s('title'),
-            image: r.os('image') ?? '',
-            governorate: r.s('governorate'),
-            condition: r.s('condition'),
-            maxPrice: r.i('maxPrice'),
-            postedAt:
-                DateTime.tryParse(r.os('postedAt') ?? '')?.toLocal() ??
-                DateTime.now(),
-            offers: r.i('offers'),
-            earlyUntil: r.ot('earlyUntil'),
-            earlyTaken: r.i('earlyTaken'),
-            offeredByMe: r.b('offeredByMe'),
-            cancelled: r.b('cancelled'),
-          ),
-      ],
+    final list = asList(
+      await _api.get<List<dynamic>>('/api/v1/pages/me/inbox'),
     );
+    state = state.copyWith(inbox: [for (final r in list) _request(r)]);
+  }
+
+  static SellerRequest _request(Map<String, dynamic> r) => SellerRequest(
+    id: r.s('id'),
+    title: r.s('title'),
+    image: r.os('image') ?? '',
+    governorate: r.s('governorate'),
+    condition: r.s('condition'),
+    maxPrice: r.i('maxPrice'),
+    postedAt:
+        DateTime.tryParse(r.os('postedAt') ?? '')?.toLocal() ?? DateTime.now(),
+    offers: r.i('offers'),
+    earlyUntil: r.ot('earlyUntil'),
+    earlyTaken: r.i('earlyTaken'),
+    offeredByMe: r.b('offeredByMe'),
+    cancelled: r.b('cancelled'),
+    category: r.os('category') ?? '',
+    categoryId: r.oi('categoryId') ?? 0,
+  );
+
+  /// Requests seen on the home feed, so «قدّم عرض» finds them too.
+  final _seen = <String, SellerRequest>{};
+
+  /// الهوم · GET /pages/me/feed — every open request, filtered and paged by the server.
+  Future<FeedPage> loadFeed(
+    FeedFilter f, {
+    int page = 1,
+    int pageSize = 20,
+  }) async {
+    final j = await _api.get<Map<String, dynamic>>(
+      '/api/v1/pages/me/feed',
+      query: f.query(page, pageSize),
+    );
+    final items = [for (final r in j.l('items')) _request(r)];
+    for (final r in items) {
+      _seen[r.id] = r;
+    }
+    return FeedPage(items, j.i('total'));
   }
 
   Future<void> loadOffers() async {
-    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/offers'));
+    final list = asList(
+      await _api.get<List<dynamic>>('/api/v1/pages/me/offers'),
+    );
     state = state.copyWith(
       offers: [
         for (final o in list)
           if (_enumByName(OfferState.values, o.s('state')) case final state?)
-          SellerOffer(
-            id: o.s('id'),
-            requestId: o.s('requestId'),
-            title: o.s('title'),
-            image: o.os('image') ?? '',
-            price: o.i('price'),
-            state: state,
-            orderId: o.os('orderId'),
-            orderNo: o.os('orderNo'),
-            chosenAt: o.ot('chosenAt'),
-            contacted: o.b('contacted'),
-            ghostReported: o.b('ghostReported'),
-            selectionNo: o.oi('selectionNo'),
-            governorate: o.s('governorate'),
-            customerPhone: o.os('customerPhone')?.replaceAll('+', ''),
-          ),
+            SellerOffer(
+              id: o.s('id'),
+              requestId: o.s('requestId'),
+              title: o.s('title'),
+              image: o.os('image') ?? '',
+              price: o.i('price'),
+              state: state,
+              orderId: o.os('orderId'),
+              orderNo: o.os('orderNo'),
+              chosenAt: o.ot('chosenAt'),
+              contacted: o.b('contacted'),
+              ghostReported: o.b('ghostReported'),
+              selectionNo: o.oi('selectionNo'),
+              governorate: o.s('governorate'),
+              customerPhone: o.os('customerPhone')?.replaceAll('+', ''),
+              sentAt: o.ot('sentAt'),
+              category: o.os('category') ?? '',
+              requestMaxPrice: o.oi('requestMaxPrice'),
+            ),
       ],
     );
   }
@@ -332,25 +363,27 @@ class SellerController extends Notifier<SellerState> {
 
   Future<void> loadAds() async {
     final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/ads'));
-    final el = await _api.get<Map<String, dynamic>>('/api/v1/pages/me/ads/eligibility');
+    final el = await _api.get<Map<String, dynamic>>(
+      '/api/v1/pages/me/ads/eligibility',
+    );
     state = state.copyWith(
       openReport: !el.b('noOpenReports'),
       ads: [
         for (final a in list)
           if (_enumByName(AdSlot.values, a.s('slot')) case final slot?)
             if (_enumByName(AdStatus.values, a.s('status')) case final status?)
-          AdCampaign(
-            id: a.s('id'),
-            slot: slot,
-            title: a.s('title'),
-            place: a.s('place'),
-            image: a.os('image') ?? '',
-            status: status,
-            note: a.os('note'),
-            impressions: a.i('impressions'),
-            clicks: a.i('clicks'),
-            selections: a.i('selections'),
-          ),
+              AdCampaign(
+                id: a.s('id'),
+                slot: slot,
+                title: a.s('title'),
+                place: a.s('place'),
+                image: a.os('image') ?? '',
+                status: status,
+                note: a.os('note'),
+                impressions: a.i('impressions'),
+                clicks: a.i('clicks'),
+                selections: a.i('selections'),
+              ),
       ],
     );
   }
@@ -365,10 +398,11 @@ class SellerController extends Notifier<SellerState> {
           PageMark(
             m.s('id'),
             m.s('title'),
-            [dayMonth(m.t('at')), if (m.os('orderNo') case final no?) 'طلب #$no'].join(' · '),
-            m.b('underReview')
-                ? MarkKind.review
-                : MarkKind.mark,
+            [
+              dayMonth(m.t('at')),
+              if (m.os('orderNo') case final no?) 'طلب #$no',
+            ].join(' · '),
+            m.b('underReview') ? MarkKind.review : MarkKind.mark,
             orderNo: m.os('orderNo'),
           ),
       ],
@@ -380,7 +414,9 @@ class SellerController extends Notifier<SellerState> {
   }
 
   Future<void> loadRatings() async {
-    final list = asList(await _api.get<List<dynamic>>('/api/v1/pages/me/ratings'));
+    final list = asList(
+      await _api.get<List<dynamic>>('/api/v1/pages/me/ratings'),
+    );
     if (list.isEmpty) return;
     final r = list.first;
     state = state.copyWith(
@@ -399,7 +435,12 @@ class SellerController extends Notifier<SellerState> {
     state = state.copyWith(
       notices: [
         for (final n in j.l('items'))
-          SellerNotice(n.s('title'), n.s('body'), n.s('route'), agoLabel(n.t('at'))),
+          SellerNotice(
+            n.s('title'),
+            n.s('body'),
+            n.s('route'),
+            agoLabel(n.t('at')),
+          ),
       ],
     );
   }
@@ -438,7 +479,7 @@ class SellerController extends Notifier<SellerState> {
   void reset() => state = SellerState(config: state.config);
 
   SellerRequest? request(String id) =>
-      state.inbox.where((r) => r.id == id).firstOrNull;
+      state.inbox.where((r) => r.id == id).firstOrNull ?? _seen[id];
 
   /// Client-side mirror of the server rules; the API re-checks everything.
   OfferError? validate(
@@ -490,6 +531,13 @@ class SellerController extends Notifier<SellerState> {
       final mapped = _offerErrors[x.code];
       if (mapped == null) rethrow;
       return mapped;
+    }
+    final seen = _seen[requestId];
+    if (seen != null) {
+      _seen[requestId] = seen.copyWith(
+        offers: seen.offers + 1,
+        offeredByMe: true,
+      );
     }
     await Future.wait([loadInbox(), loadOffers(), loadWallet()]);
     return null;
@@ -613,14 +661,13 @@ final sellerProvider = NotifierProvider<SellerController, SellerState>(
   SellerController.new,
 );
 
-T? _enumByName<T extends Enum>(List<T> values, String name) => values
-    .where((e) => e.name.toLowerCase() == name.toLowerCase())
-    .firstOrNull;
+T? _enumByName<T extends Enum>(List<T> values, String name) =>
+    values.where((e) => e.name.toLowerCase() == name.toLowerCase()).firstOrNull;
 
 /// Where the page app opens for a verification status.
 String sellerEntryRoute(VerifyStatus s) => switch (s) {
   VerifyStatus.none => Routes.sellerRegister,
   VerifyStatus.pending => Routes.sellerVerify,
   VerifyStatus.rejected => Routes.sellerRejected,
-  VerifyStatus.verified => Routes.sellerInbox,
+  VerifyStatus.verified => Routes.sellerHome,
 };
