@@ -250,6 +250,7 @@ final appRouter = GoRouter(
       ],
     ),
     GoRoute(path: Routes.cart, builder: (_, _) => const CartScreen()),
+    GoRoute(path: Routes.topProducts, builder: (_, _) => const TopProductsScreen()),
     GoRoute(path: Routes.checkout, builder: (_, _) => const CheckoutScreen()),
     GoRoute(path: Routes.storeOrders, builder: (_, _) => const StoreOrdersScreen()),
     GoRoute(path: '/store/orders/:id', builder: (_, s) => StoreOrderScreen(id: s.pathParameters['id']!)),

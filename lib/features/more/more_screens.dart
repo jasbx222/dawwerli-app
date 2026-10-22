@@ -19,6 +19,8 @@ import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/page_tile.dart';
 import '../auth/data/auth_providers.dart';
 import '../store/presentation/store_screens.dart';
+import '../store/presentation/widgets/store_widgets.dart';
+import '../../core/widgets/seg_tabs.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
@@ -45,15 +47,27 @@ Widget _stat(String value, String label) =>
 // ───────────────────────── Page profile ─────────────────────────
 
 /// Public page profile — opened from stories, «صفحات مميزة», 45 and ad banners.
-class PageProfileScreen extends ConsumerWidget {
+class PageProfileScreen extends ConsumerStatefulWidget {
   const PageProfileScreen({super.key, required this.pageId});
   final String pageId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PageProfileScreen> createState() => _PageProfileScreenState();
+}
+
+class _PageProfileScreenState extends ConsumerState<PageProfileScreen> {
+  static const _productsTab = 0;
+  var _tab = _productsTab;
+
+  String get pageId => widget.pageId;
+
+  @override
+  Widget build(BuildContext context) {
     final p = ref.watch(pageProfileProvider(pageId)).value;
     if (p == null) return const AppPage(title: '', children: [LoadingBlock()]);
     final blocked = ref.watch(blockedProvider).contains(p.id);
+    final cart = ref.watch(cartSummaryProvider);
+    final onProducts = _tab == _productsTab;
     return AppPage(
       title: p.name,
       titleIcon: const AppSvgIcon(
@@ -64,7 +78,13 @@ class PageProfileScreen extends ConsumerWidget {
       ),
       subtitle:
           'صفحة موثّقة · ${p.governorate} · توصّل لـ ${p.deliversTo} محافظات',
-      bottom: Column(
+      // Products tab: the cart bar once something is in the cart.
+      // About tab: post a request / block, as before.
+      bottom: onProducts
+          ? (cart.isEmpty
+                ? null
+                : CartBar(cart: cart, onTap: () => context.push(Routes.cart)))
+          : Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -135,45 +155,17 @@ class PageProfileScreen extends ConsumerWidget {
             ),
           ),
         ),
-        _sectionLabel('المنتجات'),
         _pad(
-          Builder(
-            builder: (context) {
-              final products = ref.watch(pageProductsProvider(pageId));
-              return products.when(
-                loading: () => const LoadingBlock(),
-                error: (_, _) => Text('ما قدرنا نجيب المنتجات', style: AppText.body),
-                data: (list) => list.isEmpty
-                    ? Text('ماكو منتجات بهالصفحة حالياً', style: AppText.body)
-                    : Column(
-                        children: [
-                          for (final item in list)
-                            Padding(
-                              padding: const EdgeInsets.only(bottom: 10),
-                              child: AppCard(
-                                child: ListTile(
-                                  contentPadding: EdgeInsets.zero,
-                                  leading: item.images.isEmpty
-                                      ? null
-                                      : ClipRRect(
-                                          borderRadius: BorderRadius.circular(12),
-                                          child: AppImage(item.images.first, width: 56, height: 56, fit: BoxFit.cover),
-                                        ),
-                                  title: Text(item.name, style: AppText.strong),
-                                  subtitle: Text(
-                                    item.available ? '${item.price} د.ع' : 'نفدت الكمية',
-                                    style: AppText.body,
-                                  ),
-                                  onTap: () => context.push(Routes.product(pageId, item.id)),
-                                ),
-                              ),
-                            ),
-                        ],
-                      ),
-              );
-            },
+          SegTabs(
+            labels: const ['المنتجات', 'عن الصفحة'],
+            icons: const [AppIcon.bag, AppIcon.shieldCheck],
+            selected: _tab,
+            onSelect: (i) => setState(() => _tab = i),
           ),
         ),
+        if (onProducts)
+          _pad(PageProductsSection(pageId: pageId))
+        else ...[
         _sectionLabel('شنو تبيع'),
         _pad(
           Wrap(
@@ -237,6 +229,7 @@ class PageProfileScreen extends ConsumerWidget {
             ),
           ),
         ),
+        ],
         if (blocked)
           _pad(
             const AlertCard(
