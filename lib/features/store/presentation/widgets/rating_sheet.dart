@@ -25,7 +25,7 @@ Future<bool> showRateSheet(
   if (!mine.canRate) {
     showAppToast(
       context,
-      'تكدر تقيّم المنتج بعد ما يوصلك',
+      'ما تكدر تقيّم هذا المنتج إلا بعد ما تطلبه ويوصلك',
       icon: AppIcon.alert,
     );
     return false;
@@ -118,7 +118,7 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
               : switch (e.code) {
                   'rating.prohibited' => 'التعليق بيه كلمة ممنوعة، عدّله وجرّب',
                   'rating.not_received' =>
-                    'تكدر تقيّم المنتج بعد ما يوصلك، وبس مرة وحدة',
+                    'ما تكدر تقيّم هذا المنتج إلا بعد ما تطلبه ويوصلك',
                   _ => storeError(e),
                 };
         });

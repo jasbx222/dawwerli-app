@@ -126,6 +126,26 @@ class _ProductReviewsSectionState extends ConsumerState<ProductReviewsSection> {
               'قيّم المنتج واكتب تعليقك',
               icon: AppIcon.star,
               onPressed: _rate,
+            )
+          else
+            AppCard(
+              padding: 14,
+              child: Row(
+                children: [
+                  const AppSvgIcon(
+                    AppIcon.starOutline,
+                    color: AppColors.gold,
+                    size: 22,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'ما تكدر تقيّم هذا المنتج إلا بعد ما تطلبه ويوصلك.',
+                      style: AppText.muted.copyWith(fontSize: 13, height: 1.6),
+                    ),
+                  ),
+                ],
+              ),
             ),
           if (reviews.isNotEmpty) ...[
             const SizedBox(height: 14),
