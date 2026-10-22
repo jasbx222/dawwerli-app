@@ -40,6 +40,12 @@ abstract final class Routes {
   static String noOffers(String id) => '/requests/$id/no-offers';
   static String noPages(String id) => '/requests/$id/no-pages';
   static String pageProfile(String id) => '/pages/p/$id';
+  static String pageProducts(String id) => '/pages/p/$id/products';
+  static String product(String pageId, String id) => '/pages/p/$pageId/products/$id';
+  static const cart = '/store/cart';
+  static const checkout = '/store/checkout';
+  static const storeOrders = '/store/orders';
+  static String storeOrder(String id) => '/store/orders/$id';
   static const categories = '/categories';
   static String category(String id) => '/categories/$id';
   static const feed = '/feed';
@@ -60,6 +66,7 @@ abstract final class Routes {
       '/seller/requests/$requestId/offer';
   static const sellerOffers = '/seller/offers';
   static String sellerChosen(String offerId) => '/seller/offers/$offerId';
+  static String sellerOfferView(String offerId) => '/seller/offers/$offerId/view';
   static const sellerRating = '/seller/rating';
   static const sellerWallet = '/seller/wallet';
   static const sellerAds = '/seller/ads';
@@ -71,6 +78,7 @@ abstract final class Routes {
       '/seller/standing/appeal/$markId';
   static const sellerSettings = '/seller/settings';
   static const sellerAccount = '/seller/account';
+  static const sellerReports = '/seller/reports';
   static const sellerNotifications = '/seller/notifications';
   static const sellerDelete = '/seller/account/delete';
 }

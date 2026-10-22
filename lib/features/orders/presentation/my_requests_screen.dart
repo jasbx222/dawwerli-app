@@ -15,6 +15,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
+import '../../store/presentation/store_screens.dart';
 import '../data/my_requests_provider.dart';
 
 enum _Kind { live, waiting, chosen, expired, done }
@@ -179,6 +180,7 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
                         child: AppCard(child: _Row(item: i)),
                       ),
                     ),
+                _StoreOrders(),
               ],
             ),
           ),
@@ -199,6 +201,47 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _StoreOrders extends ConsumerWidget {
+  const _StoreOrders();
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final orders = ref.watch(storeOrdersProvider);
+    return orders.maybeWhen(
+      data: (list) {
+        if (list.isEmpty) return const SizedBox.shrink();
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.stretch,
+          children: [
+            const Padding(
+              padding: EdgeInsets.fromLTRB(20, 22, 20, 0),
+              child: Text('طلبات المتجر', style: TextStyle(fontSize: 18, fontWeight: FontWeight.w700)),
+            ),
+            for (final o in list)
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 10, 16, 0),
+                child: GestureDetector(
+                  onTap: () => context.push(Routes.storeOrder(o.id)),
+                  child: AppCard(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.start,
+                      children: [
+                        Text('${o.no} · ${o.pageName}', style: AppText.strong),
+                        const SizedBox(height: 4),
+                        Text('${o.items.join('، ')}\n${o.subtotal} د.ع', style: AppText.muted),
+                      ],
+                    ),
+                  ),
+                ),
+              ),
+          ],
+        );
+      },
+      orElse: () => const SizedBox.shrink(),
     );
   }
 }

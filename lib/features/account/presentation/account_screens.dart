@@ -23,7 +23,6 @@ import '../../../core/api/api_config.dart';
 import '../../auth/data/session.dart';
 import '../data/account_api.dart';
 import 'server_url_sheet.dart';
-import '../../../core/role/app_role.dart';
 import '../../seller/data/seller_controller.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
 
@@ -164,10 +163,6 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ]),
                 SettingsGroup([
-                  _item(AppIcon.refresh, 'بدّل لـ«أبيع»', '', () async {
-                    final to = await switchAppRole(ref, AppRole.seller);
-                    if (context.mounted) context.go(to);
-                  }),
                   _item(
                     AppIcon.refresh,
                     'سجّل خروج',
@@ -187,7 +182,7 @@ class AccountScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: 10),
                 Text(
-                  'دوّرلي v1.0.0',
+                  'دوّرلي v1.0.1',
                   textAlign: TextAlign.center,
                   style: AppText.muted,
                 ),

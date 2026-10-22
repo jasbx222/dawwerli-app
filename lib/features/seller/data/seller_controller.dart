@@ -410,14 +410,17 @@ class SellerController extends Notifier<SellerState> {
     required String handle,
     required Set<String> categories,
     required Set<String> governorates,
+    String? photo,
   }) async {
     final cat = await _catalog;
+    final imageKey = await uploadImage(_api, photo, 'pages');
     await _api.post<void>('/api/v1/pages/register', {
       'name': name,
       'instagram': handle.replaceFirst('@', ''),
       'categoryIds': cat.categoryIds(categories),
       'governorateIds': cat.governorateIds(governorates),
       'acceptTerms': true,
+      'imageKey': ?imageKey,
     });
     await refresh();
   }
