@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/router/routes.dart';
@@ -13,9 +14,12 @@ import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_image.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/app_sheet.dart';
+import '../../../core/widgets/order_map.dart';
 import '../../../core/widgets/pill.dart';
 import '../../../core/widgets/radio_row.dart';
 import '../../more/more_data.dart';
+import '../../orders/data/orders_providers.dart';
+import '../../orders/domain/order.dart' show DeliveryAnswer;
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
 import 'widgets/rating_sheet.dart';
@@ -337,7 +341,7 @@ class OrderRowCard extends ConsumerWidget {
     final o = order;
     final first = o.lines.isEmpty ? null : o.lines.first;
     final more = o.lines.length - 1;
-    final myStars = o.delivered && first != null
+    final myStars = o.delivered && !o.isOffer && first != null
         ? ref.watch(myRatingProvider(first.productId)).value?.stars
         : null;
     final actions = <Widget>[
@@ -353,7 +357,13 @@ class OrderRowCard extends ConsumerWidget {
           danger: true,
           onTap: () => _cancel(context, ref, o),
         ),
-      if (o.delivered) ...[
+      if (o.isOffer && o.canRate && o.offerOrderId != null)
+        _RowAction(
+          'قيّم الصفحة',
+          primary: true,
+          onTap: () => context.push(Routes.rateOrder(o.offerOrderId!)),
+        ),
+      if (o.delivered && !o.isOffer) ...[
         _RowAction('اطلب مرة ثانية', onTap: () => _reorder(context, ref, o)),
         if (myStars == null)
           _RowAction(
@@ -701,12 +711,23 @@ class _Details extends ConsumerWidget {
         : ref.watch(pageProfileProvider(o.pageId)).value;
     Widget gap(Widget child) =>
         StoreWidth(maxWidth: 760, top: 12, child: child);
-    final bottom = o.isNew
+    final Widget? bottom = o.canAnswer && o.offerOrderId != null
+        ? _InspectBar(order: o)
+        : o.isNew
         ? AppButton(
             'إلغاء الطلب',
             variant: AppButtonVariant.danger,
             onPressed: () => _cancel(context, ref, o),
           )
+        : o.isOffer
+        ? (o.canRate && o.offerOrderId != null
+              ? AppButton(
+                  'قيّم الصفحة',
+                  icon: AppIcon.star,
+                  onPressed: () =>
+                      context.push(Routes.rateOrder(o.offerOrderId!)),
+                )
+              : null)
         : o.delivered
         ? AppButton(
             'قيّم المنتجات',
@@ -725,12 +746,85 @@ class _Details extends ConsumerWidget {
           maxWidth: 760,
           child: _Summary(order: o, image: page?.image),
         ),
+        if (o.disputed)
+          gap(
+            _Section(
+              child: Row(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  const AppSvgIcon(
+                    AppIcon.alert,
+                    color: AppColors.danger,
+                    size: 20,
+                  ),
+                  const SizedBox(width: 10),
+                  Expanded(
+                    child: Text(
+                      'سجّلنا ردّك، وفريق دوّرلي يراجع الطلب ويا الصفحة.',
+                      style: AppText.body,
+                    ),
+                  ),
+                ],
+              ),
+            ),
+          ),
         gap(
           _Section(
             title: 'حالة الطلب',
             child: _Timeline(order: o),
           ),
         ),
+        if (o.courier case final c?)
+          gap(
+            _Section(
+              title: 'المندوب',
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _InfoRow(
+                          icon: AppIcon.truck,
+                          title: 'مندوب ${o.pageName}',
+                          body: c.name,
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 12),
+                  Row(
+                    children: [
+                      Expanded(
+                        child: _InfoRow(
+                          icon: AppIcon.phone,
+                          title: 'رقم المندوب',
+                          body: c.phone,
+                          ltr: true,
+                        ),
+                      ),
+                      SizedBox(
+                        width: 92,
+                        child: AppButton(
+                          'اتصل',
+                          compact: true,
+                          icon: AppIcon.phone,
+                          variant: AppButtonVariant.ghost,
+                          onPressed: () =>
+                              launchUrl(Uri(scheme: 'tel', path: c.phone)),
+                        ),
+                      ),
+                    ],
+                  ),
+                  const SizedBox(height: 10),
+                  Text(
+                    'افحص الغرض قدام المندوب قبل ما تدفع.',
+                    style: AppText.muted,
+                  ),
+                ],
+              ),
+            ),
+          ),
         gap(
           _Section(
             title: o.lines.length == 1
@@ -740,7 +834,11 @@ class _Details extends ConsumerWidget {
               children: [
                 for (var i = 0; i < o.lines.length; i++) ...[
                   if (i > 0) Divider(height: 20, color: AppColors.divider),
-                  _ItemLine(line: o.lines[i], pageId: o.pageId),
+                  _ItemLine(
+                    line: o.lines[i],
+                    // Offer lines are not catalogue products.
+                    pageId: o.isOffer ? '' : o.pageId,
+                  ),
                 ],
               ],
             ),
@@ -756,6 +854,22 @@ class _Details extends ConsumerWidget {
                   title: 'عنوان التوصيل',
                   body: o.address.isEmpty ? '—' : o.address,
                 ),
+                if ((o.location?.note ?? '').isNotEmpty) ...[
+                  const SizedBox(height: 14),
+                  _InfoRow(
+                    icon: AppIcon.flag,
+                    title: 'ملاحظة للمندوب',
+                    body: o.location!.note!,
+                  ),
+                ],
+                if (o.location case final pin?) ...[
+                  const SizedBox(height: 12),
+                  OrderPinMap(
+                    latitude: pin.latitude,
+                    longitude: pin.longitude,
+                    height: 150,
+                  ),
+                ],
                 if ((o.note ?? '').isNotEmpty) ...[
                   const SizedBox(height: 14),
                   _InfoRow(
@@ -1237,10 +1351,16 @@ class _ItemLine extends StatelessWidget {
 }
 
 class _InfoRow extends StatelessWidget {
-  const _InfoRow({required this.icon, required this.title, required this.body});
+  const _InfoRow({
+    required this.icon,
+    required this.title,
+    required this.body,
+    this.ltr = false,
+  });
   final AppIcon icon;
   final String title;
   final String body;
+  final bool ltr;
 
   @override
   Widget build(BuildContext context) => Row(
@@ -1264,6 +1384,7 @@ class _InfoRow extends StatelessWidget {
             Text(title, style: AppText.muted),
             Text(
               body,
+              textDirection: ltr ? TextDirection.ltr : null,
               style: AppText.strong.copyWith(
                 fontWeight: FontWeight.w600,
                 height: 1.6,
@@ -1271,6 +1392,109 @@ class _InfoRow extends StatelessWidget {
             ),
           ],
         ),
+      ),
+    ],
+  );
+}
+
+/// Inspect-before-pay: «استلمت» / «ما وصل» / «مو مطابق» on an offer order.
+class _InspectBar extends ConsumerStatefulWidget {
+  const _InspectBar({required this.order});
+  final StoreOrder order;
+
+  @override
+  ConsumerState<_InspectBar> createState() => _InspectBarState();
+}
+
+class _InspectBarState extends ConsumerState<_InspectBar> {
+  bool _busy = false;
+
+  Future<void> _answer(DeliveryAnswer a) async {
+    final o = widget.order;
+    if (a != DeliveryAnswer.received) {
+      final ok = await showDialog<bool>(
+        context: context,
+        builder: (d) => AlertDialog(
+          title: Text(
+            a == DeliveryAnswer.notReceived
+                ? 'الغرض ما وصلك؟'
+                : 'الغرض مو مطابق؟',
+          ),
+          content: const Text(
+            'نسجّل ردّك وفريق دوّرلي يراجع الطلب ويا الصفحة.',
+          ),
+          actions: [
+            TextButton(
+              onPressed: () => Navigator.pop(d, false),
+              child: const Text('رجوع'),
+            ),
+            TextButton(
+              onPressed: () => Navigator.pop(d, true),
+              child: const Text('أكّد'),
+            ),
+          ],
+        ),
+      );
+      if (ok != true) return;
+    }
+    setState(() => _busy = true);
+    try {
+      await ref.read(ordersRepositoryProvider).answer(o.offerOrderId!, a);
+      ref
+        ..invalidate(storeOrderProvider(o.id))
+        ..invalidate(storeOrdersProvider);
+      if (!mounted) return;
+      if (a == DeliveryAnswer.received) {
+        context.push(Routes.rateOrder(o.offerOrderId!));
+      } else {
+        showAppToast(context, 'وصلنا ردّك، فريقنا يراجعه');
+      }
+    } catch (e) {
+      if (mounted) showAppToast(context, storeError(e), icon: AppIcon.alert);
+    } finally {
+      if (mounted) setState(() => _busy = false);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) => Column(
+    mainAxisSize: MainAxisSize.min,
+    crossAxisAlignment: CrossAxisAlignment.stretch,
+    children: [
+      Text(
+        'وصلك الغرض؟ افحصه قبل ما تدفع',
+        textAlign: TextAlign.center,
+        style: AppText.strong,
+      ),
+      const SizedBox(height: 8),
+      AppButton(
+        'استلمت، مطابق',
+        icon: AppIcon.check,
+        onPressed: _busy ? null : () => _answer(DeliveryAnswer.received),
+      ),
+      const SizedBox(height: 8),
+      Row(
+        children: [
+          Expanded(
+            child: AppButton(
+              'ما وصل',
+              compact: true,
+              variant: AppButtonVariant.ghost,
+              onPressed: _busy
+                  ? null
+                  : () => _answer(DeliveryAnswer.notReceived),
+            ),
+          ),
+          const SizedBox(width: 8),
+          Expanded(
+            child: AppButton(
+              'مو مطابق',
+              compact: true,
+              variant: AppButtonVariant.danger,
+              onPressed: _busy ? null : () => _answer(DeliveryAnswer.mismatch),
+            ),
+          ),
+        ],
       ),
     ],
   );

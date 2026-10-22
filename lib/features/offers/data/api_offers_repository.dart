@@ -13,7 +13,9 @@ class ApiOffersRepository implements OffersRepository {
 
   @override
   Future<OffersBoard> offers(String requestId) async {
-    final j = await api.get<Map<String, dynamic>>('/api/v1/requests/$requestId/offers');
+    final j = await api.get<Map<String, dynamic>>(
+      '/api/v1/requests/$requestId/offers',
+    );
     return OffersBoard(
       requestId: j.s('requestId'),
       maxOffers: j.i('maxOffers'),
@@ -22,12 +24,16 @@ class ApiOffersRepository implements OffersRepository {
   }
 
   @override
-  Future<Selection> select(String requestId, String offerId) async {
+  Future<Selection> select(
+    String requestId,
+    String offerId, [
+    SelectDelivery? delivery,
+  ]) async {
     try {
       return _selection(
         await api.post<Map<String, dynamic>>(
           '/api/v1/requests/$requestId/select',
-          {'offerId': offerId},
+          {'offerId': offerId, ...?delivery?.toJson()},
         ),
       );
     } on ApiException catch (e) {
@@ -46,7 +52,9 @@ class ApiOffersRepository implements OffersRepository {
   Future<Offer?> noReply(String requestId) async {
     final orderId = _orders[requestId] ?? (await selection(requestId))?.orderId;
     if (orderId == null) return null;
-    final j = await api.post<Map<String, dynamic>>('/api/v1/orders/$orderId/no-reply');
+    final j = await api.post<Map<String, dynamic>>(
+      '/api/v1/orders/$orderId/no-reply',
+    );
     _orders.remove(requestId);
     final next = j.om('next');
     return next == null ? null : offerFromJson(next);
@@ -65,6 +73,7 @@ class ApiOffersRepository implements OffersRepository {
       offer: offerFromJson(j.m('offer')),
       selectedAt: j.t('selectedAt'),
       pagePhone: (j.os('pagePhone') ?? '').replaceAll('+', ''),
+      storeOrderId: j.os('storeOrderId'),
       noReplyAfter: Duration(seconds: j.i('noReplyAfterSec')),
     );
     _orders[s.requestId] = s.orderId;

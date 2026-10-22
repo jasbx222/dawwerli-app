@@ -101,6 +101,7 @@ class Selection {
     required this.offer,
     required this.selectedAt,
     required this.pagePhone,
+    this.storeOrderId,
     this.noReplyAfter = const Duration(hours: 1),
   });
 
@@ -111,11 +112,36 @@ class Selection {
   final Offer offer;
   final DateTime selectedAt;
 
-  /// Page WhatsApp number (E.164 without +), revealed by the server on select.
+  /// Page contact number (E.164 without +). Not used for chat: everything
+  /// runs through the in-app order.
   final String pagePhone;
+
+  /// The in-app order the page delivers through (status, courier, pin).
+  final String? storeOrderId;
 
   /// Settings.NoReplyMinutes.
   final Duration noReplyAfter;
+}
+
+/// Where to deliver a chosen offer; sent once with the selection.
+class SelectDelivery {
+  const SelectDelivery({
+    this.address,
+    this.latitude,
+    this.longitude,
+    this.note,
+  });
+  final String? address;
+  final double? latitude;
+  final double? longitude;
+  final String? note;
+
+  Map<String, Object?> toJson() => {
+    if (address?.isNotEmpty == true) 'address': address,
+    'latitude': ?latitude,
+    'longitude': ?longitude,
+    if (note?.isNotEmpty == true) 'locationNote': note,
+  };
 }
 
 class SelectionConflict implements Exception {
@@ -128,7 +154,11 @@ abstract interface class OffersRepository {
   Future<OffersBoard> offers(String requestId);
 
   /// Throws [SelectionConflict] if another offer is already selected.
-  Future<Selection> select(String requestId, String offerId);
+  Future<Selection> select(
+    String requestId,
+    String offerId, [
+    SelectDelivery? delivery,
+  ]);
   Future<Selection?> selection(String requestId);
 
   /// Drops the silent page and returns the next best offer (or null).

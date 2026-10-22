@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:url_launcher/url_launcher.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/router/routes.dart';
@@ -8,18 +9,19 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
-import '../../../core/utils/whatsapp.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/loading_block.dart';
 import '../../../core/widgets/notes.dart';
+import '../../../core/widgets/order_map.dart';
 import '../../../core/widgets/pill.dart';
 import '../../store/data/store_data.dart';
 import '../../store/presentation/store_order_screens.dart'
     show OrderStatusPill, storeStatusLabel;
 import '../data/page_store_orders.dart';
+import 'couriers_screen.dart';
 import 'widgets/page_side_widgets.dart';
 import 'widgets/seller_nav.dart';
 import 'widgets/seller_widgets.dart';
@@ -321,10 +323,15 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
     if (!_busy) await _load();
   }
 
-  Future<void> _move(String status, {String? reason}) async {
+  Future<void> _move(String status, {String? reason, String? courierId}) async {
     setState(() => _busy = true);
     try {
-      final o = await _repo.move(widget.orderId, status, reason: reason);
+      final o = await _repo.move(
+        widget.orderId,
+        status,
+        reason: reason,
+        courierId: courierId,
+      );
       if (!mounted) return;
       setState(() => _o = o);
       showAppToast(context, 'صار الطلب ${storeStatusLabel(o.order.status)}');
@@ -332,14 +339,18 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
       if (!mounted) return;
       showAppToast(
         context,
-        e.offline
-            ? 'ماكو إنترنت، جرّب مرة ثانية'
-            : 'ما تكدر تغيّر حالة الطلب هسه',
+        pageOrderError(e, 'ما تكدر تغيّر حالة الطلب هسه'),
+        icon: AppIcon.alert,
       );
       _load();
     } finally {
       if (mounted) setState(() => _busy = false);
     }
+  }
+
+  Future<void> _outForDelivery() async {
+    final c = await CourierPickerSheet.show(context);
+    if (c != null && mounted) await _move('out_for_delivery', courierId: c.id);
   }
 
   void _withReason(String status) {
@@ -389,10 +400,10 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
         onPressed: _busy ? null : () => _move(s),
       ),
       'out_for_delivery' => AppButton(
-        'طلع للتوصيل',
+        'طلّع للتوصيل',
         variant: AppButtonVariant.navy,
-        icon: AppIcon.cart,
-        onPressed: _busy ? null : () => _move(s),
+        icon: AppIcon.truck,
+        onPressed: _busy ? null : _outForDelivery,
       ),
       'delivered' => AppButton(
         'وصل للزبون',
@@ -440,6 +451,22 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
                   OrderStatusPill(order.status),
                 ],
               ),
+              if (order.isOffer || order.disputed) ...[
+                const SizedBox(height: 6),
+                Wrap(
+                  spacing: 6,
+                  runSpacing: 6,
+                  children: [
+                    if (order.isOffer)
+                      PillTone.blue.pill('طلب من عرض', icon: AppIcon.target),
+                    if (order.disputed)
+                      PillTone.red.pill(
+                        _dealLabel(order.dealStatus),
+                        icon: AppIcon.alert,
+                      ),
+                  ],
+                ),
+              ],
               if (order.createdAt != null)
                 Text(
                   'انطلب ${dayTimeLabel(order.createdAt!.toLocal())}',
@@ -467,34 +494,54 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
                 o.customerName?.isNotEmpty == true ? o.customerName! : 'زبون',
               ),
               if (phone != null && phone.isNotEmpty)
-                _InfoRow(AppIcon.message, phone, ltr: true),
+                _InfoRow(
+                  AppIcon.phone,
+                  phone,
+                  ltr: true,
+                  action: 'اتصل',
+                  onAction: () => launchUrl(Uri(scheme: 'tel', path: phone)),
+                ),
               if (order.address.isNotEmpty)
                 _InfoRow(AppIcon.pin, order.address),
+              if (order.location?.note?.isNotEmpty == true)
+                _InfoRow(AppIcon.flag, order.location!.note!),
               if (order.note?.isNotEmpty == true)
                 _InfoRow(AppIcon.clipboardList, order.note!),
+              if (order.location case final pin?) ...[
+                const SizedBox(height: 6),
+                OrderPinMap(latitude: pin.latitude, longitude: pin.longitude),
+              ],
               const SizedBox(height: 10),
-              if (phone != null && phone.isNotEmpty)
-                AppButton(
-                  'راسل الزبون واتساب',
-                  compact: true,
-                  variant: AppButtonVariant.whatsapp,
-                  icon: AppIcon.whatsapp,
-                  onPressed: () => openWhatsApp(
-                    phone,
-                    'هلا، بخصوص طلبك ${order.no} من دوّرلي',
-                  ),
-                )
-              else
-                Text(
-                  order.active
-                      ? 'رقم الزبون يبين لمن تقبل الطلب'
-                      : 'رقم الزبون ينخفي بعد ما يخلص الطلب',
-                  style: AppText.muted,
-                ),
+              Text(
+                phone != null && phone.isNotEmpty
+                    ? 'الرقم يبين هنا بس، وينشال من الطلب بعد ما يخلص.'
+                    : order.active
+                    ? 'رقم الزبون يبين داخل الطلب بس ما دام الطلب شغّال'
+                    : 'رقم الزبون وعنوانه انشالوا بعد ما خلص الطلب',
+                style: AppText.muted,
+              ),
             ],
           ),
         ),
       ),
+      if (order.courier case final c?) ...[
+        const SectionLabel('المندوب'),
+        Gap(
+          AppCard(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                _InfoRow(AppIcon.truck, c.name),
+                _InfoRow(AppIcon.phone, c.phone, ltr: true),
+                Text(
+                  'الزبون يشوف اسم المندوب ورقمه داخل طلبه.',
+                  style: AppText.muted,
+                ),
+              ],
+            ),
+          ),
+        ),
+      ],
       const SectionLabel('المنتجات'),
       Gap(
         AppCard(
@@ -542,11 +589,25 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
   }
 }
 
+String _dealLabel(String? deal) => switch (deal) {
+  'mismatch' => 'الزبون كال الغرض مو مطابق',
+  'notDelivered' => 'الزبون كال ما وصله',
+  _ => 'بيه بلاغ عند الإدارة',
+};
+
 class _InfoRow extends StatelessWidget {
-  const _InfoRow(this.icon, this.text, {this.ltr = false});
+  const _InfoRow(
+    this.icon,
+    this.text, {
+    this.ltr = false,
+    this.action,
+    this.onAction,
+  });
   final AppIcon icon;
   final String text;
   final bool ltr;
+  final String? action;
+  final VoidCallback? onAction;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -564,9 +625,38 @@ class _InfoRow extends StatelessWidget {
             text,
             style: AppText.body,
             textDirection: ltr ? TextDirection.ltr : null,
-            textAlign: TextAlign.start,
+            // LTR numbers still sit on the RTL start (right) edge.
+            textAlign: ltr ? TextAlign.right : TextAlign.start,
           ),
         ),
+        if (action != null) ...[
+          const SizedBox(width: 10),
+          GestureDetector(
+            onTap: onAction,
+            child: Container(
+              padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 3),
+              decoration: BoxDecoration(
+                color: AppColors.blueTint,
+                borderRadius: BorderRadius.circular(99),
+              ),
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  const AppSvgIcon(
+                    AppIcon.phone,
+                    color: AppColors.blue,
+                    size: 14,
+                  ),
+                  const SizedBox(width: 6),
+                  Text(
+                    action!,
+                    style: AppText.strong.copyWith(color: AppColors.blue),
+                  ),
+                ],
+              ),
+            ),
+          ),
+        ],
       ],
     ),
   );

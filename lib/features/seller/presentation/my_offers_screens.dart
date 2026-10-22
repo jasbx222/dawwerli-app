@@ -7,7 +7,6 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
-import '../../../core/utils/whatsapp.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -93,10 +92,14 @@ class _OffersState extends ConsumerState<SellerOffersScreen>
   Widget build(BuildContext context) {
     final offers = ref.watch(sellerProvider).offers;
     int count(OfferState s) => offers.where((o) => o.state == s).length;
-    final shown = [
-      for (final o in offers)
-        if (_state == null || o.state == _state) o,
-    ]..sort((a, b) => (b.sentAt ?? DateTime(0)).compareTo(a.sentAt ?? DateTime(0)));
+    final shown =
+        [
+          for (final o in offers)
+            if (_state == null || o.state == _state) o,
+        ]..sort(
+          (a, b) =>
+              (b.sentAt ?? DateTime(0)).compareTo(a.sentAt ?? DateTime(0)),
+        );
     return AppPage(
       title: 'عروضي',
       showBack: false,
@@ -313,7 +316,7 @@ class _OfferCard extends ConsumerWidget {
   }
 }
 
-/// «واتساب» + «تواصلت ويا الزبون» (21 row, 21b).
+/// «افتح الطلب» + «تواصلت ويا الزبون» (21 row, 21b).
 class _ContactButtons extends ConsumerWidget {
   const _ContactButtons(this.o, {this.stacked = false});
   final SellerOffer o;
@@ -322,13 +325,12 @@ class _ContactButtons extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final wa = AppButton(
-      'واتساب',
+      'افتح الطلب',
       compact: true,
-      icon: AppIcon.whatsapp,
-      variant: AppButtonVariant.whatsapp,
-      onPressed: o.customerPhone == null
+      icon: AppIcon.clipboardList,
+      onPressed: o.storeOrderId == null
           ? null
-          : () => openWhatsApp(o.customerPhone!),
+          : () => context.push(Routes.sellerOrder(o.storeOrderId!)),
     );
     final contacted = AppButton(
       'تواصلت ويا الزبون',
@@ -418,12 +420,11 @@ class SellerChosenScreen extends ConsumerWidget {
         Padding(
           padding: const EdgeInsets.all(AppSpacing.lg),
           child: AppButton(
-            'افتح الواتساب',
-            icon: AppIcon.whatsapp,
-            variant: AppButtonVariant.whatsapp,
-            onPressed: o.customerPhone == null
+            'افتح الطلب',
+            icon: AppIcon.clipboardList,
+            onPressed: o.storeOrderId == null
                 ? null
-                : () => openWhatsApp(o.customerPhone!),
+                : () => context.push(Routes.sellerOrder(o.storeOrderId!)),
           ),
         ),
         Padding(
@@ -474,7 +475,7 @@ class SellerChosenScreen extends ConsumerWidget {
         ),
         Gap(
           TintedNote(
-            'رقم الزبون يبين بس داخل الواتساب، وينشال من عندك نهائياً أول ما يتسكر الطلب.',
+            'رقم الزبون وعنوانه يبينون بس داخل الطلب، وينشالون من عندك نهائياً أول ما يتسكر.',
             bg: TintedNote.blueBg,
             fg: TintedNote.blueFg,
             icon: AppIcon.lock,
@@ -520,7 +521,9 @@ class SellerRatingScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(sellerProvider);
     final r = s.lastRating;
-    if (r == null) return const AppPage(title: 'وصلك تقييم', children: [LoadingBlock()]);
+    if (r == null) {
+      return const AppPage(title: 'وصلك تقييم', children: [LoadingBlock()]);
+    }
     return AppPage(
       title: 'وصلك تقييم',
       titleIcon: const AppSvgIcon(
@@ -629,7 +632,11 @@ class SellerOfferDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final offer = ref.watch(sellerProvider).offers.where((o) => o.id == offerId).firstOrNull;
+    final offer = ref
+        .watch(sellerProvider)
+        .offers
+        .where((o) => o.id == offerId)
+        .firstOrNull;
     if (offer == null) {
       return const AppPage(title: 'تفاصيل العرض', children: [LoadingBlock()]);
     }
@@ -643,45 +650,46 @@ class SellerOfferDetailsScreen extends ConsumerWidget {
     return AppPage(
       title: 'تفاصيل العرض',
       children: [
-          Gap(
-            AppCard(
-              child: Row(
-                children: [
-                  PhotoThumb(offer.image, size: 72),
-                  const SizedBox(width: 12),
-                  Expanded(
-                    child: Column(
-                      crossAxisAlignment: CrossAxisAlignment.start,
-                      children: [
-                        Text(offer.title, style: AppText.strong),
-                        const SizedBox(height: 4),
-                        Text(state, style: AppText.muted),
-                      ],
-                    ),
+        Gap(
+          AppCard(
+            child: Row(
+              children: [
+                PhotoThumb(offer.image, size: 72),
+                const SizedBox(width: 12),
+                Expanded(
+                  child: Column(
+                    crossAxisAlignment: CrossAxisAlignment.start,
+                    children: [
+                      Text(offer.title, style: AppText.strong),
+                      const SizedBox(height: 4),
+                      Text(state, style: AppText.muted),
+                    ],
                   ),
-                ],
-              ),
+                ),
+              ],
             ),
           ),
-          Gap(
-            AppCard(
-              child: Column(
-                children: [
-                  _Detail('السعر', iqd(offer.price)),
-                  _Detail('المحافظة', offer.governorate),
-                  if ((offer.orderNo ?? '').isNotEmpty) _Detail('رقم الطلب', offer.orderNo!),
-                ],
-              ),
+        ),
+        Gap(
+          AppCard(
+            child: Column(
+              children: [
+                _Detail('السعر', iqd(offer.price)),
+                _Detail('المحافظة', offer.governorate),
+                if ((offer.orderNo ?? '').isNotEmpty)
+                  _Detail('رقم الطلب', offer.orderNo!),
+              ],
             ),
           ),
-          if (offer.state == OfferState.chosen)
-            Padding(
-              padding: const EdgeInsets.all(AppSpacing.lg),
-              child: AppButton(
-                'تواصل مع الزبون',
-                onPressed: () => context.push(Routes.sellerChosen(offer.id)),
-              ),
+        ),
+        if (offer.state == OfferState.chosen)
+          Padding(
+            padding: const EdgeInsets.all(AppSpacing.lg),
+            child: AppButton(
+              'تواصل مع الزبون',
+              onPressed: () => context.push(Routes.sellerChosen(offer.id)),
             ),
+          ),
       ],
     );
   }

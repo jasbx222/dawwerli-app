@@ -4,8 +4,6 @@ import '../../../core/widgets/app_image.dart';
 
 import 'package:flutter/material.dart';
 
-import '../../../core/utils/whatsapp.dart';
-
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -22,7 +20,7 @@ import '../data/offers_providers.dart';
 import '../domain/offer.dart';
 import 'widgets/offer_widgets.dart';
 
-/// 14 · Offer chosen → WhatsApp hand-off; 14b · «ما ردت» unlocked after 1h + toast.
+/// 14 · Offer chosen → in-app order hand-off; 14b · «ما ردت» unlocked after 1h + toast.
 class ChosenScreen extends ConsumerStatefulWidget {
   const ChosenScreen({
     super.key,
@@ -70,10 +68,10 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
     super.dispose();
   }
 
-  String _message(Selection s) =>
-      OfferStrings.waMessage(s.orderNo, s.itemTitle, thousands(s.offer.price));
-
-  Future<void> _whatsapp(Selection s) => openWhatsApp(s.pagePhone, _message(s));
+  void _track(Selection s) {
+    final id = s.storeOrderId;
+    context.push(id == null ? Routes.storeOrders : Routes.storeOrder(id));
+  }
 
   Future<void> _noReply() async {
     if (_busy) return;
@@ -210,7 +208,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                     flat: true,
                     color: AppColors.successBg,
                     child: Text(
-                      '«${_message(s)}»',
+                      OfferStrings.inAppOrder,
                       strutStyle: const StrutStyle(
                         fontFamily: AppText.family,
                         fontSize: 12.5,
@@ -241,10 +239,10 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                 Padding(
                   padding: const EdgeInsets.all(16),
                   child: IconLabelButton(
-                    label: OfferStrings.openWhatsapp,
-                    icon: AppIcon.whatsapp,
-                    bg: AppColors.whatsapp,
-                    onPressed: () => _whatsapp(s),
+                    label: OfferStrings.trackOrder,
+                    icon: AppIcon.clipboardList,
+                    bg: AppColors.blue,
+                    onPressed: () => _track(s),
                   ),
                 ),
                 if (_noneLeft)
@@ -393,7 +391,8 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                 m(
                   14,
                   GestureDetector(
-                    onTap: () => context.push(Routes.report(s.orderId, reason: 2)),
+                    onTap: () =>
+                        context.push(Routes.report(s.orderId, reason: 2)),
                     child: AppCard(
                       child: Row(
                         children: [
