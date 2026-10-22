@@ -186,7 +186,7 @@ class SellerAccountScreen extends ConsumerWidget {
         ]),
         const SizedBox(height: 10),
         Text(
-          'دوّرلي للصفحات v1.0.1',
+          'دوّرلي للصفحات v1.0.2',
           textAlign: TextAlign.center,
           style: AppText.muted,
         ),

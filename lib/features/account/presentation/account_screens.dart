@@ -190,7 +190,7 @@ class AccountScreen extends ConsumerWidget {
                 ]),
                 const SizedBox(height: 10),
                 Text(
-                  'دوّرلي v1.0.1',
+                  'دوّرلي v1.0.2',
                   textAlign: TextAlign.center,
                   style: AppText.muted,
                 ),
