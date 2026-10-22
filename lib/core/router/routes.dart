@@ -80,6 +80,17 @@ abstract final class Routes {
   static const sellerInbox = sellerHome;
   static const sellerOrders = '/seller/orders';
   static String sellerOrder(String id) => '/seller/orders/$id';
+  static const sellerCouriers = '/seller/couriers';
+
+  /// Delivery pin picker; pops with a `LatLng`.
+  static const pin = '/pin';
+  static String pinPicker([double? lat, double? lng]) =>
+      lat == null || lng == null
+      ? pin
+      : Uri(
+          path: pin,
+          queryParameters: {'lat': '$lat', 'lng': '$lng'},
+        ).toString();
   static String sellerSubmit(String requestId) =>
       '/seller/requests/$requestId/offer';
   static const sellerOffers = '/seller/offers';

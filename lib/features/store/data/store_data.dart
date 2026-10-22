@@ -96,6 +96,28 @@ class StoreOrderStep {
   final DateTime? at;
 }
 
+/// Optional map pin the customer dropped for delivery (no live tracking).
+class OrderPin {
+  const OrderPin(this.latitude, this.longitude, {this.note});
+  final double latitude;
+  final double longitude;
+  final String? note;
+
+  static OrderPin? fromJson(Map<String, dynamic>? j) => j == null
+      ? null
+      : OrderPin(j.d('latitude'), j.d('longitude'), note: j.os('note'));
+}
+
+/// Courier the page assigned when it sent the order out.
+class OrderCourier {
+  const OrderCourier(this.name, this.phone);
+  final String name;
+  final String phone;
+
+  static OrderCourier? fromJson(Map<String, dynamic>? j) =>
+      j == null ? null : OrderCourier(j.s('name'), j.s('phone'));
+}
+
 class StoreOrder {
   const StoreOrder({
     required this.id,
@@ -114,6 +136,15 @@ class StoreOrder {
     this.createdAt,
     this.statusChangedAt,
     this.history = const [],
+    this.kind = 'store',
+    this.requestId,
+    this.offerOrderId,
+    this.location,
+    this.courier,
+    this.dealStatus,
+    this.answer,
+    this.canAnswer = false,
+    this.canRate = false,
   });
   final String id;
   final String no;
@@ -134,6 +165,31 @@ class StoreOrder {
   /// Reached steps, oldest first. Built from createdAt / statusChangedAt
   /// when the API has no history yet (older builds).
   final List<StoreOrderStep> history;
+
+  /// `store` (cart checkout) or `offer` (a chosen offer on a request).
+  final String kind;
+  final String? requestId;
+
+  /// The offer-side order (inspect-before-pay answer, rating, disputes).
+  final String? offerOrderId;
+  final OrderPin? location;
+  final OrderCourier? courier;
+
+  /// Offer-side status (`awaitingDelivery`, `mismatch`, `disputed`, ...).
+  final String? dealStatus;
+
+  /// Customer's inspect answer: `received`, `notReceived` or `mismatch`.
+  final String? answer;
+
+  /// The customer can answer «استلمت / ما وصل / مو مطابق» now.
+  final bool canAnswer;
+  final bool canRate;
+
+  bool get isOffer => kind == 'offer';
+  bool get disputed =>
+      dealStatus == 'mismatch' ||
+      dealStatus == 'notDelivered' ||
+      dealStatus == 'disputed';
 
   bool get delivered => status == 'delivered';
   bool get isNew => status == 'new';
@@ -172,6 +228,15 @@ class StoreOrder {
         for (final i in j.l('items')) '${i.s('name')} × ${i.i('quantity')}',
       ],
       pageId: j.s('pageId'),
+      kind: j.os('kind') ?? 'store',
+      requestId: j.os('requestId'),
+      offerOrderId: j.os('offerOrderId'),
+      location: OrderPin.fromJson(j.om('location')),
+      courier: OrderCourier.fromJson(j.om('courier')),
+      dealStatus: j.os('dealStatus'),
+      answer: j.os('answer'),
+      canAnswer: j.b('canAnswer'),
+      canRate: j.b('canRate'),
       lines: [
         for (final i in j.l('items'))
           StoreOrderLine(

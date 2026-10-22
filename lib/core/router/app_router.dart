@@ -1,5 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../features/auth/data/auth_providers.dart';
 import '../../features/auth/presentation/login_phone_screen.dart';
@@ -20,6 +21,7 @@ import '../../features/pages/presentation/pages_tab_screen.dart';
 import '../../features/more/more_screens.dart';
 import '../../features/seller/domain/seller_models.dart';
 import '../../features/seller/presentation/ads_screens.dart';
+import '../../features/seller/presentation/couriers_screen.dart';
 import '../../features/seller/presentation/page_home_screen.dart';
 import '../../features/seller/presentation/page_store_orders_screens.dart';
 import '../../features/seller/presentation/my_offers_screens.dart';
@@ -44,6 +46,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/store/presentation/store_screens.dart';
+import '../widgets/order_map.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -319,6 +322,25 @@ final appRouter = GoRouter(
       builder: (_, _) => const SellerHomeScreen(),
     ),
     GoRoute(path: '/seller/inbox', redirect: (_, _) => Routes.sellerHome),
+    // Notification links from the API use the store path.
+    GoRoute(
+      path: '/seller/store/orders/:id',
+      redirect: (_, s) => Routes.sellerOrder(s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: Routes.sellerCouriers,
+      builder: (_, _) => const CouriersScreen(),
+    ),
+    GoRoute(
+      path: Routes.pin,
+      builder: (_, s) {
+        final lat = double.tryParse(s.uri.queryParameters['lat'] ?? '');
+        final lng = double.tryParse(s.uri.queryParameters['lng'] ?? '');
+        return PinPickerScreen(
+          initial: lat == null || lng == null ? null : LatLng(lat, lng),
+        );
+      },
+    ),
     GoRoute(
       path: Routes.sellerOrders,
       builder: (_, _) => const SellerStoreOrdersScreen(),

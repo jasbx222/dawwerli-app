@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
+import 'package:latlong2/latlong.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../../core/router/routes.dart';
@@ -14,11 +15,13 @@ import '../../../core/widgets/app_inputs.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/app_sheet.dart';
 import '../../../core/widgets/loading_block.dart';
+import '../../../core/widgets/order_map.dart';
 import '../../../core/widgets/page_tile.dart';
 import '../../../core/widgets/radio_row.dart';
 import '../../guest/guest.dart';
 import '../../home/data/home_providers.dart';
 import '../../more/more_data.dart';
+import '../../post/domain/request_draft.dart' show PostRules;
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_reviews.dart';
@@ -1349,6 +1352,8 @@ class CheckoutScreen extends ConsumerStatefulWidget {
 
 class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   final _address = TextEditingController();
+  final _note = TextEditingController();
+  LatLng? _pin;
   String _pay = 'cash';
   String? _error;
   bool _busy = false;
@@ -1356,12 +1361,23 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
   @override
   void dispose() {
     _address.dispose();
+    _note.dispose();
     super.dispose();
+  }
+
+  Future<void> _pick() async {
+    final p = await pickDeliveryPin(context, initial: _pin);
+    if (p != null && mounted) setState(() => _pin = p);
   }
 
   Future<void> _submit() async {
     if (_address.text.trim().isEmpty) {
       setState(() => _error = 'اكتب العنوان');
+      return;
+    }
+    if (PostRules.hasContactInfo(_address.text) ||
+        PostRules.hasContactInfo(_note.text)) {
+      setState(() => _error = storeErrorText['order.contact']);
       return;
     }
     setState(() {
@@ -1371,7 +1387,15 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
     try {
       final j = await ref.read(apiClientProvider).post<Map<String, dynamic>>(
         '/api/v1/store/orders',
-        {'address': _address.text.trim(), 'paymentMethod': _pay},
+        {
+          'address': _address.text.trim(),
+          'paymentMethod': _pay,
+          if (_pin case final p?) ...{
+            'latitude': p.latitude,
+            'longitude': p.longitude,
+          },
+          if (_note.text.trim().isNotEmpty) 'locationNote': _note.text.trim(),
+        },
       );
       ref.invalidate(cartProvider);
       ref.invalidate(storeOrdersProvider);
@@ -1407,6 +1431,29 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
           controller: _address,
           decoration: const InputDecoration(labelText: 'العنوان'),
           maxLength: 300,
+        ),
+        if (_pin case final p?) ...[
+          OrderPinMap(
+            latitude: p.latitude,
+            longitude: p.longitude,
+            height: 130,
+          ),
+          const SizedBox(height: 6),
+        ],
+        AppButton(
+          _pin == null ? 'حدد موقعك على الخريطة (اختياري)' : 'غيّر الدبوس',
+          compact: true,
+          icon: AppIcon.pin,
+          variant: AppButtonVariant.ghost,
+          onPressed: _pick,
+        ),
+        const SizedBox(height: 8),
+        TextField(
+          controller: _note,
+          decoration: const InputDecoration(
+            labelText: 'ملاحظة للمندوب (اختياري)',
+          ),
+          maxLength: 200,
         ),
         const SizedBox(height: 12),
         RadioGroup<String>(

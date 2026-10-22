@@ -205,7 +205,7 @@ class SellerOffer {
     this.ghostReported = false,
     this.selectionNo,
     this.governorate = 'بغداد',
-    this.customerPhone,
+    this.storeOrderId,
     this.sentAt,
     this.category = '',
     this.requestMaxPrice,
@@ -215,8 +215,9 @@ class SellerOffer {
   final String category;
   final int? requestMaxPrice;
 
-  /// Only while the order is Selected/InProgress; null afterwards (§16).
-  final String? customerPhone;
+  /// The page-side order this chosen offer became; the customer's phone and
+  /// address live only inside it (§16).
+  final String? storeOrderId;
   final String id;
   final String requestId;
   final String title;
@@ -249,7 +250,7 @@ class SellerOffer {
     ghostReported: ghostReported ?? this.ghostReported,
     selectionNo: selectionNo,
     governorate: governorate,
-    customerPhone: customerPhone,
+    storeOrderId: storeOrderId,
     sentAt: sentAt,
     category: category,
     requestMaxPrice: requestMaxPrice,

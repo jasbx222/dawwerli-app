@@ -22,6 +22,7 @@ const storeGenericError = 'صار خطأ، جرّب مرة ثانية';
 /// shown to customers.
 const storeErrorText = <String, String>{
   'cart.other_page': 'سلتك بيها منتجات من صفحة ثانية',
+  'order.contact': 'ممنوع تكتب رقم تلفون أو يوزر (@) أو رابط. كل التواصل والاتفاق يصير داخل دوّرلي.',
   'cart.empty': 'سلتك فارغة',
   'rating.duplicate': 'قيّمت هذا المنتج من قبل، تكدر تعدّل تقييمك بس',
   'cart.quantity': 'الكمية مو صحيحة',
@@ -49,6 +50,11 @@ String storeError(Object e) {
   if (e.offline) return 'ماكو اتصال بالنت';
   final known = storeErrorText[e.code];
   if (known != null) return known;
+  // Server rules (anti-leak, pin range…) come with an Arabic title.
+  final title = e.data['title'];
+  if (title is String && RegExp('[\u0600-\u06FF]').hasMatch(title)) {
+    return title;
+  }
   return switch (e.status) {
     401 => 'سجّل دخول حتى تكمل',
     403 => 'ما مسموح تسوي هالشي',

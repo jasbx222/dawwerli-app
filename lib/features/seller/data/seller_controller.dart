@@ -331,7 +331,7 @@ class SellerController extends Notifier<SellerState> {
               ghostReported: o.b('ghostReported'),
               selectionNo: o.oi('selectionNo'),
               governorate: o.s('governorate'),
-              customerPhone: o.os('customerPhone')?.replaceAll('+', ''),
+              storeOrderId: o.os('storeOrderId'),
               sentAt: o.ot('sentAt'),
               category: o.os('category') ?? '',
               requestMaxPrice: o.oi('requestMaxPrice'),

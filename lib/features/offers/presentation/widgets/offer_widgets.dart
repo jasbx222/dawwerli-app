@@ -261,7 +261,7 @@ class InfoRow extends StatelessWidget {
   );
 }
 
-/// `.btn` with a leading 20px icon (gap 8), e.g. «افتح الواتساب».
+/// `.btn` with a leading 20px icon (gap 8), e.g. «تابع طلبك».
 class IconLabelButton extends StatelessWidget {
   const IconLabelButton({
     super.key,

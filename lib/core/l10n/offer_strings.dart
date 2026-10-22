@@ -57,40 +57,47 @@ abstract final class OfferStrings {
   static const pageNote = 'ملاحظة الصفحة';
   static const noPrepay = 'لا تحوّل ولا دينار مقدماً، الدفع بس عند الاستلام';
   static const inspectTip =
-      'افحص الغرض قدام المندوب قبل ما تدفع. إذا تغيّر السعر بالواتساب بلّغنا.';
+      'افحص الغرض قدام المندوب قبل ما تدفع. إذا تغيّر السعر بلّغنا.';
   static const want = 'أريده';
 
   // 13
   static String confirmTitle(String name) => 'تختار $name؟';
   static String confirmSub(String price, String d) => '$price د.ع · توصيل $d';
   static const pointPhone = 'رقمك ينكشف لهالصفحة بس';
-  static const pointWhatsapp =
-      'ينفتح الواتساب برسالة جاهزة بالطلب والسعر المقفول';
+  static const pointOrder =
+      'ينفتح طلب داخل التطبيق بالسعر المقفول، وتتابع المندوب والحالة منه';
   static const pointNoReply = 'إذا ما ردت خلال ساعة، تختار العرض الثاني بضغطة';
   static const pointPrivacy =
-      'الصفحة ما تشوف اسمك الكامل ولا عنوانك إلا إذا إنت دزيته بالواتساب';
+      'رقمك وعنوانك يبينون للصفحة داخل الطلب بس، وينشالون بعد ما يخلص';
+  static const deliveryTitle = 'وين نوصّله؟';
+  static const addressHint = 'المنطقة، الشارع، أقرب نقطة دالة';
+  static const locationNoteHint = 'ملاحظة للمندوب (اختياري)';
+  static const addPin = 'حدد موقعك على الخريطة (اختياري)';
+  static const changePin = 'غيّر الدبوس';
+  static const contactBlocked =
+      'ممنوع تكتب رقم تلفون أو يوزر (@) أو رابط. كل التواصل والاتفاق يصير داخل دوّرلي.';
   static const confirmYes = 'إي، أريده';
   static const confirmNo = 'لا، أرجع للعروض';
 
   // 14 / 14b
   static const foundIt = 'لكيته!';
   static const foundSticker = 'لكيته!';
-  static String orderWaiting(String no) => 'الطلب #$no · بانتظار التواصل';
-  static String pageSawPhone(String name) => '$name شافت رقمك';
+  static String orderWaiting(String no) => 'الطلب #$no · وصل للصفحة';
+  static String pageSawPhone(String name) => 'طلبك وصل لـ $name';
+  static const inAppOrder =
+      'الصفحة تقبل الطلب وتطلّعه ويا مندوبها، وإنت تشوف اسم المندوب ورقمه داخل الطلب. افحص الغرض قبل ما تدفع.';
+  static const trackOrder = 'تابع طلبك';
   static const lockedPrice = 'السعر المقفول ';
-  static String waMessage(String no, String item, String price) =>
-      'هلا، اخترت عرضكم بدوّرلي 👋\nالطلب: #$no · $item\nالسعر المقفول: $price د.ع';
-  static const openWhatsapp = 'افتح الواتساب';
   static const noReplyQ = 'ما ردت؟';
   static const noReplyLocked = 'ينفتح الزر بعد ساعة من الاختيار · باقي ';
   static const noReplyOpen =
       'مرت ساعة · تختار العرض الثاني بضغطة، والصفحة ما تنخصم';
   static const noReplyBtn = 'ما ردت، شوفلي غيرها';
-  static const priceChanged = 'تغيّر السعر بالواتساب؟';
+  static const priceChanged = 'تغيّر السعر؟';
   static const report = 'بلّغ';
   static String alreadyChose(String name) =>
-      'اخترت $name. تكدر تتواصل وياهم من الواتساب';
-  static const backToWhatsapp = 'ارجع للواتساب';
+      'اخترت $name. تابع الطلب من داخل التطبيق';
+  static const backToOrder = 'تابع طلبك';
   static const noneLeftTitle = 'ما بقت عروض ثانية';
   static const noneLeftBody =
       'تكدر تعيد نشر طلبك أو ترفع السعر حتى توصل لصفحات أكثر';
