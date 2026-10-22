@@ -1564,10 +1564,7 @@ class _FavoritesEmpty extends StatelessWidget {
           ),
         ),
         const SizedBox(height: 18),
-        Text(
-          'ما عندك مفضلة بعد',
-          style: AppText.big.copyWith(fontSize: 19),
-        ),
+        Text('ما عندك مفضلة بعد', style: AppText.big.copyWith(fontSize: 19)),
         const SizedBox(height: 6),
         Text(
           'دوس القلب على أي منتج يعجبك، ويطلعلك هنا حتى ترجعله بسهولة.',
