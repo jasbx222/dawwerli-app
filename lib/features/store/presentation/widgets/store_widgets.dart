@@ -37,6 +37,8 @@ ProductCardData cardOf(StoreProduct p, String pageId) => ProductCardData(
   available: p.available,
   stock: p.stock,
   badge: p.lowStock ? 'باقي ${p.stock}' : null,
+  rating: p.rating,
+  ratingCount: p.ratingCount,
 );
 
 ProductCardData homeProductCard(HomeProduct p) => ProductCardData(
@@ -49,9 +51,38 @@ ProductCardData homeProductCard(HomeProduct p) => ProductCardData(
   available: p.available,
   stock: p.stock,
   caption: p.pageName,
-  badge: p.pageRating > 0 ? p.pageRating.toStringAsFixed(1) : null,
-  badgeIcon: AppIcon.star,
+  captionRating: p.pageRating,
+  badge: p.stock != null && p.stock! > 0 && p.stock! <= 3
+      ? 'باقي ${p.stock}'
+      : null,
+  rating: p.rating,
+  ratingCount: p.ratingCount,
 );
+
+/// Hearts or un-hearts a product (members only). Failures roll back and toast.
+void toggleFavorite(
+  BuildContext context,
+  WidgetRef ref,
+  String productId,
+  String pageId,
+) => memberOnly(context, ref, () async {
+  try {
+    final added = await ref
+        .read(favoritesProvider.notifier)
+        .toggle(productId, pageId: pageId);
+    if (context.mounted) {
+      showAppToast(
+        context,
+        added ? 'انضاف للمفضلة' : 'انشال من المفضلة',
+        icon: added ? AppIcon.heartFilled : AppIcon.heart,
+      );
+    }
+  } catch (e) {
+    if (context.mounted) {
+      showAppToast(context, storeError(e), icon: AppIcon.alert);
+    }
+  }
+});
 
 /// Adds [productId] to the one-page cart. When the cart holds another page's
 /// products the customer chooses: empty it and add, or cancel.
@@ -183,7 +214,7 @@ class _StoreProductCardState extends ConsumerState<StoreProductCard> {
       width: widget.width,
       adding: _adding,
       favorite: ref.watch(favoritesProvider).contains(d.id),
-      onFavorite: () => ref.read(favoritesProvider.notifier).toggle(d.id),
+      onFavorite: () => toggleFavorite(context, ref, d.id, d.pageId),
       onTap: () => context.push(Routes.product(d.pageId, d.id)),
       onAdd: () => memberOnly(context, ref, _add),
     );

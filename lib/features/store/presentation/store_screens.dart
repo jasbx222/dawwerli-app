@@ -21,6 +21,7 @@ import '../../home/data/home_providers.dart';
 import '../../more/more_data.dart';
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
+import 'widgets/rating_sheet.dart';
 import 'widgets/store_widgets.dart';
 
 export '../data/store_data.dart';
@@ -527,7 +528,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
               favorite: favorite,
               soldOut: !p.available,
               onFavorite: () =>
-                  ref.read(favoritesProvider.notifier).toggle(p.id),
+                  toggleFavorite(context, ref, p.id, widget.pageId),
             ),
             Padding(
               padding: const EdgeInsets.fromLTRB(20, 18, 20, 24),
@@ -569,6 +570,19 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                       ],
                     ),
                   ),
+                  if (p.ratingCount > 0) ...[
+                    const SizedBox(height: 6),
+                    Row(
+                      children: [
+                        StarRow(value: p.rating, size: 17),
+                        const SizedBox(width: 6),
+                        Text(
+                          '${p.rating.toStringAsFixed(1)} · ${p.ratingCount} تقييم',
+                          style: AppText.muted.copyWith(fontSize: 13),
+                        ),
+                      ],
+                    ),
+                  ],
                   if (page != null) ...[
                     const SizedBox(height: 16),
                     _PageRow(
@@ -593,6 +607,13 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                           ? AppColors.grey
                           : AppColors.ink,
                     ),
+                  ),
+                  _ReviewsSection(
+                    productId: p.id,
+                    pageId: widget.pageId,
+                    productName: p.name,
+                    rating: p.rating,
+                    count: p.ratingCount,
                   ),
                   const SizedBox(height: 18),
                   AppCard(
@@ -787,6 +808,103 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     if (sent == true && mounted) {
       showAppToast(context, 'وصلنا بلاغك، فريقنا يراجعه');
     }
+  }
+}
+
+/// «التقييمات»: rate / edit action for customers who received the product,
+/// then the latest reviews. Hidden on API builds without ratings.
+class _ReviewsSection extends ConsumerWidget {
+  const _ReviewsSection({
+    required this.productId,
+    required this.pageId,
+    required this.productName,
+    required this.rating,
+    required this.count,
+  });
+  final String productId;
+  final String pageId;
+  final String productName;
+  final double rating;
+  final int count;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final reviews =
+        ref.watch(productReviewsProvider(productId)).value ?? const [];
+    final mine = ref.watch(myRatingProvider(productId)).value ?? MyRating.none;
+    if (reviews.isEmpty && !mine.canRate) return const SizedBox.shrink();
+    return Padding(
+      padding: const EdgeInsets.only(top: 22),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          Row(
+            children: [
+              Text('التقييمات', style: AppText.strong.copyWith(fontSize: 16)),
+              if (count > 0) ...[
+                const SizedBox(width: 8),
+                const AppSvgIcon(AppIcon.star, size: 15, color: AppColors.gold),
+                const SizedBox(width: 3),
+                Text(
+                  '${rating.toStringAsFixed(1)} ($count)',
+                  style: AppText.muted,
+                ),
+              ],
+            ],
+          ),
+          if (mine.canRate) ...[
+            const SizedBox(height: 10),
+            AppButton(
+              mine.stars == null
+                  ? 'قيّم المنتج'
+                  : 'عدّل تقييمك (${mine.stars} من 5)',
+              icon: AppIcon.star,
+              compact: true,
+              variant: AppButtonVariant.ghost,
+              onPressed: () => showRateSheet(
+                context,
+                ref,
+                productId: productId,
+                productName: productName,
+                pageId: pageId,
+              ),
+            ),
+          ],
+          for (final r in reviews.take(5))
+            Padding(
+              padding: const EdgeInsets.only(top: 10),
+              child: AppCard(
+                padding: 12,
+                child: Column(
+                  crossAxisAlignment: CrossAxisAlignment.start,
+                  children: [
+                    Row(
+                      children: [
+                        Text(
+                          r.name,
+                          style: AppText.strong.copyWith(fontSize: 13.5),
+                        ),
+                        const Spacer(),
+                        StarRow(value: r.stars.toDouble(), size: 13),
+                      ],
+                    ),
+                    if (r.comment.isNotEmpty) ...[
+                      const SizedBox(height: 4),
+                      Text(
+                        r.comment,
+                        style: AppText.body.copyWith(
+                          fontSize: 13.5,
+                          height: 1.7,
+                        ),
+                      ),
+                    ],
+                  ],
+                ),
+              ),
+            ),
+        ],
+      ),
+    );
   }
 }
 
@@ -1371,11 +1489,147 @@ class StoreOrderScreen extends ConsumerWidget {
           Text('الدفع: ${_status(current.payment)}', style: AppText.body),
           Text(current.address, style: AppText.body),
           const SizedBox(height: 8),
-          for (final line in current.items) Text(line, style: AppText.body),
+          if (current.delivered && current.lines.isNotEmpty) ...[
+            const SizedBox(height: 4),
+            Text('وصلك؟ قيّم اللي اشتريته', style: AppText.muted),
+            for (final l in current.lines)
+              Padding(
+                padding: const EdgeInsets.only(top: 8),
+                child: _RateLine(line: l, pageId: current.pageId),
+              ),
+          ] else
+            for (final line in current.items) Text(line, style: AppText.body),
           const SizedBox(height: 8),
           Text('المجموع ${_money(current.subtotal)}', style: AppText.strong),
         ],
       ),
+    );
+  }
+}
+
+/// Delivered order line with its rate / edit action.
+class _RateLine extends ConsumerWidget {
+  const _RateLine({required this.line, required this.pageId});
+  final StoreOrderLine line;
+  final String pageId;
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final mine = ref.watch(myRatingProvider(line.productId)).value;
+    return AppCard(
+      padding: 10,
+      child: Row(
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12),
+            child: Container(
+              width: 48,
+              height: 48,
+              color: AppColors.blueTint,
+              child: line.image.isEmpty
+                  ? null
+                  : AppImage(
+                      line.image,
+                      width: 48,
+                      height: 48,
+                      fit: BoxFit.cover,
+                    ),
+            ),
+          ),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(
+                  '${line.name} × ${line.quantity}',
+                  maxLines: 2,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.strong.copyWith(fontSize: 13.5),
+                ),
+                if (mine?.stars != null)
+                  StarRow(value: mine!.stars!.toDouble(), size: 13),
+              ],
+            ),
+          ),
+          if (mine?.canRate == true)
+            TextButton.icon(
+              onPressed: () => showRateSheet(
+                context,
+                ref,
+                productId: line.productId,
+                productName: line.name,
+                pageId: pageId,
+              ),
+              icon: const AppSvgIcon(
+                AppIcon.star,
+                size: 16,
+                color: AppColors.gold,
+              ),
+              label: Text(
+                mine!.stars == null ? 'قيّم' : 'عدّل',
+                style: AppText.label.copyWith(color: AppColors.blue),
+              ),
+            ),
+        ],
+      ),
+    );
+  }
+}
+
+/// «المفضلة»: hearted products in the same card grid.
+class FavoritesScreen extends ConsumerWidget {
+  const FavoritesScreen({super.key});
+
+  @override
+  Widget build(BuildContext context, WidgetRef ref) {
+    final list = ref.watch(favoriteProductsProvider);
+    final cart = ref.watch(cartSummaryProvider);
+    return AppPage(
+      title: 'المفضلة',
+      subtitle: 'المنتجات اللي حطيت عليها قلب',
+      bottom: cart.isEmpty
+          ? null
+          : CartBar(cart: cart, onTap: () => context.push(Routes.cart)),
+      children: [
+        Padding(
+          padding: const EdgeInsets.fromLTRB(16, 16, 16, 0),
+          child: list.when(
+            skipLoadingOnReload: true,
+            loading: () => const ProductGrid(items: [], skeleton: 4),
+            error: (e, _) => StoreMessage(
+              icon: AppIcon.wifiOff,
+              title: 'ما قدرنا نجيب المفضلة',
+              body: 'تأكد من النت وجرّب مرة ثانية.',
+              onRetry: () => ref.invalidate(favoriteProductsProvider),
+            ),
+            data: (items) => items.isEmpty
+                ? const StoreMessage(
+                    icon: AppIcon.heart,
+                    title: 'ما عندك مفضلة بعد',
+                    body: 'دوس القلب على أي منتج يعجبك، ويطلعلك هنا حتى ترجعله بسهولة.',
+                  )
+                : ProductGrid(
+                    items: [
+                      for (final f in items)
+                        ProductCardData(
+                          id: f.product.id,
+                          pageId: f.pageId,
+                          name: f.product.name,
+                          description: f.product.description,
+                          price: f.product.price,
+                          image: f.product.image,
+                          available: f.product.available,
+                          stock: f.product.stock,
+                          caption: f.pageName.isEmpty ? null : f.pageName,
+                          rating: f.product.rating,
+                          ratingCount: f.product.ratingCount,
+                        ),
+                    ],
+                  ),
+          ),
+        ),
+      ],
     );
   }
 }

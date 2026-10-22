@@ -22,6 +22,7 @@ import '../../orders/data/my_requests_provider.dart';
 import '../../../core/api/api_config.dart';
 import '../../auth/data/session.dart';
 import '../data/account_api.dart';
+import '../../store/data/store_data.dart';
 import 'server_url_sheet.dart';
 import '../../seller/data/seller_controller.dart';
 import '../../offers/presentation/widgets/offer_widgets.dart';
@@ -37,6 +38,7 @@ class AccountScreen extends ConsumerWidget {
     final region = ref.watch(regionProvider);
     final notifOn = ref.watch(notifPrefsProvider).values.where((v) => v).length;
     final blocked = ref.watch(blockedProvider).length;
+    final favorites = ref.watch(favoritesProvider).length;
     final me = ref.watch(meProvider).value;
     final server = ref.watch(apiBaseUrlProvider);
     return Scaffold(
@@ -105,6 +107,12 @@ class AccountScreen extends ConsumerWidget {
                   ),
                 ),
                 SettingsGroup([
+                  _item(
+                    AppIcon.heart,
+                    'المفضلة',
+                    favorites == 0 ? 'فارغة' : '$favorites منتج',
+                    () => context.push(Routes.favorites),
+                  ),
                   _item(
                     AppIcon.pin,
                     'المحافظة والمنطقة',

@@ -20,6 +20,9 @@ class ProductCardData {
     this.caption,
     this.badge,
     this.badgeIcon,
+    this.rating = 0,
+    this.ratingCount = 0,
+    this.captionRating,
   });
   final String id;
   final String pageId;
@@ -36,6 +39,13 @@ class ProductCardData {
   /// Corner tag on the image, e.g. the page rating or «باقي 2».
   final String? badge;
   final AppIcon? badgeIcon;
+
+  /// Product rating; the chip shows only once someone rated it.
+  final double rating;
+  final int ratingCount;
+
+  /// Star value shown after [caption], e.g. the page rating on home.
+  final double? captionRating;
 }
 
 /// Where the add-to-cart action sits.
@@ -232,6 +242,12 @@ class _ImageArea extends StatelessWidget {
                 ),
               ),
             ),
+          if (data.ratingCount > 0 && data.available)
+            PositionedDirectional(
+              bottom: 8,
+              start: 8,
+              child: RatingChip(rating: data.rating, count: data.ratingCount),
+            ),
           if (onFavorite != null)
             PositionedDirectional(
               top: 7,
@@ -311,15 +327,34 @@ class _Texts extends StatelessWidget {
       mainAxisSize: MainAxisSize.min,
       children: [
         if (data.caption != null && data.caption!.isNotEmpty)
-          Text(
-            data.caption!,
-            maxLines: 1,
-            overflow: TextOverflow.ellipsis,
-            style: AppText.label.copyWith(
-              fontSize: 11.5,
-              color: AppColors.blue,
-              fontWeight: FontWeight.w600,
-            ),
+          Row(
+            children: [
+              Flexible(
+                child: Text(
+                  data.caption!,
+                  maxLines: 1,
+                  overflow: TextOverflow.ellipsis,
+                  style: AppText.label.copyWith(
+                    fontSize: 11.5,
+                    color: AppColors.blue,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ),
+              if ((data.captionRating ?? 0) > 0) ...[
+                const SizedBox(width: 4),
+                const AppSvgIcon(AppIcon.star, size: 11, color: AppColors.gold),
+                const SizedBox(width: 2),
+                Text(
+                  data.captionRating!.toStringAsFixed(1),
+                  style: AppText.label.copyWith(
+                    fontSize: 11,
+                    color: AppColors.grey,
+                    fontWeight: FontWeight.w600,
+                  ),
+                ),
+              ],
+            ],
           ),
         Text(
           data.name,
@@ -501,4 +536,72 @@ class ProductCardSkeleton extends StatelessWidget {
     );
     return width == null ? card : SizedBox(width: width, child: card);
   }
+}
+
+/// White pill with a gold SVG star, the average and the count: «★ 4.5 (12)».
+class RatingChip extends StatelessWidget {
+  const RatingChip({super.key, required this.rating, required this.count});
+  final double rating;
+  final int count;
+
+  @override
+  Widget build(BuildContext context) => Semantics(
+    label: 'التقييم ${rating.toStringAsFixed(1)} من 5، $count تقييم',
+    child: ExcludeSemantics(
+      child: Container(
+        padding: const EdgeInsets.symmetric(horizontal: 8, vertical: 3),
+        decoration: BoxDecoration(
+          color: AppColors.white,
+          borderRadius: BorderRadius.circular(99),
+        ),
+        child: Row(
+          mainAxisSize: MainAxisSize.min,
+          children: [
+            const AppSvgIcon(AppIcon.star, size: 12, color: AppColors.gold),
+            const SizedBox(width: 3),
+            Text(
+              rating.toStringAsFixed(1),
+              style: AppText.label.copyWith(
+                color: AppColors.navy,
+                fontSize: 11.5,
+              ),
+            ),
+            const SizedBox(width: 2),
+            Text(
+              '($count)',
+              style: AppText.label.copyWith(
+                color: const Color(0xFF5B6478),
+                fontSize: 11,
+                fontWeight: FontWeight.w500,
+              ),
+            ),
+          ],
+        ),
+      ),
+    ),
+  );
+}
+
+/// Five SVG stars, filled up to [value] (rounded to the nearest whole star).
+class StarRow extends StatelessWidget {
+  const StarRow({super.key, required this.value, this.size = 16});
+  final double value;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => Row(
+    mainAxisSize: MainAxisSize.min,
+    children: [
+      for (var i = 1; i <= 5; i++)
+        Padding(
+          padding: const EdgeInsets.symmetric(horizontal: 1),
+          child: AppSvgIcon(
+            i <= value.round() ? AppIcon.star : AppIcon.starOutline,
+            size: size,
+            color: AppColors.gold,
+            strokeWidth: 1.8,
+          ),
+        ),
+    ],
+  );
 }
