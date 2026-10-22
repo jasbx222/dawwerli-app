@@ -153,6 +153,8 @@ class ApiHomeRepository implements HomeRepository {
             description: p.s('description'),
             stock: p.oi('stock'),
             pageRating: p.d('pageRating'),
+            rating: p.d('rating'),
+            ratingCount: p.i('ratingCount'),
           ),
     ];
   }
@@ -184,6 +186,8 @@ class ApiHomeRepository implements HomeRepository {
             description: p.s('description'),
             stock: p.oi('stock'),
             pageRating: page.rating,
+            rating: p.d('rating'),
+            ratingCount: p.i('ratingCount'),
           ),
         );
         if (out.length == 2) break;

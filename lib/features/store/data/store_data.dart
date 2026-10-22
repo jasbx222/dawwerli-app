@@ -15,6 +15,8 @@ class StoreProduct {
     required this.stock,
     required this.available,
     this.category = '',
+    this.rating = 0,
+    this.ratingCount = 0,
   });
   final String id;
   final String name;
@@ -24,6 +26,10 @@ class StoreProduct {
   final int stock;
   final bool available;
   final String category;
+
+  /// Average product rating (0 when nobody rated it yet) and how many ratings.
+  final double rating;
+  final int ratingCount;
 
   String get image => images.isEmpty ? '' : images.first;
 
@@ -48,6 +54,8 @@ class StoreProduct {
       stock: stock,
       available: j.containsKey('available') ? j.b('available') : stock > 0,
       category: j.s('category'),
+      rating: j.d('rating'),
+      ratingCount: j.i('ratingCount'),
     );
   }
 }
@@ -62,6 +70,8 @@ class StoreOrder {
     required this.address,
     required this.subtotal,
     required this.items,
+    this.lines = const [],
+    this.pageId = '',
   });
   final String id;
   final String no;
@@ -71,6 +81,10 @@ class StoreOrder {
   final String address;
   final int subtotal;
   final List<String> items;
+  final List<StoreOrderLine> lines;
+  final String pageId;
+
+  bool get delivered => status == 'delivered';
 
   factory StoreOrder.fromJson(Map<String, dynamic> j) => StoreOrder(
     id: j.s('id'),
@@ -83,7 +97,30 @@ class StoreOrder {
     items: [
       for (final i in j.l('items')) '${i.s('name')} × ${i.i('quantity')}',
     ],
+    pageId: j.s('pageId'),
+    lines: [
+      for (final i in j.l('items'))
+        StoreOrderLine(
+          productId: i.s('productId'),
+          name: i.s('name'),
+          quantity: i.i('quantity'),
+          image: i.os('imageUrl') ?? '',
+        ),
+    ],
   );
+}
+
+class StoreOrderLine {
+  const StoreOrderLine({
+    required this.productId,
+    required this.name,
+    required this.quantity,
+    required this.image,
+  });
+  final String productId;
+  final String name;
+  final int quantity;
+  final String image;
 }
 
 /// One line of the one-page cart.
@@ -216,28 +253,217 @@ final pageStoreOrdersProvider = FutureProvider.autoDispose<List<StoreOrder>>((
   }
 });
 
-/// Products the customer hearted. Kept on the device.
+/// A product in «المفضلة».
+class FavoriteProduct {
+  const FavoriteProduct({
+    required this.pageId,
+    required this.product,
+    this.pageName = '',
+  });
+  final String pageId;
+  final String pageName;
+  final StoreProduct product;
+}
+
+/// True when the server answered 404 because the route itself is missing
+/// (an API build without the endpoint), not because a record was not found.
+bool missingEndpoint(Object e) =>
+    e is ApiException &&
+    e.status == 404 &&
+    (e.code == 'http_404' || e.code == 'error');
+
+/// Hearted product ids of the signed-in customer, synced with
+/// GET/PUT/DELETE /api/v1/favorites. The last known set is cached on the device
+/// (with each product's page) so hearts show instantly and still work against
+/// API builds that have no favorites endpoints yet.
 final favoritesProvider = NotifierProvider<FavoritesNotifier, Set<String>>(
   FavoritesNotifier.new,
 );
 
 class FavoritesNotifier extends Notifier<Set<String>> {
-  static const _key = 'store.favorites';
+  static const _key = 'store.favorites.v2';
+
+  /// productId → pageId, needed to open or reload a favorite.
+  final Map<String, String> pages = {};
+  bool _serverless = false;
 
   @override
-  Set<String> build() => {
-    ...?ref.watch(sharedPrefsProvider).getStringList(_key),
-  };
-
-  bool toggle(String productId) {
-    final next = {...state};
-    final added = next.add(productId);
-    if (!added) next.remove(productId);
-    state = next;
-    ref.read(sharedPrefsProvider).setStringList(_key, next.toList());
-    return added;
+  Set<String> build() {
+    pages.clear();
+    for (final e
+        in ref.watch(sharedPrefsProvider).getStringList(_key) ??
+            const <String>[]) {
+      final parts = e.split('|');
+      pages[parts.first] = parts.length > 1 ? parts[1] : '';
+    }
+    // Guests have no favorites; the cache waits for the next sign-in sync.
+    if (ref.watch(guestProvider)) return const {};
+    Future.microtask(sync);
+    return pages.keys.toSet();
   }
+
+  /// Replaces the set with the server's list.
+  Future<void> sync() async {
+    try {
+      final list = await ref
+          .read(apiClientProvider)
+          .get<List<dynamic>>('/api/v1/favorites');
+      pages
+        ..clear()
+        ..addEntries([
+          for (final f in asList(list)) MapEntry(f.s('id'), f.s('pageId')),
+        ]);
+      _serverless = false;
+      _save();
+      state = pages.keys.toSet();
+    } catch (e) {
+      if (missingEndpoint(e)) _serverless = true;
+    }
+  }
+
+  /// Optimistic toggle; rolls back when the server refuses.
+  Future<bool> toggle(String productId, {String pageId = ''}) async {
+    final adding = !state.contains(productId);
+    void apply(bool add) {
+      if (add) {
+        pages[productId] = pageId.isNotEmpty
+            ? pageId
+            : (pages[productId] ?? '');
+      } else {
+        pages.remove(productId);
+      }
+      _save();
+      state = pages.keys.toSet();
+    }
+
+    apply(adding);
+    if (_serverless) return adding;
+    final api = ref.read(apiClientProvider);
+    try {
+      if (adding) {
+        await api.put<Object?>('/api/v1/products/$productId/favorite');
+      } else {
+        await api.delete<Object?>('/api/v1/products/$productId/favorite');
+      }
+    } catch (e) {
+      if (missingEndpoint(e)) {
+        _serverless = true;
+      } else {
+        apply(!adding);
+        rethrow;
+      }
+    }
+    return adding;
+  }
+
+  void _save() => ref.read(sharedPrefsProvider).setStringList(_key, [
+    for (final e in pages.entries) '${e.key}|${e.value}',
+  ]);
 }
+
+/// «المفضلة» list. Server list when available; otherwise each cached favorite
+/// is loaded from its page. Hidden products come back as unavailable.
+final favoriteProductsProvider =
+    FutureProvider.autoDispose<List<FavoriteProduct>>((ref) async {
+      final ids = ref.watch(favoritesProvider);
+      final api = ref.watch(apiClientProvider);
+      try {
+        final list = asList(await api.get<List<dynamic>>('/api/v1/favorites'));
+        return [
+          for (final f in list)
+            FavoriteProduct(
+              pageId: f.s('pageId'),
+              pageName: f.s('pageName'),
+              product: StoreProduct.fromJson(f),
+            ),
+        ];
+      } catch (e) {
+        if (!missingEndpoint(e)) rethrow;
+      }
+      final pages = ref.read(favoritesProvider.notifier).pages;
+      final out = await Future.wait([
+        for (final id in ids)
+          if ((pages[id] ?? '').isNotEmpty)
+            api
+                .get<Map<String, dynamic>>(
+                  '/api/v1/pages/${pages[id]}/products/$id',
+                )
+                .then<FavoriteProduct?>(
+                  (j) => FavoriteProduct(
+                    pageId: pages[id]!,
+                    product: StoreProduct.fromJson(j),
+                  ),
+                )
+                .catchError((Object _) => null),
+      ]);
+      return out.whereType<FavoriteProduct>().toList();
+    });
+
+class ProductReview {
+  const ProductReview({
+    required this.name,
+    required this.stars,
+    required this.comment,
+    required this.at,
+  });
+  final String name;
+  final int stars;
+  final String comment;
+  final DateTime? at;
+
+  factory ProductReview.fromJson(Map<String, dynamic> j) => ProductReview(
+    name: j.s('customerName'),
+    stars: j.i('stars'),
+    comment: j.s('comment'),
+    at: j.ot('updatedAt'),
+  );
+}
+
+/// Latest reviews of a product. Empty on API builds without ratings.
+final productReviewsProvider = FutureProvider.autoDispose
+    .family<List<ProductReview>, String>((ref, productId) async {
+      try {
+        final j = await ref
+            .watch(apiClientProvider)
+            .get<Map<String, dynamic>>(
+              '/api/v1/products/$productId/ratings',
+              query: {'pageSize': 10},
+            );
+        return [for (final r in j.l('items')) ProductReview.fromJson(r)];
+      } catch (e) {
+        if (missingEndpoint(e)) return const [];
+        rethrow;
+      }
+    });
+
+/// Whether the signed-in customer received this product (so can rate it), and their rating.
+class MyRating {
+  const MyRating({required this.canRate, this.stars, this.comment = ''});
+  final bool canRate;
+  final int? stars;
+  final String comment;
+
+  static const none = MyRating(canRate: false);
+}
+
+final myRatingProvider = FutureProvider.autoDispose.family<MyRating, String>((
+  ref,
+  productId,
+) async {
+  if (ref.watch(guestProvider)) return MyRating.none;
+  try {
+    final j = await ref
+        .watch(apiClientProvider)
+        .get<Map<String, dynamic>>('/api/v1/products/$productId/ratings/mine');
+    return MyRating(
+      canRate: j.b('canRate'),
+      stars: j.oi('stars'),
+      comment: j.s('comment'),
+    );
+  } catch (_) {
+    return MyRating.none;
+  }
+});
 
 /// «35000» → «35,000 د.ع»
 String storePrice(int amount) => '${thousands(amount)} د.ع';

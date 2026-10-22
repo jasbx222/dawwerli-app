@@ -147,6 +147,8 @@ class HomeProduct {
     this.stock,
     this.available = true,
     this.pageRating = 0,
+    this.rating = 0,
+    this.ratingCount = 0,
   });
   final String pageId;
   final String pageName;
@@ -158,6 +160,10 @@ class HomeProduct {
   final int? stock;
   final bool available;
   final double pageRating;
+
+  /// The product's own rating.
+  final double rating;
+  final int ratingCount;
 }
 
 class HomeData {
