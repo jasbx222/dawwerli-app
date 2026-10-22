@@ -43,6 +43,8 @@ abstract final class Routes {
   static String pageProducts(String id) => '/pages/p/$id/products';
   static String product(String pageId, String id) => '/pages/p/$pageId/products/$id';
   static const cart = '/store/cart';
+  static const topProducts = '/store/top-products';
+  static const favorites = '/store/favorites';
   static const checkout = '/store/checkout';
   static const storeOrders = '/store/orders';
   static String storeOrder(String id) => '/store/orders/$id';

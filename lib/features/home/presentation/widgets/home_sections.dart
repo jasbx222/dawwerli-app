@@ -2,6 +2,8 @@ import 'dart:async';
 
 import 'package:flutter/material.dart';
 
+import '../../../store/presentation/widgets/store_widgets.dart';
+
 import '../../../../core/widgets/app_image.dart';
 
 import 'package:dawwerli/core/widgets/emoji_text.dart';
@@ -587,85 +589,55 @@ class LiveFeedCard extends StatelessWidget {
   );
 }
 
+/// Home «منتجات أعلى الصفحات تقييماً»: horizontal row of product cards.
+/// A plain Row (not a fixed-height ListView) so the cards keep their natural
+/// height under any text scale.
+/// Horizontal strip of product cards. Card width is a fraction of the
+/// screen (about 2.3 cards on phones, more on tablets and the web) so the
+/// next card always peeks in at the end edge; all cards share one height.
 class ProductStrip extends StatelessWidget {
-  const ProductStrip({super.key, required this.products, this.onTap});
+  const ProductStrip({super.key, required this.products});
   final List<HomeProduct> products;
-  final ValueChanged<HomeProduct>? onTap;
+
+  static const gap = 12.0;
+  static const side = 16.0;
+
+  /// Visible cards for a strip [width]; the fraction leaves the peek.
+  static double visibleFor(double width) => width < 600
+      ? 2.25
+      : width < 1000
+      ? 3.4
+      : 4.4;
+
+  static double cardWidthFor(double width) {
+    final v = visibleFor(width);
+    return ((width - side - gap * v.floor()) / v).clamp(148.0, 250.0);
+  }
 
   @override
-  Widget build(BuildContext context) => SizedBox(
-    height: 168,
-    child: ListView.separated(
-      scrollDirection: Axis.horizontal,
-      padding: const EdgeInsets.symmetric(horizontal: 16),
-      itemCount: products.length,
-      separatorBuilder: (_, _) => const SizedBox(width: 10),
-      itemBuilder: (_, i) {
-        final p = products[i];
-        return GestureDetector(
-          onTap: () => onTap?.call(p),
-          child: Container(
-            width: 150,
-            clipBehavior: Clip.antiAlias,
-            decoration: BoxDecoration(
-              color: AppColors.surface,
-              borderRadius: BorderRadius.circular(18),
-              border: Border.all(color: AppColors.cardRing),
-            ),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final w = cardWidthFor(box.maxWidth);
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        // Room for the card shadow; start/end follow RTL.
+        padding: const EdgeInsetsDirectional.fromSTEB(side, 4, side, 20),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < products.length; i++) ...[
+                if (i > 0) const SizedBox(width: gap),
                 SizedBox(
-                  height: 86,
-                  width: double.infinity,
-                  child: p.image.isEmpty
-                      ? ColoredBox(color: AppColors.blueTint)
-                      : AppImage(p.image, fit: BoxFit.cover),
-                ),
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(10, 8, 10, 8),
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        p.name,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: const TextStyle(
-                          fontSize: 13,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                        ),
-                      ),
-                      Text(
-                        '${thousands(p.price)} د.ع',
-                        maxLines: 1,
-                        style: const TextStyle(
-                          fontSize: 12,
-                          height: 1.5,
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.blue,
-                        ),
-                      ),
-                      Text(
-                        p.pageName,
-                        maxLines: 1,
-                        overflow: TextOverflow.ellipsis,
-                        style: TextStyle(
-                          fontSize: 11,
-                          height: 1.4,
-                          color: AppColors.grey,
-                        ),
-                      ),
-                    ],
-                  ),
+                  width: w,
+                  child: StoreProductCard(data: homeProductCard(products[i])),
                 ),
               ],
-            ),
+            ],
           ),
-        );
-      },
-    ),
+        ),
+      );
+    },
   );
 }
 
@@ -798,7 +770,10 @@ class _AdSliderState extends State<AdSlider> {
   Widget build(BuildContext context) {
     final ads = widget.ads;
     if (ads.length == 1) {
-      return SponsoredBanner(ad: ads.first, onTap: () => widget.onTap(ads.first));
+      return SponsoredBanner(
+        ad: ads.first,
+        onTap: () => widget.onTap(ads.first),
+      );
     }
     return Column(
       children: [
@@ -808,10 +783,8 @@ class _AdSliderState extends State<AdSlider> {
             controller: _page,
             itemCount: ads.length,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) => SponsoredBanner(
-              ad: ads[i],
-              onTap: () => widget.onTap(ads[i]),
-            ),
+            itemBuilder: (_, i) =>
+                SponsoredBanner(ad: ads[i], onTap: () => widget.onTap(ads[i])),
           ),
         ),
         const SizedBox(height: 8),
