@@ -1282,10 +1282,17 @@ class CartScreen extends ConsumerWidget {
                   ],
                 ),
                 const SizedBox(height: 10),
-                AppButton(
-                  'كمّل الطلب',
-                  onPressed: () => context.push(Routes.checkout),
-                ),
+                if (parsed.lines.any((l) => !l.available))
+                  AppButton(
+                    'بالسلة منتج مو متوفر بهالكمية',
+                    variant: AppButtonVariant.disabled,
+                    onPressed: null,
+                  )
+                else
+                  AppButton(
+                    'كمّل الطلب',
+                    onPressed: () => context.push(Routes.checkout),
+                  ),
               ],
             ),
       children: [
@@ -1359,6 +1366,15 @@ class CartScreen extends ConsumerWidget {
                                       overflow: TextOverflow.ellipsis,
                                       style: AppText.strong,
                                     ),
+                                    if (!l.available)
+                                      Text(
+                                        l.stock <= 0
+                                            ? 'نفدت الكمية'
+                                            : 'باقي ${l.stock} بس',
+                                        style: AppText.label.copyWith(
+                                          color: AppColors.danger,
+                                        ),
+                                      ),
                                     const SizedBox(height: 4),
                                     Row(
                                       children: [
@@ -1460,9 +1476,19 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
       ref.invalidate(cartProvider);
       ref.invalidate(storeOrdersProvider);
       ref.invalidate(storeOrderProvider);
-      if (mounted) context.go(Routes.storeOrder(j.s('id')));
+      final id = (j['orderId'] ?? j['id']) as String;
+      if (mounted) context.go(Routes.storeOrder(id));
+    } on ApiException catch (e) {
+      // Electronic payment off on the server: fall back to cash so the
+      // customer can confirm again in one tap.
+      if (e.code == 'payment.not_configured') _pay = 'cash';
+      // Stock, availability or the cart changed since it was loaded.
+      if (e.status == 409 || e.status == 422 || e.code.startsWith('product.')) {
+        ref.invalidate(cartProvider);
+      }
+      if (mounted) setState(() => _error = _err(e));
     } catch (e) {
-      setState(() => _error = _err(e));
+      if (mounted) setState(() => _error = _err(e));
     } finally {
       if (mounted) setState(() => _busy = false);
     }

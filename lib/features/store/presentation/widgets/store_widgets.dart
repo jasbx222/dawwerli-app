@@ -18,13 +18,45 @@ import 'product_card.dart';
 
 const storeGenericError = 'صار خطأ، جرّب مرة ثانية';
 
+/// Arabic text for the store API's error codes. English API titles are never
+/// shown to customers.
+const storeErrorText = <String, String>{
+  'cart.other_page': 'سلتك بيها منتجات من صفحة ثانية',
+  'cart.empty': 'سلتك فارغة',
+  'cart.quantity': 'الكمية مو صحيحة',
+  'product.stock': 'الكمية المطلوبة مو متوفرة هسه',
+  'product.unavailable': 'هالمنتج مو متاح هسه',
+  'product.not_found': 'هالمنتج ما بقى موجود',
+  'page.unavailable': 'الصفحة متوقفة عن البيع هسه',
+  'page.suspended': 'الصفحة موقوفة هسه',
+  'page.not_verified': 'الصفحة بعدها ما توثّقت',
+  'payment.not_configured':
+      'الدفع الإلكتروني مو متوفر بعد، اختار الكاش عند الاستلام',
+  'store_order.transition': 'حالة الطلب تغيّرت، حدّث الصفحة',
+  'store_order.not_found': 'ما لكينا هالطلب',
+  'account.banned': 'حسابك موقوف، تواصل ويانا',
+  'report.duplicate': 'بلّغت عن هذا قبل، فريقنا يراجعه',
+  'rating.not_received': 'تكدر تقيّم بس المنتجات اللي استلمتها',
+  'rating.prohibited': 'التعليق بي كلمات ممنوعة',
+  'rating.stars': 'اختار من نجمة لخمس نجوم',
+  'rating.comment': 'التعليق طويل',
+  'seller.session_expired': 'انتهت الجلسة، سجّل دخول مرة ثانية',
+};
+
 String storeError(Object e) {
-  if (e is ApiException) {
-    return (e.data['title'] as String?) ??
-        (e.data['detail'] as String?) ??
-        storeGenericError;
-  }
-  return storeGenericError;
+  if (e is! ApiException) return storeGenericError;
+  if (e.offline) return 'ماكو اتصال بالنت';
+  final known = storeErrorText[e.code];
+  if (known != null) return known;
+  return switch (e.status) {
+    401 => 'سجّل دخول حتى تكمل',
+    403 => 'ما مسموح تسوي هالشي',
+    404 => 'الشي اللي تدوره ما موجود',
+    409 => 'صار تغيير، حدّث الصفحة وجرّب مرة ثانية',
+    429 => 'محاولات كثيرة، استنى شوية وجرّب',
+    400 || 422 => 'تأكد من المعلومات وجرّب مرة ثانية',
+    _ => storeGenericError,
+  };
 }
 
 ProductCardData cardOf(StoreProduct p, String pageId) => ProductCardData(

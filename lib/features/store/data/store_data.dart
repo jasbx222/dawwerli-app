@@ -187,6 +187,7 @@ class CartLine {
     required this.quantity,
     required this.stock,
     required this.image,
+    this.available = true,
   });
   final String productId;
   final String name;
@@ -195,6 +196,9 @@ class CartLine {
   final int stock;
   final String image;
 
+  /// False when the product was hidden or its stock fell below the quantity.
+  final bool available;
+
   factory CartLine.fromJson(Map<String, dynamic> j) => CartLine(
     productId: j.s('productId'),
     name: j.s('name'),
@@ -202,6 +206,9 @@ class CartLine {
     quantity: j.i('quantity'),
     stock: j.i('stock'),
     image: j.os('imageUrl') ?? '',
+    available:
+        (j['available'] as bool? ?? true) &&
+        (!j.containsKey('stock') || j.i('stock') >= j.i('quantity')),
   );
 }
 
