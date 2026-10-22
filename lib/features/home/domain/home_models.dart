@@ -133,7 +133,8 @@ class PageSummary {
   final bool isAd;
 }
 
-/// A product from one of the highest-rated pages (GET /pages/{id}/products).
+/// A product from one of the highest-rated pages (GET /products/top-rated,
+/// or GET /pages/{id}/products on older servers).
 class HomeProduct {
   const HomeProduct({
     required this.pageId,
@@ -142,6 +143,10 @@ class HomeProduct {
     required this.name,
     required this.price,
     required this.image,
+    this.description = '',
+    this.stock,
+    this.available = true,
+    this.pageRating = 0,
   });
   final String pageId;
   final String pageName;
@@ -149,6 +154,10 @@ class HomeProduct {
   final String name;
   final int price;
   final String image;
+  final String description;
+  final int? stock;
+  final bool available;
+  final double pageRating;
 }
 
 class HomeData {
