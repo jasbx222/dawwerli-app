@@ -50,6 +50,7 @@ class SellerState {
     this.settings = const PageSettings(),
     this.rating = 0,
     this.deals = 0,
+    this.followerCount = 0,
     this.openReport = false,
     this.lastRating,
     this.notices = const [],
@@ -75,6 +76,9 @@ class SellerState {
   final PageSettings settings;
   final double rating;
   final int deals;
+
+  /// Customers following the page (`followerCount` on GET /pages/me).
+  final int followerCount;
   final bool openReport;
   final ReceivedRating? lastRating;
   final List<SellerNotice> notices;
@@ -113,6 +117,7 @@ class SellerState {
     PageSettings? settings,
     double? rating,
     int? deals,
+    int? followerCount,
     bool? openReport,
     ReceivedRating? lastRating,
     List<SellerNotice>? notices,
@@ -138,6 +143,7 @@ class SellerState {
     settings: settings ?? this.settings,
     rating: rating ?? this.rating,
     deals: deals ?? this.deals,
+    followerCount: followerCount ?? this.followerCount,
     openReport: openReport ?? this.openReport,
     lastRating: lastRating ?? this.lastRating,
     notices: notices ?? this.notices,
@@ -216,6 +222,7 @@ class SellerController extends Notifier<SellerState> {
       rejectReason: me.os('rejectReason'),
       rating: me.d('rating'),
       deals: me.i('deals'),
+      followerCount: me.i('followerCount'),
       freeUsed: me.i('freeUsed'),
       balance: me.i('balance'),
       earlyAccess: me.ot('earlyAccessUntil')?.isAfter(DateTime.now()) ?? false,

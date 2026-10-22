@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_form.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -91,6 +92,23 @@ class SellerAccountScreen extends ConsumerWidget {
         ],
       ),
       children: [
+        Gap(
+          AppCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: StatTile(
+                    thousands(s.followerCount),
+                    'متابعين',
+                    color: AppColors.blue,
+                  ),
+                ),
+                Expanded(child: StatTile('${s.rating}', 'التقييم')),
+                Expanded(child: StatTile('${s.deals}', 'صفقة')),
+              ],
+            ),
+          ),
+        ),
         SettingsGroup([
           SettingsRow(
             AppIcon.barChart,
