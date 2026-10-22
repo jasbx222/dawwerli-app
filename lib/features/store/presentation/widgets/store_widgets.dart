@@ -23,6 +23,7 @@ const storeGenericError = 'صار خطأ، جرّب مرة ثانية';
 const storeErrorText = <String, String>{
   'cart.other_page': 'سلتك بيها منتجات من صفحة ثانية',
   'cart.empty': 'سلتك فارغة',
+  'rating.duplicate': 'قيّمت هذا المنتج من قبل، تكدر تعدّل تقييمك بس',
   'cart.quantity': 'الكمية مو صحيحة',
   'product.stock': 'الكمية المطلوبة مو متوفرة هسه',
   'product.unavailable': 'هالمنتج مو متاح هسه',

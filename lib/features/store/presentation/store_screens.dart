@@ -20,7 +20,7 @@ import '../../home/data/home_providers.dart';
 import '../../more/more_data.dart';
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
-import 'widgets/rating_sheet.dart';
+import 'widgets/product_reviews.dart';
 import 'widgets/store_widgets.dart';
 
 export '../data/store_data.dart';
@@ -519,7 +519,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   }
 
   Widget _content(StoreProduct p) {
-    final page = ref.watch(pageProfileProvider(widget.pageId)).value;
+    // Deep links (/products/{id}) only know the product; the API names the page.
+    final pid = widget.pageId.isEmpty ? p.pageId : widget.pageId;
+    final page = pid.isEmpty ? null : ref.watch(pageProfileProvider(pid)).value;
     final favorite = ref.watch(favoritesProvider).contains(p.id);
     final max = p.stock.clamp(1, _maxPerLine);
     if (_qty > max) _qty = max;
@@ -531,7 +533,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       soldOut: !p.available,
       height: layout.galleryHeight,
       rounded: layout.kind != _DetailsKind.phone,
-      onFavorite: () => toggleFavorite(context, ref, p.id, widget.pageId),
+      onFavorite: () => toggleFavorite(context, ref, p.id, pid),
     );
     final info = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -581,7 +583,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             rating: page.rating,
             deals: page.deals,
             image: page.image,
-            onTap: () => context.push(Routes.pageProfile(widget.pageId)),
+            onTap: () => context.push(Routes.pageProfile(pid)),
           ),
         ],
         const SizedBox(height: 22),
@@ -596,13 +598,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             color: p.description.isEmpty ? AppColors.grey : AppColors.ink,
           ),
         ),
-        _ReviewsSection(
-          productId: p.id,
-          pageId: widget.pageId,
-          productName: p.name,
-          rating: p.rating,
-          count: p.ratingCount,
-        ),
+        ProductReviewsSection(product: p, pageId: pid),
         const SizedBox(height: 18),
         AppCard(
           flat: true,
@@ -899,103 +895,6 @@ class _StockLine extends StatelessWidget {
         ),
         Text(text, style: AppText.label.copyWith(color: color, fontSize: 13)),
       ],
-    );
-  }
-}
-
-/// «التقييمات»: rate / edit action for customers who received the product,
-/// then the latest reviews. Hidden on API builds without ratings.
-class _ReviewsSection extends ConsumerWidget {
-  const _ReviewsSection({
-    required this.productId,
-    required this.pageId,
-    required this.productName,
-    required this.rating,
-    required this.count,
-  });
-  final String productId;
-  final String pageId;
-  final String productName;
-  final double rating;
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final reviews =
-        ref.watch(productReviewsProvider(productId)).value ?? const [];
-    final mine = ref.watch(myRatingProvider(productId)).value ?? MyRating.none;
-    if (reviews.isEmpty && !mine.canRate) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('التقييمات', style: AppText.strong.copyWith(fontSize: 16)),
-              if (count > 0) ...[
-                const SizedBox(width: 8),
-                const AppSvgIcon(AppIcon.star, size: 15, color: AppColors.gold),
-                const SizedBox(width: 3),
-                Text(
-                  '${rating.toStringAsFixed(1)} ($count)',
-                  style: AppText.muted,
-                ),
-              ],
-            ],
-          ),
-          if (mine.canRate) ...[
-            const SizedBox(height: 10),
-            AppButton(
-              mine.stars == null
-                  ? 'قيّم المنتج'
-                  : 'عدّل تقييمك (${mine.stars} من 5)',
-              icon: AppIcon.star,
-              compact: true,
-              variant: AppButtonVariant.ghost,
-              onPressed: () => showRateSheet(
-                context,
-                ref,
-                productId: productId,
-                productName: productName,
-                pageId: pageId,
-              ),
-            ),
-          ],
-          for (final r in reviews.take(5))
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: AppCard(
-                padding: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          r.name,
-                          style: AppText.strong.copyWith(fontSize: 13.5),
-                        ),
-                        const Spacer(),
-                        StarRow(value: r.stars.toDouble(), size: 13),
-                      ],
-                    ),
-                    if (r.comment.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        r.comment,
-                        style: AppText.body.copyWith(
-                          fontSize: 13.5,
-                          height: 1.7,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }

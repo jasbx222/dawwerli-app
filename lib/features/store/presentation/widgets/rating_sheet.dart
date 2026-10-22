@@ -44,7 +44,8 @@ Future<bool> showRateSheet(
   ref
     ..invalidate(myRatingProvider(productId))
     ..invalidate(productReviewsProvider(productId))
-    ..invalidate(favoriteProductsProvider);
+    ..invalidate(favoriteProductsProvider)
+    ..invalidate(productProvider(('', productId)));
   if (pageId.isNotEmpty) {
     ref
       ..invalidate(productProvider((pageId, productId)))
@@ -73,6 +74,9 @@ class RateProductSheet extends ConsumerStatefulWidget {
 class _RateProductSheetState extends ConsumerState<RateProductSheet> {
   static const _labels = ['', 'سيء', 'مقبول', 'زين', 'كلش زين', 'ممتاز'];
   late int _stars = widget.initial.stars ?? 0;
+
+  /// A first rating is POSTed once; after that it can only be edited (PUT).
+  late bool _editing = widget.initial.stars != null;
   late final _comment = TextEditingController(text: widget.initial.comment);
   var _busy = false;
   String? _error;
@@ -89,20 +93,35 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
       _error = null;
     });
     try {
-      await ref.read(apiClientProvider).put<Object?>(
-        '/api/v1/products/${widget.productId}/rating',
-        {'stars': _stars, 'comment': _comment.text.trim()},
-      );
+      final api = ref.read(apiClientProvider);
+      final body = {'stars': _stars, 'comment': _comment.text.trim()};
+      if (_editing) {
+        await api.put<Object?>(
+          '/api/v1/products/${widget.productId}/rating',
+          body,
+        );
+      } else {
+        await api.post<Object?>(
+          '/api/v1/products/${widget.productId}/ratings',
+          body,
+        );
+      }
       if (mounted) Navigator.of(context).pop(true);
     } on ApiException catch (e) {
       if (mounted) {
-        setState(
-          () => _error = switch (e.code) {
-            'rating.prohibited' => 'التعليق بيه كلمة ممنوعة، عدّله وجرّب',
-            'rating.not_received' => 'تكدر تقيّم المنتج بعد ما يوصلك',
-            _ => storeError(e),
-          },
-        );
+        setState(() {
+          final duplicate = e.code == 'rating.duplicate' || e.status == 409;
+          // Already rated from another device: the next save edits it.
+          if (duplicate) _editing = true;
+          _error = duplicate
+              ? 'قيّمت هذا المنتج من قبل، تكدر تعدّل تقييمك بس'
+              : switch (e.code) {
+                  'rating.prohibited' => 'التعليق بيه كلمة ممنوعة، عدّله وجرّب',
+                  'rating.not_received' =>
+                    'تكدر تقيّم المنتج بعد ما يوصلك، وبس مرة وحدة',
+                  _ => storeError(e),
+                };
+        });
       }
     } catch (e) {
       if (mounted) setState(() => _error = storeError(e));
@@ -117,7 +136,7 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
     child: AppSheet(
       children: [
         Text(
-          widget.initial.stars == null ? 'قيّم المنتج' : 'عدّل تقييمك',
+          _editing ? 'عدّل تقييمك' : 'قيّم المنتج',
           textAlign: TextAlign.center,
           style: AppText.big.copyWith(fontSize: 18),
         ),
@@ -129,6 +148,15 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
           overflow: TextOverflow.ellipsis,
           style: AppText.muted,
         ),
+        if (!_editing)
+          Padding(
+            padding: const EdgeInsets.only(top: 6),
+            child: Text(
+              'تكدر تقيّم مرة وحدة بس، وبعدين تعدّل تقييمك إذا تريد.',
+              textAlign: TextAlign.center,
+              style: AppText.muted.copyWith(fontSize: 12),
+            ),
+          ),
         const SizedBox(height: 16),
         Row(
           mainAxisAlignment: MainAxisAlignment.center,
@@ -162,7 +190,9 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
           height: 24,
           child: Center(
             child: Text(
-              _labels[_stars],
+              _stars == 0
+                  ? 'اختار عدد النجوم'
+                  : '${_labels[_stars]} · $_stars من 5',
               style: AppText.label.copyWith(color: AppColors.warn),
             ),
           ),
@@ -179,7 +209,11 @@ class _RateProductSheetState extends ConsumerState<RateProductSheet> {
           const SizedBox(height: 8),
         ],
         AppButton(
-          _busy ? 'دا نحفظ...' : 'احفظ التقييم',
+          _busy
+              ? 'دا نحفظ...'
+              : _editing
+              ? 'احفظ التعديل'
+              : 'أرسل التقييم',
           variant: _stars == 0
               ? AppButtonVariant.disabled
               : AppButtonVariant.primary,
