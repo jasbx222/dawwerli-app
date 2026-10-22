@@ -1,4 +1,8 @@
+import 'dart:async';
+
 import 'package:flutter/material.dart';
+
+import '../../../store/presentation/widgets/store_widgets.dart';
 
 import '../../../../core/widgets/app_image.dart';
 
@@ -255,14 +259,13 @@ class StatsRow extends StatelessWidget {
     final cells = <(String, String)>[
       if (stats.verifiedPages != null)
         (thousands(stats.verifiedPages!), AppStrings.statPages),
-      if (stats.governorates != null)
-        ('${stats.governorates}', AppStrings.statGovs),
       if (stats.avgFirstOfferMinutes != null)
         (
           AppStrings.minutesShort(stats.avgFirstOfferMinutes!),
           AppStrings.statFirstOffer,
         ),
     ];
+    if (cells.isEmpty) return const SizedBox.shrink();
     return Padding(
       padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
       child: Row(
@@ -586,6 +589,58 @@ class LiveFeedCard extends StatelessWidget {
   );
 }
 
+/// Home «منتجات أعلى الصفحات تقييماً»: horizontal row of product cards.
+/// A plain Row (not a fixed-height ListView) so the cards keep their natural
+/// height under any text scale.
+/// Horizontal strip of product cards. Card width is a fraction of the
+/// screen (about 2.3 cards on phones, more on tablets and the web) so the
+/// next card always peeks in at the end edge; all cards share one height.
+class ProductStrip extends StatelessWidget {
+  const ProductStrip({super.key, required this.products});
+  final List<HomeProduct> products;
+
+  static const gap = 12.0;
+  static const side = 16.0;
+
+  /// Visible cards for a strip [width]; the fraction leaves the peek.
+  static double visibleFor(double width) => width < 600
+      ? 2.25
+      : width < 1000
+      ? 3.4
+      : 4.4;
+
+  static double cardWidthFor(double width) {
+    final v = visibleFor(width);
+    return ((width - side - gap * v.floor()) / v).clamp(148.0, 250.0);
+  }
+
+  @override
+  Widget build(BuildContext context) => LayoutBuilder(
+    builder: (context, box) {
+      final w = cardWidthFor(box.maxWidth);
+      return SingleChildScrollView(
+        scrollDirection: Axis.horizontal,
+        // Room for the card shadow; start/end follow RTL.
+        padding: const EdgeInsetsDirectional.fromSTEB(side, 4, side, 20),
+        child: IntrinsicHeight(
+          child: Row(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              for (var i = 0; i < products.length; i++) ...[
+                if (i > 0) const SizedBox(width: gap),
+                SizedBox(
+                  width: w,
+                  child: StoreProductCard(data: homeProductCard(products[i])),
+                ),
+              ],
+            ],
+          ),
+        ),
+      );
+    },
+  );
+}
+
 class DealsStrip extends StatelessWidget {
   const DealsStrip({super.key, required this.deals});
   final List<Deal> deals;
@@ -666,6 +721,92 @@ class DealsStrip extends StatelessWidget {
       },
     ),
   );
+}
+
+class AdSlider extends StatefulWidget {
+  const AdSlider({super.key, required this.ads, required this.onTap});
+  final List<AdBanner> ads;
+  final ValueChanged<AdBanner> onTap;
+
+  @override
+  State<AdSlider> createState() => _AdSliderState();
+}
+
+class _AdSliderState extends State<AdSlider> {
+  late final PageController _page = PageController();
+  Timer? _timer;
+  var _index = 0;
+
+  @override
+  void initState() {
+    super.initState();
+    if (widget.ads.length > 1) {
+      _timer = Timer.periodic(const Duration(seconds: 3), (_) {
+        if (!mounted || !_page.hasClients || widget.ads.length < 2) return;
+        final next = (_index + 1) % widget.ads.length;
+        _page.animateToPage(
+          next,
+          duration: const Duration(milliseconds: 450),
+          curve: Curves.easeOut,
+        );
+      });
+    }
+  }
+
+  @override
+  void didUpdateWidget(AdSlider oldWidget) {
+    super.didUpdateWidget(oldWidget);
+    if (_index >= widget.ads.length) _index = 0;
+  }
+
+  @override
+  void dispose() {
+    _timer?.cancel();
+    _page.dispose();
+    super.dispose();
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final ads = widget.ads;
+    if (ads.length == 1) {
+      return SponsoredBanner(
+        ad: ads.first,
+        onTap: () => widget.onTap(ads.first),
+      );
+    }
+    return Column(
+      children: [
+        SizedBox(
+          height: 180,
+          child: PageView.builder(
+            controller: _page,
+            itemCount: ads.length,
+            onPageChanged: (i) => setState(() => _index = i),
+            itemBuilder: (_, i) =>
+                SponsoredBanner(ad: ads[i], onTap: () => widget.onTap(ads[i])),
+          ),
+        ),
+        const SizedBox(height: 8),
+        Row(
+          mainAxisAlignment: MainAxisAlignment.center,
+          children: [
+            for (var i = 0; i < ads.length; i++)
+              AnimatedContainer(
+                duration: const Duration(milliseconds: 250),
+                width: i == _index ? 14 : 6,
+                height: 6,
+                margin: const EdgeInsets.symmetric(horizontal: 3),
+                decoration: BoxDecoration(
+                  color: i == _index ? AppColors.gold : AppColors.grey,
+                  borderRadius: BorderRadius.circular(99),
+                ),
+              ),
+          ],
+        ),
+      ],
+    );
+  }
 }
 
 class SponsoredBanner extends StatelessWidget {

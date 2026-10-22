@@ -12,6 +12,7 @@ import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/countdown.dart';
 import '../../../core/widgets/pill.dart';
+import '../../store/presentation/store_screens.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
 import 'widgets/seller_nav.dart';
@@ -118,6 +119,41 @@ class SellerInboxScreen extends ConsumerWidget {
               ),
             ),
           ),
+        const SectionLabel('طلبات الزباين'),
+        ref.watch(pageStoreOrdersProvider).when(
+          loading: () => const Gap(Text('نجيب الطلبات...')),
+          error: (_, _) => const Gap(Text('ما قدرنا نجيب طلبات المتجر')),
+          data: (orders) => orders.isEmpty
+              ? const Gap(
+                  AppCard(
+                    flat: true,
+                    child: Text(
+                      'ماكو طلبات متجر هسه',
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                )
+              : Column(
+                  children: [
+                    for (final o in orders)
+                      Gap(
+                        AppCard(
+                          child: Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text('${o.no} · ${o.pageName}', style: AppText.strong),
+                              const SizedBox(height: 4),
+                              Text(
+                                '${o.items.join('، ')}\n${o.subtotal} د.ع',
+                                style: AppText.muted,
+                              ),
+                            ],
+                          ),
+                        ),
+                      ),
+                  ],
+                ),
+        ),
         for (final r in s.inbox) Gap(_RequestCard(r)),
         Gap(
           Text(

@@ -93,6 +93,11 @@ class SellerAccountScreen extends ConsumerWidget {
       children: [
         SettingsGroup([
           SettingsRow(
+            AppIcon.barChart,
+            'التقارير والطلبات',
+            onTap: () => go(Routes.sellerReports),
+          ),
+          SettingsRow(
             AppIcon.bell,
             'الإشعارات',
             value: '${s.notices.length}',
@@ -166,15 +171,6 @@ class SellerAccountScreen extends ConsumerWidget {
         SettingsGroup([
           SettingsRow(
             AppIcon.refresh,
-            'بدّل لـ«أشتري»',
-            sub: 'افتح تطبيق الزبون',
-            onTap: () async {
-              final to = await switchAppRole(ref, AppRole.buyer);
-              if (context.mounted) context.go(to);
-            },
-          ),
-          SettingsRow(
-            AppIcon.refresh,
             'سجّل خروج',
             onTap: () async {
               await signOut(ref);
@@ -190,7 +186,7 @@ class SellerAccountScreen extends ConsumerWidget {
         ]),
         const SizedBox(height: 10),
         Text(
-          'دوّرلي للصفحات v1.0.0',
+          'دوّرلي للصفحات v1.0.1',
           textAlign: TextAlign.center,
           style: AppText.muted,
         ),

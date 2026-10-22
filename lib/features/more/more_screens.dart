@@ -18,6 +18,9 @@ import '../../core/widgets/notes.dart';
 import '../../core/theme/app_spacing.dart';
 import '../../core/widgets/page_tile.dart';
 import '../auth/data/auth_providers.dart';
+import '../store/presentation/store_screens.dart';
+import '../store/presentation/widgets/store_widgets.dart';
+import '../../core/widgets/seg_tabs.dart';
 import '../guest/guest.dart';
 import '../home/presentation/widgets/home_sections.dart';
 import '../post/data/post_providers.dart';
@@ -29,23 +32,42 @@ void _back(BuildContext c) => popOr(c);
 Widget _pad(Widget w, {double top = 14}) => Gap(w, top: top);
 Widget _sectionLabel(String t) => SectionLabel(t);
 void _toast(BuildContext c, String t) => showAppToast(c, t);
-Widget _avatar(String name, {double size = AppSize.iconTile}) =>
-    LetterAvatar(name, size: size);
+Widget _avatar(String name, {double size = AppSize.iconTile, String? image}) {
+  if (image != null && image.isNotEmpty) {
+    return ClipRRect(
+      borderRadius: BorderRadius.circular(size / 3),
+      child: AppImage(image, width: size, height: size, fit: BoxFit.cover),
+    );
+  }
+  return LetterAvatar(name, size: size);
+}
 Widget _stat(String value, String label) =>
     Expanded(child: StatTile(value, label));
 
 // ───────────────────────── Page profile ─────────────────────────
 
 /// Public page profile — opened from stories, «صفحات مميزة», 45 and ad banners.
-class PageProfileScreen extends ConsumerWidget {
+class PageProfileScreen extends ConsumerStatefulWidget {
   const PageProfileScreen({super.key, required this.pageId});
   final String pageId;
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<PageProfileScreen> createState() => _PageProfileScreenState();
+}
+
+class _PageProfileScreenState extends ConsumerState<PageProfileScreen> {
+  static const _productsTab = 0;
+  var _tab = _productsTab;
+
+  String get pageId => widget.pageId;
+
+  @override
+  Widget build(BuildContext context) {
     final p = ref.watch(pageProfileProvider(pageId)).value;
     if (p == null) return const AppPage(title: '', children: [LoadingBlock()]);
     final blocked = ref.watch(blockedProvider).contains(p.id);
+    final cart = ref.watch(cartSummaryProvider);
+    final onProducts = _tab == _productsTab;
     return AppPage(
       title: p.name,
       titleIcon: const AppSvgIcon(
@@ -56,7 +78,13 @@ class PageProfileScreen extends ConsumerWidget {
       ),
       subtitle:
           'صفحة موثّقة · ${p.governorate} · توصّل لـ ${p.deliversTo} محافظات',
-      bottom: Column(
+      // Products tab: the cart bar once something is in the cart.
+      // About tab: post a request / block, as before.
+      bottom: onProducts
+          ? (cart.isEmpty
+                ? null
+                : CartBar(cart: cart, onTap: () => context.push(Routes.cart)))
+          : Column(
         mainAxisSize: MainAxisSize.min,
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
@@ -96,7 +124,7 @@ class PageProfileScreen extends ConsumerWidget {
               children: [
                 Row(
                   children: [
-                    _avatar(p.name, size: 58),
+                    _avatar(p.name, size: 58, image: p.image),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Column(
@@ -127,6 +155,17 @@ class PageProfileScreen extends ConsumerWidget {
             ),
           ),
         ),
+        _pad(
+          SegTabs(
+            labels: const ['المنتجات', 'عن الصفحة'],
+            icons: const [AppIcon.bag, AppIcon.shieldCheck],
+            selected: _tab,
+            onSelect: (i) => setState(() => _tab = i),
+          ),
+        ),
+        if (onProducts)
+          _pad(PageProductsSection(pageId: pageId))
+        else ...[
         _sectionLabel('شنو تبيع'),
         _pad(
           Wrap(
@@ -190,6 +229,7 @@ class PageProfileScreen extends ConsumerWidget {
             ),
           ),
         ),
+        ],
         if (blocked)
           _pad(
             const AlertCard(

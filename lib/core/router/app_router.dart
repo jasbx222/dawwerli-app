@@ -20,6 +20,7 @@ import '../../features/seller/presentation/ads_screens.dart';
 import '../../features/seller/presentation/inbox_screen.dart';
 import '../../features/seller/presentation/my_offers_screens.dart';
 import '../../features/seller/presentation/page_account_screens.dart';
+import '../../features/seller/presentation/reports_screen.dart';
 import '../../features/seller/presentation/register_screens.dart';
 import '../../features/seller/presentation/submit_offer_screen.dart';
 import '../../features/seller/presentation/wallet_screen.dart';
@@ -38,6 +39,7 @@ import '../../features/notifications/presentation/notifications_screen.dart';
 import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
+import '../../features/store/presentation/store_screens.dart';
 import 'routes.dart';
 
 final appRouter = GoRouter(
@@ -234,7 +236,25 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/pages/p/:id',
       builder: (_, s) => PageProfileScreen(pageId: s.pathParameters['id']!),
+      routes: [
+        GoRoute(
+          path: 'products',
+          builder: (_, s) => PageProductsScreen(pageId: s.pathParameters['id']!),
+          routes: [
+            GoRoute(
+              path: ':productId',
+              builder: (_, s) => ProductDetailsScreen(pageId: s.pathParameters['id']!, productId: s.pathParameters['productId']!),
+            ),
+          ],
+        ),
+      ],
     ),
+    GoRoute(path: Routes.cart, builder: (_, _) => const CartScreen()),
+    GoRoute(path: Routes.topProducts, builder: (_, _) => const TopProductsScreen()),
+    GoRoute(path: Routes.favorites, builder: (_, _) => const FavoritesScreen()),
+    GoRoute(path: Routes.checkout, builder: (_, _) => const CheckoutScreen()),
+    GoRoute(path: Routes.storeOrders, builder: (_, _) => const StoreOrdersScreen()),
+    GoRoute(path: '/store/orders/:id', builder: (_, s) => StoreOrderScreen(id: s.pathParameters['id']!)),
     GoRoute(
       path: Routes.categories,
       builder: (_, _) => const CategoriesScreen(),
@@ -273,6 +293,12 @@ final appRouter = GoRouter(
     GoRoute(
       path: '/seller/offers/:id',
       builder: (_, s) => SellerChosenScreen(offerId: s.pathParameters['id']!),
+      routes: [
+        GoRoute(
+          path: 'view',
+          builder: (_, s) => SellerOfferDetailsScreen(offerId: s.pathParameters['id']!),
+        ),
+      ],
     ),
     GoRoute(
       path: Routes.sellerRating,
@@ -311,6 +337,10 @@ final appRouter = GoRouter(
     GoRoute(
       path: Routes.sellerAccount,
       builder: (_, _) => const SellerAccountScreen(),
+    ),
+    GoRoute(
+      path: Routes.sellerReports,
+      builder: (_, _) => const SellerReportsScreen(),
     ),
     GoRoute(
       path: Routes.sellerNotifications,

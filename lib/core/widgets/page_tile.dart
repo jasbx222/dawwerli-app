@@ -8,8 +8,9 @@ import 'app_icons.dart';
 
 /// «إعلان» pill — required on every paid placement.
 class AdPill extends StatelessWidget {
-  const AdPill({super.key, this.large = false});
+  const AdPill({super.key, this.large = false, this.label});
   final bool large;
+  final String? label;
 
   @override
   Widget build(BuildContext context) => Container(
@@ -21,7 +22,7 @@ class AdPill extends StatelessWidget {
       borderRadius: BorderRadius.circular(99),
     ),
     child: Text(
-      AppStrings.ad,
+      label ?? AppStrings.ad,
       style: TextStyle(
         fontSize: large ? 12 : 11,
         height: AppText.lh(large ? 12 : 11),
@@ -63,9 +64,12 @@ class RatingLine extends StatelessWidget {
 
 /// Compact page row used on home «صفحات مميزة».
 class PageTile extends StatelessWidget {
-  const PageTile({super.key, required this.page, this.onTap});
+  const PageTile({super.key, required this.page, this.onTap, this.adLabel});
   final PageSummary page;
   final VoidCallback? onTap;
+
+  /// Paid-placement label. Defaults to «إعلان».
+  final String? adLabel;
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +139,7 @@ class PageTile extends StatelessWidget {
               ],
             ),
             const Spacer(),
-            if (page.isAd) const AdPill(),
+            if (page.isAd) AdPill(label: adLabel),
           ],
         ),
       ),

@@ -16,6 +16,8 @@ import '../data/home_notice.dart';
 import '../data/home_providers.dart';
 import '../../post/presentation/widgets/post_widgets.dart';
 import '../../../core/widgets/app_icons.dart';
+import '../../offers/data/offers_providers.dart';
+import '../../offers/domain/offer.dart';
 import '../domain/home_models.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
@@ -65,6 +67,9 @@ class HomeScreen extends ConsumerWidget {
                     offset: const Offset(0, -_overlap),
                     child: _Body(
                       data: d,
+                      offers: (!ref.watch(guestProvider) && d.liveRequest != null)
+                          ? ref.watch(offersProvider(d.liveRequest!.id)).value?.offers ?? const []
+                          : const [],
                       guest: ref.watch(guestProvider),
                       onPost: () => memberOnly(
                         context,
@@ -127,9 +132,15 @@ class HomeScreen extends ConsumerWidget {
 }
 
 class _Body extends StatelessWidget {
-  const _Body({required this.data, required this.onPost, this.guest = false});
+  const _Body({
+    required this.data,
+    required this.onPost,
+    this.offers = const [],
+    this.guest = false,
+  });
   final HomeData data;
   final VoidCallback onPost;
+  final List<Offer> offers;
   final bool guest;
 
   @override
@@ -152,11 +163,105 @@ class _Body extends StatelessWidget {
             ),
           ),
         PostRequestCta(onTap: onPost),
-        if (d.banners.isNotEmpty)
-          SponsoredBanner(
-            ad: d.banners.first,
-            onTap: () => context.push(Routes.pageProfile(d.banners.first.pageId)),
+        if (offers.isNotEmpty && d.liveRequest != null) ...[
+          SectionTitle(
+            'العروض',
+            onSeeAll: () => context.push(Routes.offers(d.liveRequest!.id)),
           ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                for (var i = 0; i < offers.length && i < 5; i++) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  GestureDetector(
+                    onTap: () => context.push(Routes.offers(d.liveRequest!.id)),
+                    child: Container(
+                      padding: const EdgeInsets.all(12),
+                      decoration: BoxDecoration(
+                        color: AppColors.surface,
+                        borderRadius: BorderRadius.circular(18),
+                        border: offers[i].sponsored
+                            ? Border.all(color: AppColors.gold, width: 1.5)
+                            : Border.all(color: AppColors.cardRing),
+                      ),
+                      child: Row(
+                        children: [
+                          Expanded(
+                            child: Column(
+                              crossAxisAlignment: CrossAxisAlignment.start,
+                              children: [
+                                Text(offers[i].pageName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                                Text(
+                                  '${offers[i].price} د.ع',
+                                  style: const TextStyle(color: AppColors.blue, fontWeight: FontWeight.w700),
+                                ),
+                              ],
+                            ),
+                          ),
+                          if (offers[i].sponsored)
+                            const Text('مُموّل', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
+                        ],
+                      ),
+                    ),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        if (d.banners.isNotEmpty)
+          AdSlider(
+            ads: d.banners,
+            onTap: (ad) => context.push(Routes.pageProfile(ad.pageId)),
+          ),
+        if (d.sponsored.isNotEmpty) ...[
+          const SectionTitle(AppStrings.secSponsored),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                for (var i = 0; i < d.sponsored.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  PageTile(
+                    page: d.sponsored[i],
+                    adLabel: AppStrings.sponsored,
+                    onTap: () =>
+                        context.push(Routes.pageProfile(d.sponsored[i].id)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        if (d.featuredPages.isNotEmpty) ...[
+          SectionTitle(
+            AppStrings.secFeatured,
+            onSeeAll: () => context.push(Routes.featuredPages),
+          ),
+          Padding(
+            padding: const EdgeInsets.symmetric(horizontal: 16),
+            child: Column(
+              children: [
+                for (var i = 0; i < d.featuredPages.length; i++) ...[
+                  if (i > 0) const SizedBox(height: 10),
+                  PageTile(
+                    page: d.featuredPages[i],
+                    onTap: () =>
+                        context.push(Routes.pageProfile(d.featuredPages[i].id)),
+                  ),
+                ],
+              ],
+            ),
+          ),
+        ],
+        if (d.topProducts.isNotEmpty) ...[
+          SectionTitle(
+            AppStrings.secTopProducts,
+            onSeeAll: () => context.push(Routes.topProducts),
+          ),
+          ProductStrip(products: d.topProducts),
+        ],
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(
@@ -167,34 +272,6 @@ class _Body extends StatelessWidget {
           categories: d.categories,
           governorate: d.governorate,
           onTap: (c) => context.push(Routes.category(c.id)),
-        ),
-        SectionTitle(
-          AppStrings.secNow,
-          onSeeAll: () => context.push(Routes.feed),
-        ),
-        LiveFeedCard(items: d.feed),
-        if (d.deals.isNotEmpty) ...[
-          const SectionTitle(AppStrings.secDeals),
-          DealsStrip(deals: d.deals),
-        ],
-        SectionTitle(
-          AppStrings.secFeatured,
-          onSeeAll: () => context.push(Routes.featuredPages),
-        ),
-        Padding(
-          padding: const EdgeInsets.symmetric(horizontal: 16),
-          child: Column(
-            children: [
-              for (var i = 0; i < d.featuredPages.length; i++) ...[
-                if (i > 0) const SizedBox(height: 10),
-                PageTile(
-                  page: d.featuredPages[i],
-                  onTap: () =>
-                      context.push(Routes.pageProfile(d.featuredPages[i].id)),
-                ),
-              ],
-            ],
-          ),
         ),
         // Room for the floating nav: its 18px offset + 70px bar + 32px clearance
         // + the system bottom inset (Android gesture/nav bar), minus the overlap

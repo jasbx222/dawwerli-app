@@ -133,6 +133,39 @@ class PageSummary {
   final bool isAd;
 }
 
+/// A product from one of the highest-rated pages (GET /products/top-rated,
+/// or GET /pages/{id}/products on older servers).
+class HomeProduct {
+  const HomeProduct({
+    required this.pageId,
+    required this.pageName,
+    required this.id,
+    required this.name,
+    required this.price,
+    required this.image,
+    this.description = '',
+    this.stock,
+    this.available = true,
+    this.pageRating = 0,
+    this.rating = 0,
+    this.ratingCount = 0,
+  });
+  final String pageId;
+  final String pageName;
+  final String id;
+  final String name;
+  final int price;
+  final String image;
+  final String description;
+  final int? stock;
+  final bool available;
+  final double pageRating;
+
+  /// The product's own rating.
+  final double rating;
+  final int ratingCount;
+}
+
 class HomeData {
   const HomeData({
     required this.firstName,
@@ -147,7 +180,9 @@ class HomeData {
     required this.feed,
     required this.deals,
     required this.banners,
+    required this.sponsored,
     required this.featuredPages,
+    required this.topProducts,
   });
   final String firstName;
   final String area;
@@ -165,5 +200,11 @@ class HomeData {
 
   /// Paid home banners (`homeBanner`). Shown above the fold.
   final List<AdBanner> banners;
+
+  /// Paid sponsored offers (`sponsoredOffer`), one card per page.
+  final List<PageSummary> sponsored;
   final List<PageSummary> featuredPages;
+
+  /// Products belonging to the highest-rated pages.
+  final List<HomeProduct> topProducts;
 }
