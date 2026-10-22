@@ -553,8 +553,9 @@ class _AppealState extends ConsumerState<SellerAppealScreen> {
                           await ref
                               .read(sellerProvider.notifier)
                               .appeal(widget.markId, _text.text.trim());
-                          if (context.mounted)
+                          if (context.mounted) {
                             showAppToast(context, 'انرسل اعتراضك');
+                          }
                         },
                 ),
               ],

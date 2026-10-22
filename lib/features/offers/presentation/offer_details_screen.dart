@@ -29,9 +29,12 @@ class OfferDetailsScreen extends ConsumerWidget {
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
-    final board = ref.watch(offersProvider(requestId)).value;
+    final async = ref.watch(offersProvider(requestId));
+    final board = async.value;
     final o = board?.byId(offerId);
-    if (board == null) {
+    // A just-sent offer may not be in the cached board yet: wait for the
+    // re-read instead of bouncing straight back to the list.
+    if (board == null || (o == null && async.isLoading)) {
       return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
