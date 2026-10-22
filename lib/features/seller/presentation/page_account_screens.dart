@@ -9,6 +9,7 @@ import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_button.dart';
+import '../../../core/utils/format.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_form.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -43,11 +44,32 @@ String _hour(int h) =>
     '${(h % 12 == 0 ? 12 : h % 12)}:00 ${h < 12 ? 'ص' : 'م'}';
 
 /// «صفحتي» tab — page profile and every page-side setting.
-class SellerAccountScreen extends ConsumerWidget {
+class SellerAccountScreen extends ConsumerStatefulWidget {
   const SellerAccountScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<SellerAccountScreen> createState() =>
+      _SellerAccountScreenState();
+}
+
+class _SellerAccountScreenState extends ConsumerState<SellerAccountScreen> {
+  @override
+  void initState() {
+    super.initState();
+    // Followers, rating and deals change while the app is open.
+    Future.microtask(_refresh);
+  }
+
+  Future<void> _refresh() async {
+    try {
+      await ref.read(sellerProvider.notifier).refresh();
+    } on Object {
+      // Keep what we have; pull to refresh retries.
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
     final s = ref.watch(sellerProvider);
     final display = ref.watch(displaySettingsProvider);
     final displayCtl = ref.read(displaySettingsProvider.notifier);
@@ -55,6 +77,7 @@ class SellerAccountScreen extends ConsumerWidget {
     return AppPage(
       title: 'صفحتي',
       showBack: false,
+      onRefresh: _refresh,
       nav: const SellerNav(SellerTab.account),
       below: Row(
         children: [
@@ -91,6 +114,23 @@ class SellerAccountScreen extends ConsumerWidget {
         ],
       ),
       children: [
+        Gap(
+          AppCard(
+            child: Row(
+              children: [
+                Expanded(
+                  child: StatTile(
+                    thousands(s.followerCount),
+                    'متابعين',
+                    color: AppColors.blue,
+                  ),
+                ),
+                Expanded(child: StatTile('${s.rating}', 'التقييم')),
+                Expanded(child: StatTile('${s.deals}', 'صفقة')),
+              ],
+            ),
+          ),
+        ),
         SettingsGroup([
           SettingsRow(
             AppIcon.barChart,
@@ -275,7 +315,10 @@ class _SettingsState extends ConsumerState<SellerSettingsScreen> {
                 Text('شتبيع؟', style: AppText.strong),
                 const SizedBox(height: 10),
                 ChipPicker(
-                  options: [for (final c in ref.watch(catalogCategoriesProvider)) c.name],
+                  options: [
+                    for (final c in ref.watch(catalogCategoriesProvider))
+                      c.name,
+                  ],
                   selected: _s.categories,
                   limit: 4,
                   onToggle: (v) => setState(
@@ -510,7 +553,8 @@ class _AppealState extends ConsumerState<SellerAppealScreen> {
                           await ref
                               .read(sellerProvider.notifier)
                               .appeal(widget.markId, _text.text.trim());
-                          if (context.mounted) showAppToast(context, 'انرسل اعتراضك');
+                          if (context.mounted)
+                            showAppToast(context, 'انرسل اعتراضك');
                         },
                 ),
               ],
@@ -673,7 +717,9 @@ class _DeleteState extends ConsumerState<SellerDeleteScreen> {
               ],
               const SizedBox(height: 14),
               LabeledField(
-                label: _devCode == null ? 'كود التأكيد' : 'كود التأكيد ($_devCode)',
+                label: _devCode == null
+                    ? 'كود التأكيد'
+                    : 'كود التأكيد ($_devCode)',
                 controller: _code,
                 ltr: true,
                 keyboardType: TextInputType.number,

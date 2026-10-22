@@ -9,6 +9,16 @@ abstract final class Routes {
   static const profileSetup = '/profile/setup';
   static const home = '/home';
   static const featuredPages = '/pages/featured';
+
+  /// «الصفحات» tab (pages directory).
+  static const pages = '/pages';
+
+  /// Deep links: `/pages/{id}` and `/products/{id}`.
+  static String pageLink(String id) => '/pages/$id';
+  static String productLink(String id) => '/products/$id';
+
+  /// «عرض المزيد» of a product ranking (`best-selling`, `highest-rated`).
+  static String ranking(String kind) => '/store/ranking/$kind';
   static const post = '/post';
   static const postDetails = '/post/details';
   static const postReview = '/post/review';

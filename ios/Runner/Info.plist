@@ -66,5 +66,18 @@
 		<string>UIInterfaceOrientationLandscapeLeft</string>
 		<string>UIInterfaceOrientationLandscapeRight</string>
 	</array>
+	<key>FlutterDeepLinkingEnabled</key>
+	<true/>
+	<key>CFBundleURLTypes</key>
+	<array>
+		<dict>
+			<key>CFBundleURLName</key>
+			<string>dawwerli</string>
+			<key>CFBundleURLSchemes</key>
+			<array>
+				<string>dawwerli</string>
+			</array>
+		</dict>
+	</array>
 </dict>
 </plist>

@@ -17,8 +17,24 @@ class StoreProduct {
     this.category = '',
     this.rating = 0,
     this.ratingCount = 0,
+    this.pageId = '',
+    this.pageName = '',
+    this.hasRated = false,
+    this.myReview,
+    this.isFavorite,
   });
   final String id;
+
+  /// Owning page; sent by GET /products/{id} so a product opens by id alone.
+  final String pageId;
+  final String pageName;
+
+  /// The signed-in customer already rated it (one rating per customer).
+  final bool hasRated;
+  final ProductReview? myReview;
+
+  /// Server favorite flag; null when the endpoint does not send it.
+  final bool? isFavorite;
   final String name;
   final String description;
   final int price;
@@ -56,6 +72,13 @@ class StoreProduct {
       category: j.s('category'),
       rating: j.d('rating'),
       ratingCount: j.i('ratingCount'),
+      pageId: j.s('pageId'),
+      pageName: j.s('pageName'),
+      hasRated: j.b('hasRated'),
+      myReview: j['myReview'] is Map<String, dynamic>
+          ? ProductReview.fromJson(j['myReview'] as Map<String, dynamic>)
+          : null,
+      isFavorite: j['isFavorite'] is bool ? j['isFavorite'] as bool : null,
     );
   }
 }
@@ -252,14 +275,27 @@ final pageProductsProvider = FutureProvider.autoDispose
       ];
     });
 
+/// One product by id (GET /products/{id}). Older API builds only had the
+/// page-scoped route, used as a fallback when the page is known.
 final productProvider = FutureProvider.autoDispose
     .family<StoreProduct, (String, String)>((ref, key) async {
-      final j = await ref
-          .watch(apiClientProvider)
-          .get<Map<String, dynamic>>(
-            '/api/v1/pages/${key.$1}/products/${key.$2}',
-          );
-      return StoreProduct.fromJson(j);
+      final api = ref.watch(apiClientProvider);
+      Map<String, dynamic> j;
+      try {
+        j = await api.get<Map<String, dynamic>>('/api/v1/products/${key.$2}');
+      } catch (e) {
+        if (!missingEndpoint(e) || key.$1.isEmpty) rethrow;
+        j = await api.get<Map<String, dynamic>>(
+          '/api/v1/pages/${key.$1}/products/${key.$2}',
+        );
+      }
+      final p = StoreProduct.fromJson(j);
+      if (p.isFavorite != null && ref.mounted) {
+        ref
+            .read(favoritesProvider.notifier)
+            .seed(p.id, p.pageId.isEmpty ? key.$1 : p.pageId, p.isFavorite!);
+      }
+      return p;
     });
 
 final cartProvider = FutureProvider.autoDispose<Map<String, dynamic>>((
@@ -383,6 +419,18 @@ class FavoritesNotifier extends Notifier<Set<String>> {
     }
   }
 
+  /// Aligns one heart with what the server just said (product details).
+  void seed(String productId, String pageId, bool on) {
+    if (ref.read(guestProvider) || state.contains(productId) == on) return;
+    if (on) {
+      pages[productId] = pageId;
+    } else {
+      pages.remove(productId);
+    }
+    _save();
+    state = pages.keys.toSet();
+  }
+
   /// Optimistic toggle; rolls back when the server refuses.
   Future<bool> toggle(String productId, {String pageId = ''}) async {
     final adding = !state.contains(productId);
@@ -463,17 +511,20 @@ final favoriteProductsProvider =
 
 class ProductReview {
   const ProductReview({
+    this.id = '',
     required this.name,
     required this.stars,
     required this.comment,
     required this.at,
   });
+  final String id;
   final String name;
   final int stars;
   final String comment;
   final DateTime? at;
 
   factory ProductReview.fromJson(Map<String, dynamic> j) => ProductReview(
+    id: j.s('id'),
     name: j.s('customerName'),
     stars: j.i('stars'),
     comment: j.s('comment'),
@@ -481,7 +532,8 @@ class ProductReview {
   );
 }
 
-/// Latest reviews of a product. Empty on API builds without ratings.
+/// Latest reviews of a product (up to 50, enough for the summary bars).
+/// Empty on API builds without ratings.
 final productReviewsProvider = FutureProvider.autoDispose
     .family<List<ProductReview>, String>((ref, productId) async {
       try {
@@ -489,7 +541,7 @@ final productReviewsProvider = FutureProvider.autoDispose
             .watch(apiClientProvider)
             .get<Map<String, dynamic>>(
               '/api/v1/products/$productId/ratings',
-              query: {'pageSize': 10},
+              query: {'page': 1, 'pageSize': 50},
             );
         return [for (final r in j.l('items')) ProductReview.fromJson(r)];
       } catch (e) {

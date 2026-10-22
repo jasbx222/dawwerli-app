@@ -13,7 +13,10 @@ import '../../features/post/data/post_providers.dart';
 import '../../features/post/presentation/post_request_screen.dart';
 import '../../features/post/presentation/request_details_screen.dart';
 import '../../features/post/presentation/review_screen.dart';
+import '../../features/discover/data/discover_data.dart';
+import '../../features/discover/presentation/ranking_screens.dart';
 import '../../features/pages/presentation/featured_pages_screen.dart';
+import '../../features/pages/presentation/pages_tab_screen.dart';
 import '../../features/more/more_screens.dart';
 import '../../features/seller/domain/seller_models.dart';
 import '../../features/seller/presentation/ads_screens.dart';
@@ -224,7 +227,7 @@ final appRouter = GoRouter(
       builder: (_, s) =>
           RecoverOffersScreen(requestId: s.pathParameters['id']!),
     ),
-    // 26 · «الإشعارات» tab.
+    // 26 · «الإشعارات», pushed from the home bell.
     GoRoute(
       path: Routes.notifications,
       builder: (_, _) => const NotificationsScreen(),
@@ -253,6 +256,25 @@ final appRouter = GoRouter(
           ],
         ),
       ],
+    ),
+    // «الصفحات» tab and the public deep links.
+    GoRoute(path: Routes.pages, builder: (_, _) => const PagesTabScreen()),
+    GoRoute(
+      path: '/pages/:id',
+      builder: (_, s) => PageProfileScreen(pageId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/products/:id',
+      builder: (_, s) =>
+          ProductDetailsScreen(pageId: '', productId: s.pathParameters['id']!),
+    ),
+    GoRoute(
+      path: '/store/ranking/:kind',
+      builder: (_, s) => RankedProductsScreen(
+        ranking:
+            ProductRanking.fromPath(s.pathParameters['kind']!) ??
+            ProductRanking.bestSelling,
+      ),
     ),
     GoRoute(path: Routes.cart, builder: (_, _) => const CartScreen()),
     GoRoute(

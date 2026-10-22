@@ -5,7 +5,7 @@ import '../theme/app_colors.dart';
 import '../theme/app_spacing.dart';
 import 'app_icons.dart';
 
-enum NavTab { home, requests, notifications, account }
+enum NavTab { home, requests, pages, account }
 
 /// One tab of a [FloatingNav].
 class NavItem<T> {
@@ -137,7 +137,7 @@ class AppBottomNav extends StatelessWidget {
     items: const [
       NavItem(NavTab.home, AppIcon.home, AppStrings.navHome),
       NavItem(NavTab.requests, AppIcon.clipboard, AppStrings.navRequests),
-      NavItem(NavTab.notifications, AppIcon.bell, AppStrings.navNotifications),
+      NavItem(NavTab.pages, AppIcon.store, AppStrings.navPages),
       NavItem(NavTab.account, AppIcon.user, AppStrings.navAccount),
     ],
     current: current,

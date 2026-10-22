@@ -52,7 +52,8 @@ abstract final class AppStrings {
   static const noAccount = 'ما عندك حساب؟ ';
   static const createAccount = 'سوّي حساب';
   static const wrongCredsTitle = 'الرقم أو الرمز غلط';
-  static const wrongCredsBody = 'تأكد منهم وجرب مرة ثانية، أو اضغط «نسيت الرمز»';
+  static const wrongCredsBody =
+      'تأكد منهم وجرب مرة ثانية، أو اضغط «نسيت الرمز»';
   static const loginLockedTitle = 'انقفل الدخول مؤقتاً';
   static const loginLockedBody = 'محاولات غلط هواية. جرب بعد ';
   static const minutes = ' دقيقة';
@@ -168,6 +169,7 @@ abstract final class AppStrings {
   static const navHome = 'الرئيسية';
   static const navRequests = 'طلباتي';
   static const navNotifications = 'الإشعارات';
+  static const navPages = 'الصفحات';
   static const navAccount = 'حسابي';
 
   // Featured pages (45)

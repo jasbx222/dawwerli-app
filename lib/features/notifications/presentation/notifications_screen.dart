@@ -5,7 +5,6 @@ import 'package:go_router/go_router.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
-import '../../../core/widgets/app_bottom_nav.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/utils/format.dart';
@@ -39,6 +38,8 @@ AppIcon _iconFor(String route) => switch (route) {
   _ when route.startsWith('/orders/') => AppIcon.clock,
   _ when route.contains('dispute') => AppIcon.flag,
   _ when route.contains('standing') => AppIcon.alert,
+  _ when route.startsWith('/products/') => AppIcon.bag,
+  _ when route.startsWith('/pages/') => AppIcon.store,
   _ => AppIcon.bell,
 };
 
@@ -52,64 +53,51 @@ _Notif _of(AppNotification n) => _Notif(
   route: n.route.isEmpty || n.route == Routes.notifications ? null : n.route,
 );
 
-/// 26 · «الإشعارات» tab.
+/// 26 · «الإشعارات», opened from the home bell.
 class NotificationsScreen extends ConsumerWidget {
   const NotificationsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final async = ref.watch(notificationsProvider);
-    final items = [for (final n in async.value ?? const <AppNotification>[]) _of(n)];
+    final items = [
+      for (final n in async.value ?? const <AppNotification>[]) _of(n),
+    ];
     return Scaffold(
       body: Stack(
         fit: StackFit.expand,
         children: [
           SingleChildScrollView(
             padding: EdgeInsets.only(
-              bottom: 18 + 70 + 24 + MediaQuery.viewPaddingOf(context).bottom,
+              bottom: 24 + MediaQuery.viewPaddingOf(context).bottom,
             ),
             child: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
-                const AppHeader(title: 'الإشعارات', showBack: false),
+                const AppHeader(title: 'الإشعارات'),
                 if (async.isLoading && !async.hasValue) const LoadingBlock(),
                 if (items.isNotEmpty)
-                Padding(
-                  padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-                  child: AppCard(
-                    insets: const EdgeInsets.symmetric(vertical: 4),
-                    child: ClipRRect(
-                      borderRadius: BorderRadius.circular(22),
-                      child: Column(
-                        children: [
-                          for (var i = 0; i < items.length; i++)
-                            _Row(
-                              n: items[i],
-                              last: i == items.length - 1,
-                              nextUnread:
-                                  i + 1 < items.length && items[i + 1].unread,
-                            ),
-                        ],
+                  Padding(
+                    padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                    child: AppCard(
+                      insets: const EdgeInsets.symmetric(vertical: 4),
+                      child: ClipRRect(
+                        borderRadius: BorderRadius.circular(22),
+                        child: Column(
+                          children: [
+                            for (var i = 0; i < items.length; i++)
+                              _Row(
+                                n: items[i],
+                                last: i == items.length - 1,
+                                nextUnread:
+                                    i + 1 < items.length && items[i + 1].unread,
+                              ),
+                          ],
+                        ),
                       ),
                     ),
                   ),
-                ),
               ],
-            ),
-          ),
-          Positioned(
-            left: 16,
-            right: 16,
-            bottom: 18 + MediaQuery.viewPaddingOf(context).bottom,
-            child: AppBottomNav(
-              current: NavTab.notifications,
-              onTab: (t) => switch (t) {
-                NavTab.home => context.go(Routes.home),
-                NavTab.requests => context.go(Routes.myRequests),
-                NavTab.notifications => null,
-                NavTab.account => context.go(Routes.account),
-              },
-              onPost: () => context.push(Routes.post),
             ),
           ),
         ],

@@ -232,7 +232,7 @@ class StandingScreen extends ConsumerWidget {
             onTab: (t) => switch (t) {
               NavTab.home => context.go(Routes.home),
               NavTab.requests => context.go(Routes.myRequests),
-              NavTab.notifications => context.go(Routes.notifications),
+              NavTab.pages => context.go(Routes.pages),
               NavTab.account => null,
             },
             onPost: () => context.push(Routes.post),

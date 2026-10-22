@@ -10,6 +10,7 @@ import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/app_inputs.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/app_sheet.dart';
 import '../../../core/widgets/loading_block.dart';
@@ -20,7 +21,7 @@ import '../../home/data/home_providers.dart';
 import '../../more/more_data.dart';
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
-import 'widgets/rating_sheet.dart';
+import 'widgets/product_reviews.dart';
 import 'widgets/store_widgets.dart';
 
 export '../data/store_data.dart';
@@ -519,7 +520,9 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
   }
 
   Widget _content(StoreProduct p) {
-    final page = ref.watch(pageProfileProvider(widget.pageId)).value;
+    // Deep links (/products/{id}) only know the product; the API names the page.
+    final pid = widget.pageId.isEmpty ? p.pageId : widget.pageId;
+    final page = pid.isEmpty ? null : ref.watch(pageProfileProvider(pid)).value;
     final favorite = ref.watch(favoritesProvider).contains(p.id);
     final max = p.stock.clamp(1, _maxPerLine);
     if (_qty > max) _qty = max;
@@ -531,7 +534,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
       soldOut: !p.available,
       height: layout.galleryHeight,
       rounded: layout.kind != _DetailsKind.phone,
-      onFavorite: () => toggleFavorite(context, ref, p.id, widget.pageId),
+      onFavorite: () => toggleFavorite(context, ref, p.id, pid),
     );
     final info = Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
@@ -581,7 +584,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             rating: page.rating,
             deals: page.deals,
             image: page.image,
-            onTap: () => context.push(Routes.pageProfile(widget.pageId)),
+            onTap: () => context.push(Routes.pageProfile(pid)),
           ),
         ],
         const SizedBox(height: 22),
@@ -596,13 +599,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             color: p.description.isEmpty ? AppColors.grey : AppColors.ink,
           ),
         ),
-        _ReviewsSection(
-          productId: p.id,
-          pageId: widget.pageId,
-          productName: p.name,
-          rating: p.rating,
-          count: p.ratingCount,
-        ),
+        ProductReviewsSection(product: p, pageId: pid),
         const SizedBox(height: 18),
         AppCard(
           flat: true,
@@ -899,103 +896,6 @@ class _StockLine extends StatelessWidget {
         ),
         Text(text, style: AppText.label.copyWith(color: color, fontSize: 13)),
       ],
-    );
-  }
-}
-
-/// «التقييمات»: rate / edit action for customers who received the product,
-/// then the latest reviews. Hidden on API builds without ratings.
-class _ReviewsSection extends ConsumerWidget {
-  const _ReviewsSection({
-    required this.productId,
-    required this.pageId,
-    required this.productName,
-    required this.rating,
-    required this.count,
-  });
-  final String productId;
-  final String pageId;
-  final String productName;
-  final double rating;
-  final int count;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final reviews =
-        ref.watch(productReviewsProvider(productId)).value ?? const [];
-    final mine = ref.watch(myRatingProvider(productId)).value ?? MyRating.none;
-    if (reviews.isEmpty && !mine.canRate) return const SizedBox.shrink();
-    return Padding(
-      padding: const EdgeInsets.only(top: 22),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Row(
-            children: [
-              Text('التقييمات', style: AppText.strong.copyWith(fontSize: 16)),
-              if (count > 0) ...[
-                const SizedBox(width: 8),
-                const AppSvgIcon(AppIcon.star, size: 15, color: AppColors.gold),
-                const SizedBox(width: 3),
-                Text(
-                  '${rating.toStringAsFixed(1)} ($count)',
-                  style: AppText.muted,
-                ),
-              ],
-            ],
-          ),
-          if (mine.canRate) ...[
-            const SizedBox(height: 10),
-            AppButton(
-              mine.stars == null
-                  ? 'قيّم المنتج'
-                  : 'عدّل تقييمك (${mine.stars} من 5)',
-              icon: AppIcon.star,
-              compact: true,
-              variant: AppButtonVariant.ghost,
-              onPressed: () => showRateSheet(
-                context,
-                ref,
-                productId: productId,
-                productName: productName,
-                pageId: pageId,
-              ),
-            ),
-          ],
-          for (final r in reviews.take(5))
-            Padding(
-              padding: const EdgeInsets.only(top: 10),
-              child: AppCard(
-                padding: 12,
-                child: Column(
-                  crossAxisAlignment: CrossAxisAlignment.start,
-                  children: [
-                    Row(
-                      children: [
-                        Text(
-                          r.name,
-                          style: AppText.strong.copyWith(fontSize: 13.5),
-                        ),
-                        const Spacer(),
-                        StarRow(value: r.stars.toDouble(), size: 13),
-                      ],
-                    ),
-                    if (r.comment.isNotEmpty) ...[
-                      const SizedBox(height: 4),
-                      Text(
-                        r.comment,
-                        style: AppText.body.copyWith(
-                          fontSize: 13.5,
-                          height: 1.7,
-                        ),
-                      ),
-                    ],
-                  ],
-                ),
-              ),
-            ),
-        ],
-      ),
     );
   }
 }
@@ -1533,16 +1433,35 @@ class _CheckoutScreenState extends ConsumerState<CheckoutScreen> {
 }
 
 /// «المفضلة»: hearted products in the same card grid.
-class FavoritesScreen extends ConsumerWidget {
+class FavoritesScreen extends ConsumerStatefulWidget {
   const FavoritesScreen({super.key});
 
   @override
-  Widget build(BuildContext context, WidgetRef ref) {
+  ConsumerState<FavoritesScreen> createState() => _FavoritesScreenState();
+}
+
+/// «المفضلة»: chips الكل / متوفر / نفدت over the hearted products.
+class _FavoritesScreenState extends ConsumerState<FavoritesScreen> {
+  static const _filters = ['الكل', 'متوفر', 'نفدت'];
+  var _filter = 0;
+
+  @override
+  Widget build(BuildContext context) {
     final list = ref.watch(favoriteProductsProvider);
     final cart = ref.watch(cartSummaryProvider);
+    final items = list.value ?? const <FavoriteProduct>[];
+    final available = items.where((f) => f.product.available).length;
+    final counts = [items.length, available, items.length - available];
+    final shown = [
+      for (final f in items)
+        if (_filter == 0 || (_filter == 1) == f.product.available) f,
+    ];
     return AppPage(
       title: 'المفضلة',
-      subtitle: 'المنتجات اللي حطيت عليها قلب',
+      subtitle: items.isEmpty
+          ? 'المنتجات اللي حطيت عليها قلب'
+          : '${items.length} منتج حطيت عليه قلب',
+      onRefresh: () => ref.refresh(favoriteProductsProvider.future),
       bottom: cart.isEmpty
           ? null
           : StoreWidth(
@@ -1565,27 +1484,52 @@ class FavoritesScreen extends ConsumerWidget {
               body: 'تأكد من النت وجرّب مرة ثانية.',
               onRetry: () => ref.invalidate(favoriteProductsProvider),
             ),
-            data: (items) => items.isEmpty
-                ? const StoreMessage(
-                    icon: AppIcon.heart,
-                    title: 'ما عندك مفضلة بعد',
-                    body: 'دوس القلب على أي منتج يعجبك، ويطلعلك هنا حتى ترجعله بسهولة.',
-                  )
-                : ProductGrid(
-                    items: [
-                      for (final f in items)
-                        ProductCardData(
-                          id: f.product.id,
-                          pageId: f.pageId,
-                          name: f.product.name,
-                          description: f.product.description,
-                          price: f.product.price,
-                          image: f.product.image,
-                          available: f.product.available,
-                          stock: f.product.stock,
-                          caption: f.pageName.isEmpty ? null : f.pageName,
-                          rating: f.product.rating,
-                          ratingCount: f.product.ratingCount,
+            data: (_) => items.isEmpty
+                ? const _FavoritesEmpty()
+                : Column(
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    children: [
+                      Wrap(
+                        spacing: 8,
+                        runSpacing: 8,
+                        children: [
+                          for (var i = 0; i < _filters.length; i++)
+                            AppChip(
+                              '${_filters[i]} · ${counts[i]}',
+                              selected: _filter == i,
+                              onTap: () => setState(() => _filter = i),
+                            ),
+                        ],
+                      ),
+                      const SizedBox(height: 14),
+                      if (shown.isEmpty)
+                        StoreMessage(
+                          icon: AppIcon.heart,
+                          title: _filter == 1
+                              ? 'كل مفضلتك نفدت هسه'
+                              : 'كل مفضلتك متوفرة',
+                          body: _filter == 1
+                              ? 'من ترجع الكمية تكدر تطلبها مباشرة.'
+                              : 'ماكو منتج نفدت كميته من مفضلتك.',
+                        )
+                      else
+                        ProductGrid(
+                          items: [
+                            for (final f in shown)
+                              ProductCardData(
+                                id: f.product.id,
+                                pageId: f.pageId,
+                                name: f.product.name,
+                                description: f.product.description,
+                                price: f.product.price,
+                                image: f.product.image,
+                                available: f.product.available,
+                                stock: f.product.stock,
+                                caption: f.pageName.isEmpty ? null : f.pageName,
+                                rating: f.product.rating,
+                                ratingCount: f.product.ratingCount,
+                              ),
+                          ],
                         ),
                     ],
                   ),
@@ -1594,4 +1538,53 @@ class FavoritesScreen extends ConsumerWidget {
       ],
     );
   }
+}
+
+class _FavoritesEmpty extends StatelessWidget {
+  const _FavoritesEmpty();
+
+  @override
+  Widget build(BuildContext context) => Padding(
+    padding: const EdgeInsets.only(top: 36),
+    child: Column(
+      children: [
+        Container(
+          width: 96,
+          height: 96,
+          decoration: BoxDecoration(
+            color: AppColors.blueTint,
+            shape: BoxShape.circle,
+          ),
+          alignment: Alignment.center,
+          child: const AppSvgIcon(
+            AppIcon.heart,
+            color: AppColors.blue,
+            size: 42,
+            strokeWidth: 1.8,
+          ),
+        ),
+        const SizedBox(height: 18),
+        Text('ما عندك مفضلة بعد', style: AppText.big.copyWith(fontSize: 19)),
+        const SizedBox(height: 6),
+        Text(
+          'دوس القلب على أي منتج يعجبك، ويطلعلك هنا حتى ترجعله بسهولة.',
+          textAlign: TextAlign.center,
+          style: AppText.muted.copyWith(fontSize: 14, height: 1.7),
+        ),
+        const SizedBox(height: 20),
+        AppButton(
+          'تصفّح الأكثر مبيعاً',
+          icon: AppIcon.bag,
+          onPressed: () => context.push(Routes.ranking('best-selling')),
+        ),
+        const SizedBox(height: 10),
+        AppButton(
+          'شوف الصفحات',
+          icon: AppIcon.store,
+          variant: AppButtonVariant.ghost,
+          onPressed: () => context.go(Routes.pages),
+        ),
+      ],
+    ),
+  );
 }
