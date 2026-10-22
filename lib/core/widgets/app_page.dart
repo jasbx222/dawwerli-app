@@ -28,6 +28,7 @@ class AppPage extends StatelessWidget {
     this.nav,
     this.showBack = true,
     this.onBack,
+    this.onRefresh,
   });
   final String title;
   final String? subtitle;
@@ -39,6 +40,9 @@ class AppPage extends StatelessWidget {
   final Widget? nav;
   final bool showBack;
   final VoidCallback? onBack;
+
+  /// Pull-to-refresh on the body when set.
+  final Future<void> Function()? onRefresh;
 
   @override
   Widget build(BuildContext context) {
@@ -54,20 +58,25 @@ class AppPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: ListView(
-                  padding: EdgeInsets.only(bottom: navRoom),
-                  children: [
-                    AppHeader(
-                      title: title,
-                      titleIcon: titleIcon,
-                      trailing: trailing,
-                      below: below,
-                      showBack: showBack,
-                      subtitle: subtitle == null ? null : Text(subtitle!),
-                      onBack: onBack ?? () => popOr(context),
-                    ),
-                    ...children,
-                  ],
+                child: _refreshable(
+                  ListView(
+                    physics: onRefresh == null
+                        ? null
+                        : const AlwaysScrollableScrollPhysics(),
+                    padding: EdgeInsets.only(bottom: navRoom),
+                    children: [
+                      AppHeader(
+                        title: title,
+                        titleIcon: titleIcon,
+                        trailing: trailing,
+                        below: below,
+                        showBack: showBack,
+                        subtitle: subtitle == null ? null : Text(subtitle!),
+                        onBack: onBack ?? () => popOr(context),
+                      ),
+                      ...children,
+                    ],
+                  ),
                 ),
               ),
               if (bottom != null)
@@ -93,6 +102,16 @@ class AppPage extends StatelessWidget {
       ),
     );
   }
+}
+
+extension on AppPage {
+  Widget _refreshable(Widget list) => onRefresh == null
+      ? list
+      : RefreshIndicator(
+          color: AppColors.blue,
+          onRefresh: onRefresh!,
+          child: list,
+        );
 }
 
 /// Screen-edge padding with the usual 14px gap above (`.card` margin).

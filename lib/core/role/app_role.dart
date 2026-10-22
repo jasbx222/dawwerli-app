@@ -31,5 +31,5 @@ final appRoleProvider = NotifierProvider<AppRoleNotifier, AppRole>(
 );
 
 extension AppRoleHome on AppRole {
-  String get home => this == AppRole.seller ? Routes.sellerInbox : Routes.home;
+  String get home => this == AppRole.seller ? Routes.sellerHome : Routes.home;
 }

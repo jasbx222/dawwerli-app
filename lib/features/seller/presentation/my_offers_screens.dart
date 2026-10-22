@@ -6,6 +6,7 @@ import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
+import '../../../core/utils/format.dart';
 import '../../../core/utils/whatsapp.dart';
 import '../../../core/widgets/app_button.dart';
 import '../../../core/widgets/app_card.dart';
@@ -14,12 +15,12 @@ import '../../../core/widgets/app_page.dart';
 import '../../../core/widgets/countdown.dart';
 import '../../../core/widgets/notes.dart';
 import '../../../core/widgets/pill.dart';
-import '../../../core/widgets/seg_tabs.dart';
 import '../../../core/widgets/sticker.dart';
 import '../../../core/widgets/app_inputs.dart';
 import '../../../core/widgets/loading_block.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
+import 'widgets/page_side_widgets.dart';
 import 'widgets/seller_nav.dart';
 import 'widgets/seller_widgets.dart';
 
@@ -31,7 +32,8 @@ const customerReportReasons = [
   'طلب غرض ممنوع',
 ];
 
-/// 21 · «عروضي» with three tabs.
+/// 21 · «عروضي» — every offer this page sent with its live status.
+/// Polls while on screen; a chip row filters by status.
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
 
@@ -39,45 +41,138 @@ class SellerOffersScreen extends ConsumerStatefulWidget {
   ConsumerState<SellerOffersScreen> createState() => _OffersState();
 }
 
-class _OffersState extends ConsumerState<SellerOffersScreen> {
-  int _tab = 0;
+class _OffersState extends ConsumerState<SellerOffersScreen>
+    with WidgetsBindingObserver, PagePolling {
+  OfferState? _state;
+  bool _loading = true;
+  Object? _error;
+  DateTime? _updated;
 
-  static bool _inTab(int tab, OfferState s) => switch (tab) {
-    0 => s == OfferState.chosen,
-    1 => s == OfferState.waiting || s == OfferState.withdrawn,
-    _ => s == OfferState.notChosen || s == OfferState.closed,
+  static const _order = [
+    OfferState.waiting,
+    OfferState.chosen,
+    OfferState.notChosen,
+    OfferState.withdrawn,
+    OfferState.closed,
+  ];
+
+  static String _label(OfferState s) => switch (s) {
+    OfferState.waiting => 'بالانتظار',
+    OfferState.chosen => 'انختارت',
+    OfferState.notChosen => 'ما انختارت',
+    OfferState.withdrawn => 'سحبتها',
+    OfferState.closed => 'انتهت',
   };
+
+  @override
+  void initState() {
+    super.initState();
+    startPolling();
+    _refresh();
+  }
+
+  Future<void> _refresh() async {
+    try {
+      await ref.read(sellerProvider.notifier).loadOffers();
+      if (!mounted) return;
+      setState(() {
+        _error = null;
+        _updated = DateTime.now();
+      });
+    } catch (e) {
+      if (mounted) setState(() => _error = e);
+    } finally {
+      if (mounted) setState(() => _loading = false);
+    }
+  }
+
+  @override
+  Future<void> poll() => _refresh();
 
   @override
   Widget build(BuildContext context) {
     final offers = ref.watch(sellerProvider).offers;
     int count(OfferState s) => offers.where((o) => o.state == s).length;
-    final shown = offers.where((o) => _inTab(_tab, o.state)).toList();
+    final shown = [
+      for (final o in offers)
+        if (_state == null || o.state == _state) o,
+    ]..sort((a, b) => (b.sentAt ?? DateTime(0)).compareTo(a.sentAt ?? DateTime(0)));
     return AppPage(
       title: 'عروضي',
       showBack: false,
+      trailing: count(OfferState.waiting) > 0
+          ? Pill(
+              '${count(OfferState.waiting)} بالانتظار',
+              bg: AppColors.white.withValues(alpha: .18),
+              fg: AppColors.white,
+            )
+          : null,
       nav: const SellerNav(SellerTab.offers),
+      onRefresh: _refresh,
       children: [
-        Gap(
-          SegTabs(
-            labels: [
-              'انختارت (${count(OfferState.chosen)})',
-              'بالانتظار (${count(OfferState.waiting)})',
-              'ما انختارت',
-            ],
-            selected: _tab,
-            onSelect: (i) => setState(() => _tab = i),
-          ),
+        ChipRow(
+          children: [
+            choiceChip(
+              'الكل (${offers.length})',
+              _state == null,
+              () => setState(() => _state = null),
+            ),
+            for (final s in _order)
+              choiceChip(
+                '${_label(s)} (${count(s)})',
+                _state == s,
+                () => setState(() => _state = s),
+              ),
+          ],
         ),
-        if (shown.isEmpty)
-          const Gap(
+        Gap(
+          Row(
+            children: [
+              Container(
+                width: 8,
+                height: 8,
+                decoration: BoxDecoration(
+                  color: _error == null ? AppColors.success : AppColors.danger,
+                  shape: BoxShape.circle,
+                ),
+              ),
+              const SizedBox(width: 6),
+              Expanded(
+                child: Text(
+                  _error != null
+                      ? 'ما كدرنا نحدّث، نحاول مرة ثانية'
+                      : _updated == null
+                      ? 'دنحدّث الحالة...'
+                      : 'الحالة تتحدث تلقائياً · آخر تحديث ${agoLabel(_updated!)}',
+                  style: AppText.muted,
+                ),
+              ),
+            ],
+          ),
+          top: 10,
+        ),
+        if (_loading && offers.isEmpty)
+          const ListSkeleton()
+        else if (_error != null && offers.isEmpty)
+          Gap(RetryCard(error: _error!, onRetry: _refresh))
+        else if (shown.isEmpty)
+          Gap(
             EmptyStateCard(
               icon: AppIcon.message,
-              title: 'ماكو عروض هنا',
-              body: 'قدّم عروض من صندوق الطلبات',
+              title: _state == null
+                  ? 'بعدك ما دزيت عروض'
+                  : 'ماكو عروض ${_label(_state!)}',
+              body: 'قدّم عرضك على طلبات الزباين من الهوم',
+              action: AppButton(
+                'روح للهوم',
+                compact: true,
+                variant: AppButtonVariant.ghost,
+                onPressed: () => context.go(Routes.sellerHome),
+              ),
             ),
-          ),
-        for (final o in shown) Gap(_OfferCard(o)),
+          )
+        else
+          ResponsiveCards(children: [for (final o in shown) _OfferCard(o)]),
       ],
     );
   }
@@ -103,12 +198,18 @@ class _OfferCard extends ConsumerWidget {
         ? Duration.zero
         : DateTime.now().difference(o.chosenAt!);
     final ghostWindow = since >= c.ghostAfter;
-    final title = '${o.title} · ${iqd(o.price)}';
+    final title = o.title;
+    final sub = [
+      'عرضك ${iqd(o.price)}',
+      if (o.category.isNotEmpty) o.category,
+      if (o.sentAt != null) 'دزيته ${agoLabel(o.sentAt!.toLocal())}',
+      if (o.requestMaxPrice != null) 'حد الزبون ${iqd(o.requestMaxPrice!)}',
+    ].join(' · ');
     return switch (o.state) {
       OfferState.chosen when ghostWindow => ThumbCard(
         image: o.image,
         title: title,
-        sub: 'عرضك مقفول',
+        sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.gold.pill('من ${since.inHours} ساعة'),
         onTap: () => context.push(Routes.sellerChosen(o.id)),
         footer: Column(
@@ -144,7 +245,7 @@ class _OfferCard extends ConsumerWidget {
       OfferState.chosen => ThumbCard(
         image: o.image,
         title: title,
-        sub: 'عرضك مقفول',
+        sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: o.contacted
             ? PillTone.teal.pill('تواصلت', check: true)
             : PillTone.gold.pill('رد خلال ساعة'),
@@ -157,7 +258,7 @@ class _OfferCard extends ConsumerWidget {
       OfferState.waiting => ThumbCard(
         image: o.image,
         title: title,
-        sub: 'عرضك مقفول',
+        sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.blue.pill('بالانتظار'),
         onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(
@@ -178,7 +279,7 @@ class _OfferCard extends ConsumerWidget {
       OfferState.notChosen => ThumbCard(
         image: o.image,
         title: title,
-        sub: 'عرضك مقفول',
+        sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.stone.pill('الزبون اختار غيرك'),
         onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(
@@ -189,7 +290,7 @@ class _OfferCard extends ConsumerWidget {
       _ => ThumbCard(
         image: o.image,
         title: title,
-        sub: 'عرضك مقفول',
+        sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.stone.pill('انتهى'),
         onTap: () => context.push(Routes.sellerOfferView(o.id)),
         footer: Padding(

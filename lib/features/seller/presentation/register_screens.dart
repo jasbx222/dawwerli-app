@@ -310,14 +310,14 @@ class SellerVerifyScreen extends ConsumerWidget {
                 AppButton(
                   verified ? 'افتح صندوق الطلبات' : 'تحقق',
                   onPressed: () async {
-                    if (verified) return context.go(Routes.sellerInbox);
+                    if (verified) return context.go(Routes.sellerHome);
                     final status = await ctl.checkBio();
                     if (!context.mounted) return;
                     switch (status) {
                       case VerifyStatus.rejected:
                         context.go(Routes.sellerRejected);
                       case VerifyStatus.verified:
-                        context.go(Routes.sellerInbox);
+                        context.go(Routes.sellerHome);
                       case VerifyStatus.pending || VerifyStatus.none:
                         showAppToast(context, 'صفحتك بالمراجعة، نبلغك أول ما تتوثق');
                     }
