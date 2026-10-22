@@ -149,6 +149,7 @@ class HomeProduct {
     this.pageRating = 0,
     this.rating = 0,
     this.ratingCount = 0,
+    this.sold = 0,
   });
   final String pageId;
   final String pageName;
@@ -164,6 +165,9 @@ class HomeProduct {
   /// The product's own rating.
   final double rating;
   final int ratingCount;
+
+  /// Units sold (best-selling list).
+  final int sold;
 }
 
 class HomeData {

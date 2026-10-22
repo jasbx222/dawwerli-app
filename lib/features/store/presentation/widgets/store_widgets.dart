@@ -73,22 +73,25 @@ ProductCardData cardOf(StoreProduct p, String pageId) => ProductCardData(
   ratingCount: p.ratingCount,
 );
 
-ProductCardData homeProductCard(HomeProduct p) => ProductCardData(
-  id: p.id,
-  pageId: p.pageId,
-  name: p.name,
-  description: p.description,
-  price: p.price,
-  image: p.image,
-  available: p.available,
-  stock: p.stock,
-  caption: p.pageName,
-  badge: p.stock != null && p.stock! > 0 && p.stock! <= 3
-      ? 'باقي ${p.stock}'
-      : null,
-  rating: p.rating,
-  ratingCount: p.ratingCount,
-);
+ProductCardData homeProductCard(HomeProduct p, {String? badge}) =>
+    ProductCardData(
+      id: p.id,
+      pageId: p.pageId,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      image: p.image,
+      available: p.available,
+      stock: p.stock,
+      caption: p.pageName,
+      badge:
+          badge ??
+          (p.stock != null && p.stock! > 0 && p.stock! <= 3
+              ? 'باقي ${p.stock}'
+              : null),
+      rating: p.rating,
+      ratingCount: p.ratingCount,
+    );
 
 /// Hearts or un-hearts a product (members only). Failures roll back and toast.
 void toggleFavorite(

@@ -22,6 +22,9 @@ import '../domain/home_models.dart';
 import 'widgets/home_header.dart';
 import 'widgets/home_sections.dart';
 import 'widgets/live_request_card.dart';
+import '../../discover/data/discover_data.dart';
+import '../../discover/presentation/discover_widgets.dart';
+import '../../discover/presentation/ranking_screens.dart';
 
 class HomeScreen extends ConsumerWidget {
   const HomeScreen({super.key});
@@ -50,25 +53,29 @@ class HomeScreen extends ConsumerWidget {
                   HomeHeader(
                     data: d,
                     guest: ref.watch(guestProvider),
-                    onBell: () => memberOnly(
-                      context,
-                      ref,
-                      () => context.go(Routes.notifications),
-                    ),
+                    unread: ref.watch(unreadNotificationsProvider).value ?? 0,
+                    onBell: () => memberOnly(context, ref, () async {
+                      await context.push(Routes.notifications);
+                      ref.invalidate(unreadNotificationsProvider);
+                    }),
                     onLocation: () => memberOnly(
                       context,
                       ref,
                       () => context.push(Routes.region),
                     ),
-                    onStory: (s) =>
-                        context.push(Routes.pageProfile(s.pageId)),
+                    onStory: (s) => context.push(Routes.pageProfile(s.pageId)),
                   ),
                   Transform.translate(
                     offset: const Offset(0, -_overlap),
                     child: _Body(
                       data: d,
-                      offers: (!ref.watch(guestProvider) && d.liveRequest != null)
-                          ? ref.watch(offersProvider(d.liveRequest!.id)).value?.offers ?? const []
+                      offers:
+                          (!ref.watch(guestProvider) && d.liveRequest != null)
+                          ? ref
+                                    .watch(offersProvider(d.liveRequest!.id))
+                                    .value
+                                    ?.offers ??
+                                const []
                           : const [],
                       guest: ref.watch(guestProvider),
                       onPost: () => memberOnly(
@@ -110,11 +117,7 @@ class HomeScreen extends ConsumerWidget {
                   ref,
                   () => context.go(Routes.myRequests),
                 ),
-                NavTab.notifications => memberOnly(
-                  context,
-                  ref,
-                  () => context.go(Routes.notifications),
-                ),
+                NavTab.pages => context.go(Routes.pages),
                 NavTab.account => memberOnly(
                   context,
                   ref,
@@ -191,16 +194,31 @@ class _Body extends StatelessWidget {
                             child: Column(
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
-                                Text(offers[i].pageName, style: const TextStyle(fontWeight: FontWeight.w700, fontSize: 15)),
+                                Text(
+                                  offers[i].pageName,
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.w700,
+                                    fontSize: 15,
+                                  ),
+                                ),
                                 Text(
                                   '${offers[i].price} د.ع',
-                                  style: const TextStyle(color: AppColors.blue, fontWeight: FontWeight.w700),
+                                  style: const TextStyle(
+                                    color: AppColors.blue,
+                                    fontWeight: FontWeight.w700,
+                                  ),
                                 ),
                               ],
                             ),
                           ),
                           if (offers[i].sponsored)
-                            const Text('مُموّل', style: TextStyle(color: AppColors.gold, fontWeight: FontWeight.w700)),
+                            const Text(
+                              'مُموّل',
+                              style: TextStyle(
+                                color: AppColors.gold,
+                                fontWeight: FontWeight.w700,
+                              ),
+                            ),
                         ],
                       ),
                     ),
@@ -234,34 +252,9 @@ class _Body extends StatelessWidget {
             ),
           ),
         ],
-        if (d.featuredPages.isNotEmpty) ...[
-          SectionTitle(
-            AppStrings.secFeatured,
-            onSeeAll: () => context.push(Routes.featuredPages),
-          ),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                for (var i = 0; i < d.featuredPages.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 10),
-                  PageTile(
-                    page: d.featuredPages[i],
-                    onTap: () =>
-                        context.push(Routes.pageProfile(d.featuredPages[i].id)),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
-        if (d.topProducts.isNotEmpty) ...[
-          SectionTitle(
-            AppStrings.secTopProducts,
-            onSeeAll: () => context.push(Routes.topProducts),
-          ),
-          ProductStrip(products: d.topProducts),
-        ],
+        const TopPagesBoxes(),
+        const RankingSlider(ranking: ProductRanking.bestSelling),
+        const RankingSlider(ranking: ProductRanking.highestRated),
         ActivityTicker(items: d.ticker),
         StatsRow(stats: d.stats),
         SectionTitle(

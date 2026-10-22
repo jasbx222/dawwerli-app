@@ -20,12 +20,16 @@ class HomeHeader extends StatelessWidget {
     this.onBell,
     this.onStory,
     this.guest = false,
+    this.unread = 0,
   });
 
   /// 51 · «هلا بيك (زائر)».
   final bool guest;
 
   final HomeData data;
+
+  /// Unread notifications on the bell; 0 falls back to [HomeData.hasUnreadNotifications].
+  final int unread;
   final VoidCallback? onLocation;
   final VoidCallback? onBell;
   final ValueChanged<StoryPage>? onStory;
@@ -121,39 +125,79 @@ class HomeHeader extends StatelessWidget {
                         const SizedBox(width: 8),
                         GestureDetector(
                           onTap: onBell,
-                          child: Container(
-                            width: 40,
-                            height: 40,
-                            decoration: BoxDecoration(
-                              color: glass,
-                              borderRadius: BorderRadius.circular(14),
-                            ),
-                            child: Stack(
-                              alignment: Alignment.center,
-                              children: [
-                                const AppSvgIcon(
-                                  AppIcon.bell,
-                                  color: AppColors.white,
-                                  size: 20,
-                                ),
-                                if (data.hasUnreadNotifications)
-                                  Positioned(
-                                    top: 9,
-                                    right: 10,
-                                    child: Container(
-                                      width: 9,
-                                      height: 9,
-                                      decoration: BoxDecoration(
-                                        color: AppColors.gold,
-                                        shape: BoxShape.circle,
-                                        border: Border.all(
-                                          color: AppColors.blue,
-                                          width: 2,
+                          child: Semantics(
+                            label: unread > 0
+                                ? 'الإشعارات، $unread جديدة'
+                                : 'الإشعارات',
+                            button: true,
+                            child: Container(
+                              width: 40,
+                              height: 40,
+                              decoration: BoxDecoration(
+                                color: glass,
+                                borderRadius: BorderRadius.circular(14),
+                              ),
+                              child: Stack(
+                                alignment: Alignment.center,
+                                children: [
+                                  const AppSvgIcon(
+                                    AppIcon.bell,
+                                    color: AppColors.white,
+                                    size: 20,
+                                  ),
+                                  if (unread > 0)
+                                    PositionedDirectional(
+                                      top: 3,
+                                      end: 2,
+                                      child: Container(
+                                        constraints: const BoxConstraints(
+                                          minWidth: 19,
+                                        ),
+                                        height: 19,
+                                        padding: const EdgeInsets.symmetric(
+                                          horizontal: 4,
+                                        ),
+                                        alignment: Alignment.center,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.gold,
+                                          borderRadius: BorderRadius.circular(
+                                            10,
+                                          ),
+                                          border: Border.all(
+                                            color: AppColors.blue,
+                                            width: 2,
+                                          ),
+                                        ),
+                                        child: Text(
+                                          unread > 99 ? '99+' : '$unread',
+                                          style: const TextStyle(
+                                            fontSize: 10,
+                                            height: 1.1,
+                                            fontWeight: FontWeight.w800,
+                                            color: AppColors.navy,
+                                          ),
+                                        ),
+                                      ),
+                                    )
+                                  else if (data.hasUnreadNotifications)
+                                    Positioned(
+                                      top: 9,
+                                      right: 10,
+                                      child: Container(
+                                        width: 9,
+                                        height: 9,
+                                        decoration: BoxDecoration(
+                                          color: AppColors.gold,
+                                          shape: BoxShape.circle,
+                                          border: Border.all(
+                                            color: AppColors.blue,
+                                            width: 2,
+                                          ),
                                         ),
                                       ),
                                     ),
-                                  ),
-                              ],
+                                ],
+                              ),
                             ),
                           ),
                         ),

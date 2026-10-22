@@ -19,9 +19,15 @@ import 'ticker_marquee.dart';
 final _ring = BoxShadow(color: AppColors.cardRing, spreadRadius: 1);
 
 class SectionTitle extends StatelessWidget {
-  const SectionTitle(this.title, {super.key, this.onSeeAll});
+  const SectionTitle(
+    this.title, {
+    super.key,
+    this.onSeeAll,
+    this.seeAllLabel = AppStrings.seeAll,
+  });
   final String title;
   final VoidCallback? onSeeAll;
+  final String seeAllLabel;
 
   @override
   Widget build(BuildContext context) => Padding(
@@ -41,11 +47,11 @@ class SectionTitle extends StatelessWidget {
         if (onSeeAll != null)
           GestureDetector(
             onTap: onSeeAll,
-            child: const Padding(
-              padding: EdgeInsets.only(bottom: 2),
+            child: Padding(
+              padding: const EdgeInsets.only(bottom: 2),
               child: Text(
-                AppStrings.seeAll,
-                style: TextStyle(
+                seeAllLabel,
+                style: const TextStyle(
                   fontSize: 13,
                   height: 1.500000,
                   fontWeight: FontWeight.w600,
@@ -596,8 +602,11 @@ class LiveFeedCard extends StatelessWidget {
 /// screen (about 2.3 cards on phones, more on tablets and the web) so the
 /// next card always peeks in at the end edge; all cards share one height.
 class ProductStrip extends StatelessWidget {
-  const ProductStrip({super.key, required this.products});
+  const ProductStrip({super.key, required this.products, this.badges});
   final List<HomeProduct> products;
+
+  /// Optional tag per card (rank in the ranking sliders).
+  final List<String?>? badges;
 
   static const gap = 12.0;
   static const side = 16.0;
@@ -630,7 +639,14 @@ class ProductStrip extends StatelessWidget {
                 if (i > 0) const SizedBox(width: gap),
                 SizedBox(
                   width: w,
-                  child: StoreProductCard(data: homeProductCard(products[i])),
+                  child: StoreProductCard(
+                    data: homeProductCard(
+                      products[i],
+                      badge: badges != null && i < badges!.length
+                          ? badges![i]
+                          : null,
+                    ),
+                  ),
                 ),
               ],
             ],

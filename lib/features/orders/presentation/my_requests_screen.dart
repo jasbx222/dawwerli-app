@@ -199,7 +199,7 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
               onTab: (t) => switch (t) {
                 NavTab.home => context.go(Routes.home),
                 NavTab.requests => null,
-                NavTab.notifications => context.go(Routes.notifications),
+                NavTab.pages => context.go(Routes.pages),
                 NavTab.account => context.go(Routes.account),
               },
               onPost: () => context.push(Routes.post),
