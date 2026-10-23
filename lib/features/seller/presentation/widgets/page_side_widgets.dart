@@ -177,8 +177,12 @@ class FilterChipButton extends StatelessWidget {
 }
 
 /// A chip that keeps the design look ([AppChip]).
-Widget choiceChip(String label, bool on, VoidCallback onTap) =>
-    AppChip(label, selected: on, onTap: onTap);
+Widget choiceChip(
+  String label,
+  bool on,
+  VoidCallback onTap, {
+  String? categoryKey,
+}) => AppChip(label, selected: on, onTap: onTap, categoryKey: categoryKey);
 
 /// Error card with «جرّب مرة ثانية».
 class RetryCard extends StatelessWidget {

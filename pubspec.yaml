@@ -71,6 +71,7 @@ flutter:
   assets:
     - assets/images/
     - assets/images/mock/
+    - assets/icons/categories/
   fonts:
     - family: IBMPlexSansArabic
       fonts:

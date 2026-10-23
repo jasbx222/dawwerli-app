@@ -27,7 +27,7 @@ class ApiPostRepository implements PostRepository {
     return [
       for (final id in ids.map((e) => e as Object))
         if (cat.categoryById((id as num).toInt()) case final c?)
-          CategoryOption(c.name, emoji: c.emoji),
+          CategoryOption(c.name, slug: c.slug),
     ];
   }
 

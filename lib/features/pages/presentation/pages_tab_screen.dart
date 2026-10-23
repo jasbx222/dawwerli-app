@@ -118,6 +118,7 @@ class _PagesTabScreenState extends ConsumerState<PagesTabScreen> {
                       for (final c in categories)
                         _FilterChip(
                           label: c.name,
+                          categoryKey: c.slug,
                           selected: _category == c.id,
                           onTap: () => setState(
                             () => _category = _category == c.id ? null : c.id,
@@ -276,18 +277,25 @@ class _FilterChip extends StatelessWidget {
     required this.selected,
     required this.onTap,
     this.icon,
+    this.categoryKey,
   });
   final String label;
   final bool selected;
   final VoidCallback onTap;
   final AppIcon? icon;
+  final String? categoryKey;
 
   @override
   Widget build(BuildContext context) => Padding(
     padding: const EdgeInsetsDirectional.only(end: 8),
     child: icon == null
         ? Center(
-            child: AppChip(label, selected: selected, onTap: onTap),
+            child: AppChip(
+              label,
+              selected: selected,
+              onTap: onTap,
+              categoryKey: categoryKey,
+            ),
           )
         : GestureDetector(
             onTap: onTap,

@@ -6,6 +6,7 @@ import '../../../store/presentation/widgets/store_widgets.dart';
 
 import '../../../../core/widgets/app_image.dart';
 
+import 'package:dawwerli/core/widgets/category_icon.dart';
 import 'package:dawwerli/core/widgets/emoji_text.dart';
 
 import '../../../../core/l10n/app_strings.dart';
@@ -473,6 +474,12 @@ class _BentoTile extends StatelessWidget {
                   ),
                 ),
               ),
+            // Badge sits top-right, so the icon takes the other corner.
+            Positioned(
+              top: 10,
+              left: 10,
+              child: _CategoryBadgeIcon(cat.slug, size: big ? 36 : 30),
+            ),
             Positioned(
               bottom: 10,
               right: 12,
@@ -495,6 +502,21 @@ class _BentoTile extends StatelessWidget {
       ),
     );
   }
+}
+
+/// White rounded tile with the category's SVG icon (photo tiles).
+class _CategoryBadgeIcon extends StatelessWidget {
+  const _CategoryBadgeIcon(this.slug, {this.size = 30});
+  final String slug;
+  final double size;
+
+  @override
+  Widget build(BuildContext context) => CategoryIconTile(
+    slug,
+    size: size,
+    color: AppColors.blue,
+    background: AppColors.white.withValues(alpha: .92),
+  );
 }
 
 class LiveFeedCard extends StatelessWidget {

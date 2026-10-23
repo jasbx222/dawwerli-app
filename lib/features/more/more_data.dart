@@ -8,22 +8,29 @@ import '../home/domain/home_models.dart';
 
 /// Category tile data (GET /api/v1/categories).
 class CatalogCategory {
-  const CatalogCategory(this.id, this.name, this.image);
+  const CatalogCategory(this.id, this.name, this.image, {this.slug = ''});
   final String id;
   final String name;
   final ImageRef image;
+
+  /// Stable key (API slug) used for the SVG icon.
+  final String slug;
 }
 
 final catalogCategoriesProvider = Provider<List<CatalogCategory>>(
   (ref) => [
     for (final c in ref.watch(catalogProvider).value?.categories ?? const <CatalogCategoryRef>[])
-      CatalogCategory('${c.id}', c.name, c.image),
+      CatalogCategory('${c.id}', c.name, c.image, slug: c.slug),
   ],
 );
 
 extension CatalogCategoryLookup on List<CatalogCategory> {
   CatalogCategory byId(String id) =>
       where((c) => c.id == id).firstOrNull ?? const CatalogCategory('', '', '');
+
+  /// Slug for a category display name (pages list categories by name).
+  String? slugOf(String name) =>
+      where((c) => c.name == name).firstOrNull?.slug;
 }
 
 /// Public page profile (GET /api/v1/pages/{id}); phone never included.

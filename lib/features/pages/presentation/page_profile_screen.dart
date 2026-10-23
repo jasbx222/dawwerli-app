@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+
+import '../../../core/api/catalog.dart';
+
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
@@ -263,7 +266,13 @@ class _About extends ConsumerWidget {
         Wrap(
           spacing: 8,
           runSpacing: 8,
-          children: [for (final c in p.categories) AppChip(c)],
+          children: [
+            for (final c in p.categories)
+              AppChip(
+                c,
+                categoryKey: ref.watch(catalogProvider).value?.slugOf(c) ?? '',
+              ),
+          ],
         ),
         const SizedBox(height: 16),
       ],

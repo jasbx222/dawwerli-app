@@ -79,11 +79,15 @@ class TrendingCategory {
     required this.name,
     required this.image,
     this.badge = CategoryBadge.none,
+    this.slug = '',
   });
   final String id;
   final String name;
   final ImageRef image;
   final CategoryBadge badge;
+
+  /// Stable category key (API slug) for the SVG icon.
+  final String slug;
 }
 
 class Deal {

@@ -193,10 +193,10 @@ abstract final class PostRules {
   }
 }
 
-/// Category suggested by the classifier (emoji shown before the name when set).
+/// Category suggested by the classifier; [slug] picks its SVG icon.
 class CategoryOption {
-  const CategoryOption(this.name, {this.emoji});
+  const CategoryOption(this.name, {this.slug});
   final String name;
-  final String? emoji;
-  String get label => emoji == null ? name : '$emoji $name';
+  final String? slug;
+  String get label => name;
 }
