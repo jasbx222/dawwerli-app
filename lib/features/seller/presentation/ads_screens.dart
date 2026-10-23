@@ -22,6 +22,7 @@ import '../../../core/widgets/state_card.dart';
 import '../../../core/api/picker.dart';
 import '../data/seller_controller.dart';
 import '../domain/seller_models.dart';
+import 'sponsored_ad_book.dart';
 import 'topup_sheet.dart';
 import 'widgets/seller_widgets.dart';
 
@@ -29,7 +30,7 @@ extension AdSlotText on AdSlot {
   String get title => switch (this) {
     AdSlot.homeBanner => 'بانر الرئيسية',
     AdSlot.featuredPage => 'صفحة مميزة بالصنف',
-    AdSlot.sponsoredOffer => 'عرض مُموّل',
+    AdSlot.sponsoredOffer => 'إعلان مُموّل منبثق',
   };
   AppIcon get icon => switch (this) {
     AdSlot.homeBanner => AppIcon.image,
@@ -39,7 +40,7 @@ extension AdSlotText on AdSlot {
   String get unit => switch (this) {
     AdSlot.homeBanner => 'باليوم',
     AdSlot.featuredPage => 'بالأسبوع',
-    AdSlot.sponsoredOffer => 'بالطلب',
+    AdSlot.sponsoredOffer => 'باليوم',
   };
   int price(SellerConfig c) => switch (this) {
     AdSlot.homeBanner => c.bannerDaily,
@@ -152,7 +153,7 @@ class SellerAdsScreen extends ConsumerWidget {
                       AdSlot.featuredPage =>
                         'أفضل صفحات ${s.settings.categories.firstOrNull ?? 'صنوفك'} ب${s.settings.governorates.firstOrNull ?? 'محافظتك'} · ${slot.unit}',
                       AdSlot.sponsoredOffer =>
-                        'عرضك ينثبت أول · ضمن الـ ${c.maxOffers} · سعره ≤ حد الزبون',
+                        'يطلع للزبون كنافذة منبثقة · ${slot.unit}',
                     },
                     trailing: Text(
                       thousands(slot.price(c)),
@@ -377,7 +378,7 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
 
   String _unitLabel(int n) => switch (widget.slot) {
     AdSlot.featuredPage => n == 1 ? 'أسبوع' : '$n أسابيع',
-    AdSlot.sponsoredOffer => n == 1 ? 'طلب واحد' : '$n طلبات',
+    AdSlot.sponsoredOffer => daysLabel(n),
     AdSlot.homeBanner => n == 1 ? 'يوم' : '$n أيام',
   };
 
@@ -426,6 +427,9 @@ class _AdBookState extends ConsumerState<AdBookScreen> {
 
   @override
   Widget build(BuildContext context) {
+    if (widget.slot == AdSlot.sponsoredOffer) {
+      return const SponsoredAdBookScreen();
+    }
     final s = ref.watch(sellerProvider);
     final total = widget.slot.price(s.config) * _units;
     Widget chips(List<String> opts, String sel, ValueChanged<String> on) =>

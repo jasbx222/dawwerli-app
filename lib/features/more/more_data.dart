@@ -138,6 +138,7 @@ List<PageSummary> featuredWithPaid(
         deals: existing?.deals ?? 0,
         image: existing?.image ?? a.os('image'),
         isAd: true,
+        adId: a.os('id'),
       ),
     );
   }

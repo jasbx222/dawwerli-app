@@ -5,6 +5,7 @@ import '../domain/home_models.dart';
 import '../domain/home_repository.dart';
 
 /// GET /api/v1/home: stories, live request, ticker, stats, categories, feed, deals, ad, featured pages.
+/// Sponsored offers are not a home section: they show as the timed popup.
 class ApiHomeRepository implements HomeRepository {
   const ApiHomeRepository(this.api, this.catalog);
   final ApiClient api;
@@ -29,7 +30,6 @@ class ApiHomeRepository implements HomeRepository {
     final stats = j.m('stats');
     final govId = gov;
     final slotBanners = await _ads('homeBanner', govId);
-    final slotSponsored = await _ads('sponsoredOffer', govId);
     final catIds = <int>{
       for (final c in j.l('categories'))
         if (c.i('id') != 0) c.i('id'),
@@ -84,7 +84,6 @@ class ApiHomeRepository implements HomeRepository {
           ),
       ],
       banners: _banners(ad, slotBanners),
-      sponsored: _sponsoredPages(slotSponsored, organicFeatured),
       featuredPages: featuredWithPaid(organicFeatured, slotFeatured),
       topProducts: await _topProducts(organicFeatured),
     );
@@ -207,6 +206,7 @@ AdBanner _bannerFrom(Map<String, dynamic> a) => AdBanner(
   discountPercent: a.i('discountPercent'),
   pageId: a.s('pageId').isNotEmpty ? a.s('pageId') : (a.os('pageId') ?? ''),
   image: a.os('image'),
+  adId: a.os('id') ?? '',
 );
 
 List<AdBanner> _banners(
@@ -219,33 +219,6 @@ List<AdBanner> _banners(
         _bannerFrom(a),
   ];
   if (out.isEmpty && homeAd != null) out.add(_bannerFrom(homeAd));
-  return out;
-}
-
-/// Paid «عرض مُموّل», one card per page.
-List<PageSummary> _sponsoredPages(
-  List<Map<String, dynamic>> slot,
-  List<PageSummary> known,
-) {
-  final ids = <String>{};
-  final out = <PageSummary>[];
-  for (final a in slot) {
-    final id = a.s('pageId');
-    if (id.isEmpty || !ids.add(id)) continue;
-    final existing = known.where((p) => p.id == id).firstOrNull;
-    out.add(
-      PageSummary(
-        id: id,
-        name: existing?.name.isNotEmpty == true
-            ? existing!.name
-            : a.s('pageName'),
-        rating: existing?.rating ?? 0,
-        deals: existing?.deals ?? 0,
-        image: existing?.image ?? a.os('image'),
-        isAd: true,
-      ),
-    );
-  }
   return out;
 }
 

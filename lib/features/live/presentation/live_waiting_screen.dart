@@ -1,5 +1,6 @@
 import 'dart:ui' show ImageFilter;
 
+import '../../../core/ads/ad_events.dart';
 import '../../../core/widgets/app_image.dart';
 
 import 'package:flutter/material.dart';
@@ -195,7 +196,14 @@ class _Content extends StatelessWidget {
                 widensAt: r.widenedTo.isEmpty ? r.widensAt : null,
               ),
             ),
-          if (r.sponsored != null) _m(14, SponsoredCard(page: r.sponsored!)),
+          if (r.sponsored != null)
+            _m(
+              14,
+              AdImpression(
+                adId: r.sponsored!.adId,
+                child: SponsoredCard(page: r.sponsored!),
+              ),
+            ),
           Padding(
             padding: const EdgeInsets.all(16),
             child: r.expired

@@ -5,11 +5,15 @@ class SponsoredPage {
     required this.name,
     required this.tagline,
     required this.image,
+    this.adId = '',
   });
   final String pageId;
   final String name;
   final String tagline;
   final String image;
+
+  /// Campaign id for impression events.
+  final String adId;
 }
 
 /// A published request while it collects offers (10).

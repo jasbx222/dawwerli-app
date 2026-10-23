@@ -4,6 +4,7 @@ import 'package:flutter/material.dart';
 
 import '../../../store/presentation/widgets/store_widgets.dart';
 
+import '../../../../core/ads/ad_events.dart';
 import '../../../../core/widgets/app_image.dart';
 
 import 'package:dawwerli/core/widgets/category_icon.dart';
@@ -808,9 +809,12 @@ class _AdSliderState extends State<AdSlider> {
   Widget build(BuildContext context) {
     final ads = widget.ads;
     if (ads.length == 1) {
-      return SponsoredBanner(
-        ad: ads.first,
-        onTap: () => widget.onTap(ads.first),
+      return AdImpression(
+        adId: ads.first.adId,
+        child: SponsoredBanner(
+          ad: ads.first,
+          onTap: () => widget.onTap(ads.first),
+        ),
       );
     }
     return Column(
@@ -821,8 +825,14 @@ class _AdSliderState extends State<AdSlider> {
             controller: _page,
             itemCount: ads.length,
             onPageChanged: (i) => setState(() => _index = i),
-            itemBuilder: (_, i) =>
-                SponsoredBanner(ad: ads[i], onTap: () => widget.onTap(ads[i])),
+            // Only the page in view is built, so this counts real views.
+            itemBuilder: (_, i) => AdImpression(
+              adId: ads[i].adId,
+              child: SponsoredBanner(
+                ad: ads[i],
+                onTap: () => widget.onTap(ads[i]),
+              ),
+            ),
           ),
         ),
         const SizedBox(height: 8),
