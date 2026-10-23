@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 
 import 'app_colors.dart';
+import 'app_spacing.dart';
 import 'app_typography.dart';
 
 /// Material themes for both modes. Brand colours stay the same; the night
@@ -147,17 +148,18 @@ abstract final class AppTheme {
         ),
         actionTextColor: AppColors.goldSoft,
       ),
+      // Only the base `border` here. Setting enabledBorder/focusedBorder in the
+      // theme would also draw on fields that opt out with InputBorder.none
+      // (e.g. fields inside InputShell), giving a second border inside the box.
+      // Material resolves this border's colour per state: outline at rest,
+      // primary (2px) when focused, error on errors.
       inputDecorationTheme: InputDecorationTheme(
         fillColor: surface,
         hintStyle: TextStyle(color: muted),
         labelStyle: TextStyle(color: muted),
-        enabledBorder: OutlineInputBorder(
+        border: OutlineInputBorder(
           borderSide: BorderSide(color: border),
-          borderRadius: BorderRadius.circular(14),
-        ),
-        focusedBorder: OutlineInputBorder(
-          borderSide: BorderSide(color: primary, width: 1.5),
-          borderRadius: BorderRadius.circular(14),
+          borderRadius: BorderRadius.circular(AppRadius.input),
         ),
       ),
       progressIndicatorTheme: ProgressIndicatorThemeData(
