@@ -28,6 +28,7 @@ class ApiOrdersRepository implements OrdersRepository {
           OrderStep(title: s.s('title'), detail: s.s('detail'), done: s.b('done')),
       ],
       received: j.b('received'),
+      storeOrderId: j.os('storeOrderId'),
       answer: DeliveryAnswer.values.where((v) => v.name == a).firstOrNull,
       rating: r == null
           ? null

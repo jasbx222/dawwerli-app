@@ -11,6 +11,7 @@ import '../../../core/widgets/app_card.dart';
 import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/exact_line.dart';
+import '../../../core/widgets/order_redirect.dart';
 import '../data/orders_providers.dart';
 import '../domain/order.dart';
 import 'order_widgets.dart';
@@ -27,6 +28,9 @@ class OrderStatusScreen extends ConsumerWidget {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
+    }
+    if (o.storeOrderId != null) {
+      return OrderRedirect(Routes.storeOrder(o.storeOrderId!));
     }
     Future<void> answer(DeliveryAnswer a) async {
       await ref.read(ordersRepositoryProvider).answer(orderId, a);

@@ -18,6 +18,18 @@ import '../../offers/presentation/widgets/offer_widgets.dart';
 import '../../store/presentation/store_screens.dart';
 import '../data/my_requests_provider.dart';
 
+/// Where a «طلباتي» card opens: once the chosen offer became a store order,
+/// always the unified order details (same screen as product orders).
+String requestRoute(RequestSummary r) {
+  if (r.storeOrderId != null) return Routes.storeOrder(r.storeOrderId!);
+  return switch (_Item.of(r).kind) {
+    _Kind.live || _Kind.waiting => Routes.liveRequest(r.id),
+    _Kind.expired => Routes.noOffers(r.id),
+    _Kind.chosen || _Kind.done =>
+      r.orderId == null ? Routes.offers(r.id) : Routes.orderStatus(r.orderId!),
+  };
+}
+
 enum _Kind { live, waiting, chosen, expired, done }
 
 enum _Filter { all, open, chosen, ended }
@@ -71,14 +83,7 @@ class _MyRequestsScreenState extends ConsumerState<MyRequestsScreen> {
     _Filter.ended => i.kind == _Kind.expired || i.kind == _Kind.done,
   };
 
-  void _open(_Item i) => context.push(switch (i.kind) {
-    _Kind.live || _Kind.waiting => Routes.liveRequest(i.r.id),
-    _Kind.expired => Routes.noOffers(i.r.id),
-    _Kind.chosen || _Kind.done =>
-      i.r.orderId == null
-          ? Routes.offers(i.r.id)
-          : Routes.orderStatus(i.r.orderId!),
-  });
+  void _open(_Item i) => context.push(requestRoute(i.r));
 
   @override
   Widget build(BuildContext context) {

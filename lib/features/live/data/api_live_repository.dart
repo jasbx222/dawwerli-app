@@ -31,6 +31,7 @@ class ApiLiveRequestRepository implements LiveRequestRepository {
       widenedTo: r.list<String>('widenedTo'),
       waitedMinutes: r.i('waitedMinutes'),
       suggestedPrice: r.oi('suggestedPrice'),
+      storeOrderId: r.os('storeOrderId'),
       sponsored: ad == null
           ? null
           : SponsoredPage(
