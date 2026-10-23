@@ -26,6 +26,8 @@ import '../data/store_data.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_reviews.dart';
 import 'widgets/store_widgets.dart';
+import '../../wall/wall_math.dart';
+import '../../wall/wall_preview_screen.dart';
 
 export '../data/store_data.dart';
 export 'store_order_screens.dart';
@@ -531,6 +533,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     if (_qty > max) _qty = max;
     final inset = MediaQuery.viewPaddingOf(context).bottom;
     final layout = _DetailsLayout.of(context);
+    final wall = p.wall;
     final gallery = _Gallery(
       images: p.images,
       favorite: favorite,
@@ -578,6 +581,21 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 style: AppText.muted.copyWith(fontSize: 13),
               ),
             ],
+          ),
+        ],
+        if (p.variants.length > 1) ...[
+          const SizedBox(height: 16),
+          _VariantPicker(
+            product: p,
+            onPick: (v) => context.pushReplacement(Routes.product(pid, v.id)),
+          ),
+        ],
+        if (p.hasSize) ...[const SizedBox(height: 14), _SizeLine(product: p)],
+        if (wall != null) ...[
+          const SizedBox(height: 12),
+          WallPreviewEntry(
+            size: wall,
+            onTap: () => context.push(Routes.wallPreview(pid, p.id)),
           ),
         ],
         if (page != null) ...[
@@ -839,6 +857,106 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
     if (sent == true && mounted) {
       showAppToast(context, 'وصلنا بلاغك، فريقنا يراجعه');
     }
+  }
+}
+
+/// «المقاس»: the product's same-page sizes; picking one opens it.
+class _VariantPicker extends StatelessWidget {
+  const _VariantPicker({required this.product, required this.onPick});
+  final StoreProduct product;
+  final ValueChanged<ProductVariant> onPick;
+
+  @override
+  Widget build(BuildContext context) => Column(
+    crossAxisAlignment: CrossAxisAlignment.start,
+    children: [
+      Text('المقاس', style: AppText.strong.copyWith(fontSize: 15)),
+      const SizedBox(height: 8),
+      Wrap(
+        spacing: 8,
+        runSpacing: 8,
+        children: [
+          for (final v in product.variants)
+            Semantics(
+              button: true,
+              selected: v.id == product.id,
+              label: '${v.label}، ${storePrice(v.price)}',
+              child: GestureDetector(
+                onTap: v.id == product.id ? null : () => onPick(v),
+                child: Container(
+                  padding: const EdgeInsets.symmetric(
+                    horizontal: 12,
+                    vertical: 7,
+                  ),
+                  decoration: BoxDecoration(
+                    color: v.id == product.id
+                        ? AppColors.navyFill
+                        : AppColors.surface,
+                    borderRadius: BorderRadius.circular(14),
+                    border: Border.all(
+                      color: v.id == product.id
+                          ? AppColors.gold
+                          : AppColors.border,
+                      width: v.id == product.id ? 1.5 : 1,
+                    ),
+                  ),
+                  child: Column(
+                    mainAxisSize: MainAxisSize.min,
+                    children: [
+                      Text(
+                        v.label,
+                        style: AppText.strong.copyWith(
+                          fontSize: 13.5,
+                          color: v.id == product.id
+                              ? AppColors.white
+                              : AppColors.ink,
+                        ),
+                      ),
+                      Text(
+                        v.available ? thousandsIqd(v.price) : 'نفدت',
+                        style: AppText.number.copyWith(
+                          fontSize: 12,
+                          color: v.id == product.id
+                              ? AppColors.goldSoft
+                              : v.available
+                              ? AppColors.grey
+                              : AppColors.danger,
+                        ),
+                      ),
+                    ],
+                  ),
+                ),
+              ),
+            ),
+        ],
+      ),
+    ],
+  );
+}
+
+/// «الأبعاد: 145 × 83 × 6 سم».
+class _SizeLine extends StatelessWidget {
+  const _SizeLine({required this.product});
+  final StoreProduct product;
+
+  @override
+  Widget build(BuildContext context) {
+    final p = product;
+    final d = WallSize.validCm(p.depthCm) ? ' × ${cmText(p.depthCm!)}' : '';
+    final tv = WallKind.parse(p.wallKind) == WallKind.tv;
+    return Row(
+      children: [
+        AppSvgIcon(AppIcon.ruler, color: AppColors.grey, size: 16),
+        const SizedBox(width: 6),
+        Expanded(
+          child: Text(
+            'الأبعاد: ${cmText(p.widthCm!)} × ${cmText(p.heightCm!)}$d سم'
+            '${tv ? ' · بدون الستاند' : ''}',
+            style: AppText.muted.copyWith(fontSize: 13),
+          ),
+        ),
+      ],
+    );
   }
 }
 

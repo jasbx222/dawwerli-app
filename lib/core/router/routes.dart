@@ -53,6 +53,11 @@ abstract final class Routes {
   static String pageProducts(String id) => '/pages/p/$id/products';
   static String product(String pageId, String id) =>
       '/pages/p/$pageId/products/$id';
+
+  /// «حطها على حايطك» for a product (page id optional, as for deep links).
+  static String wallPreview(String pageId, String id) => pageId.isEmpty
+      ? '/products/$id/wall'
+      : '/pages/p/$pageId/products/$id/wall';
   static const cart = '/store/cart';
   static const topProducts = '/store/top-products';
   static const favorites = '/store/favorites';
