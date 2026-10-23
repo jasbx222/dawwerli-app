@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../../core/router/routes.dart';
+import '../../../core/widgets/order_redirect.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -33,6 +34,14 @@ const customerReportReasons = [
 
 /// 21 · «عروضي» — every offer this page sent with its live status.
 /// Polls while on screen; a chip row filters by status.
+/// Where a «عروضي» card opens: an accepted offer that became a store order
+/// always opens the unified order details; the offer screens stay for the rest.
+String sellerOfferRoute(SellerOffer o) => o.storeOrderId != null
+    ? Routes.sellerOrder(o.storeOrderId!)
+    : o.state == OfferState.chosen
+    ? Routes.sellerChosen(o.id)
+    : Routes.sellerOfferView(o.id);
+
 class SellerOffersScreen extends ConsumerStatefulWidget {
   const SellerOffersScreen({super.key});
 
@@ -214,7 +223,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.gold.pill('من ${since.inHours} ساعة'),
-        onTap: () => context.push(Routes.sellerChosen(o.id)),
+        onTap: () => context.push(sellerOfferRoute(o)),
         footer: Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
@@ -252,7 +261,7 @@ class _OfferCard extends ConsumerWidget {
         trailing: o.contacted
             ? PillTone.teal.pill('تواصلت', check: true)
             : PillTone.gold.pill('رد خلال ساعة'),
-        onTap: () => context.push(Routes.sellerChosen(o.id)),
+        onTap: () => context.push(sellerOfferRoute(o)),
         footer: Padding(
           padding: const EdgeInsets.only(top: AppSpacing.md),
           child: _ContactButtons(o),
@@ -263,7 +272,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.blue.pill('بالانتظار'),
-        onTap: () => context.push(Routes.sellerOfferView(o.id)),
+        onTap: () => context.push(sellerOfferRoute(o)),
         footer: Padding(
           padding: const EdgeInsets.only(top: 10),
           child: Row(
@@ -284,7 +293,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.stone.pill('الزبون اختار غيرك'),
-        onTap: () => context.push(Routes.sellerOfferView(o.id)),
+        onTap: () => context.push(sellerOfferRoute(o)),
         footer: Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
           child: Text('ما انخصم شي، الحجز رجع لرصيدك', style: AppText.muted),
@@ -295,7 +304,7 @@ class _OfferCard extends ConsumerWidget {
         title: title,
         sub: sub.isEmpty ? 'عرضك مقفول' : sub,
         trailing: PillTone.stone.pill('انتهى'),
-        onTap: () => context.push(Routes.sellerOfferView(o.id)),
+        onTap: () => context.push(sellerOfferRoute(o)),
         footer: Padding(
           padding: const EdgeInsets.only(top: AppSpacing.sm),
           child: Row(
@@ -364,6 +373,9 @@ class SellerChosenScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final s = ref.watch(sellerProvider);
     final o = s.offers.firstWhere((x) => x.id == offerId);
+    if (o.storeOrderId != null) {
+      return OrderRedirect(Routes.sellerOrder(o.storeOrderId!));
+    }
     final c = s.config;
     return AppPage(
       title: 'اختارك زبون',
@@ -640,6 +652,9 @@ class SellerOfferDetailsScreen extends ConsumerWidget {
     if (offer == null) {
       return const AppPage(title: 'تفاصيل العرض', children: [LoadingBlock()]);
     }
+    if (offer.storeOrderId != null) {
+      return OrderRedirect(Routes.sellerOrder(offer.storeOrderId!));
+    }
     final state = switch (offer.state) {
       OfferState.chosen => 'الزبون اختارك',
       OfferState.waiting => 'بانتظار الزبون',
@@ -687,7 +702,7 @@ class SellerOfferDetailsScreen extends ConsumerWidget {
             padding: const EdgeInsets.all(AppSpacing.lg),
             child: AppButton(
               'تواصل مع الزبون',
-              onPressed: () => context.push(Routes.sellerChosen(offer.id)),
+              onPressed: () => context.push(sellerOfferRoute(offer)),
             ),
           ),
       ],

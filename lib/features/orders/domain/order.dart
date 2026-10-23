@@ -19,6 +19,7 @@ class OrderStatus {
     this.received = false,
     this.rating,
     this.answer,
+    this.storeOrderId,
   });
   final String id;
   final String orderNo;
@@ -29,6 +30,9 @@ class OrderStatus {
   final bool received;
   final Rating? rating;
   final DeliveryAnswer? answer;
+
+  /// The store order (kind=offer) this deal runs as; open that instead.
+  final String? storeOrderId;
   bool get rated => rating != null;
 }
 

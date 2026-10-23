@@ -8,6 +8,7 @@ import 'package:go_router/go_router.dart';
 
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
+import '../../../core/widgets/order_redirect.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/utils/format.dart';
@@ -72,6 +73,9 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
       return const Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
+    }
+    if (r.storeOrderId != null) {
+      return OrderRedirect(Routes.storeOrder(r.storeOrderId!));
     }
     // Show the widened notice once, as soon as the server reports it.
     if (r.widenedTo.isNotEmpty && !_widenedSeen && _sheet == _Sheet.none) {

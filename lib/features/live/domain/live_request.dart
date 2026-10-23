@@ -30,6 +30,7 @@ class LiveRequest {
     this.waitedMinutes = 0,
     this.suggestedPrice,
     this.sponsored,
+    this.storeOrderId,
   });
 
   final String id;
@@ -59,6 +60,9 @@ class LiveRequest {
   /// Price the server suggests raising to when no offers arrive.
   final int? suggestedPrice;
   final SponsoredPage? sponsored;
+
+  /// Set once an offer was chosen: the store order (kind=offer) it became.
+  final String? storeOrderId;
 
   int get cheapestIndex {
     if (offerPrices.isEmpty) return -1;

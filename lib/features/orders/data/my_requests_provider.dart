@@ -13,6 +13,7 @@ class RequestSummary {
     required this.maxOffers,
     required this.createdAt,
     this.orderId,
+    this.storeOrderId,
   });
   final String id;
   final String title;
@@ -24,6 +25,9 @@ class RequestSummary {
   final int maxOffers;
   final DateTime createdAt;
   final String? orderId;
+
+  /// The store order (kind=offer) the chosen offer became, if any.
+  final String? storeOrderId;
 
   bool get isOpen => const {'open', 'expanded', 'locked'}.contains(status);
 }
@@ -41,6 +45,7 @@ final myRequestsProvider = FutureProvider.autoDispose<List<RequestSummary>>((ref
         maxOffers: r.i('maxOffers'),
         createdAt: r.t('createdAt'),
         orderId: r.os('orderId'),
+        storeOrderId: r.os('storeOrderId'),
       ),
   ];
 });

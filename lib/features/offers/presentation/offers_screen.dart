@@ -140,7 +140,12 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
           child: OfferCard(
             offer: o,
             cheapest: o.id == cheapest,
-            onTap: confirm == null && chosen == null ? () => _open(o) : null,
+            onTap: confirm == null && chosen == null
+                ? () => _open(o)
+                : chosen?.offer.id == o.id && chosen?.storeOrderId != null
+                // The chosen offer is an order now: open its order details.
+                ? () => context.push(Routes.storeOrder(chosen!.storeOrderId!))
+                : null,
           ),
         ),
       ),
@@ -227,7 +232,9 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
                 child: AppButton(
                   OfferStrings.backToOrder,
                   variant: AppButtonVariant.navy,
-                  onPressed: () => context.go(Routes.chosen(widget.requestId)),
+                  onPressed: () => chosen.storeOrderId == null
+                      ? context.go(Routes.chosen(widget.requestId))
+                      : context.push(Routes.storeOrder(chosen.storeOrderId!)),
                 ),
               ),
             ],
