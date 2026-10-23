@@ -35,6 +35,7 @@ import '../store/data/store_data.dart';
 import '../store/presentation/widgets/store_widgets.dart';
 import 'wall_math.dart';
 import 'wall_photo.dart';
+import 'wall_save.dart';
 
 /// Set once the customer ticks «لا تعرض الشرح مرة ثانية».
 const wallIntroHiddenKey = 'wall.intro.hidden';
@@ -212,6 +213,10 @@ class _WallFlowState extends ConsumerState<WallFlow> {
   bool? _landscapeChoice;
   QuadIssue? _issue;
 
+  /// Top-edge direction of the last corner labelling, so a sheet rolled
+  /// near 45° keeps its orientation instead of flipping (hysteresis).
+  double? _topDeg;
+
   late int _sel = math.max(
     0,
     widget.choices.indexWhere((v) => v.id == widget.product.id),
@@ -221,6 +226,9 @@ class _WallFlowState extends ConsumerState<WallFlow> {
   Offset? _pos;
   Homography? _h;
   bool _landscape = false;
+
+  /// The ordered sheet corners [_h] was built from (for the accuracy check).
+  List<Offset> _hQuad = const [];
 
   @override
   void initState() {
@@ -251,6 +259,7 @@ class _WallFlowState extends ConsumerState<WallFlow> {
     _quad = defaultQuad(_photoSize);
     _landscapeChoice = null;
     _issue = null;
+    _topDeg = null;
     _pos = null;
     _h = null;
     _step = _Step.align;
@@ -353,24 +362,84 @@ class _WallFlowState extends ConsumerState<WallFlow> {
   // ------------------------------------------------------------ align
 
   bool get _effLandscape => _landscapeChoice ?? quadLooksLandscape(_ordered);
-  List<Offset> get _ordered => orderCorners(_quad);
+  List<Offset> get _ordered => orderCornersStable(_quad, prevTopDeg: _topDeg);
 
-  void _confirmQuad() {
+  /// The customer picked an orientation the photo clearly disagrees with.
+  bool get _orientationOff =>
+      _landscapeChoice != null &&
+      orientationContradicts(_ordered, landscape: _landscapeChoice!);
+
+  void _quadChanged(List<Offset> q) => setState(() {
+    _quad = q;
+    _issue = null;
+    _topDeg = topEdgeDeg(_ordered);
+  });
+
+  Future<void> _confirmQuad() async {
+    final issue = validateQuad(_ordered, _photoSize);
+    if (issue != null) {
+      setState(() => _issue = issue);
+      return;
+    }
+    if (_orientationOff) {
+      final forced = _landscapeChoice!;
+      final fix = await _askOrientation(forced);
+      if (fix == null || !mounted) return;
+      if (fix) setState(() => _landscapeChoice = !forced);
+    }
     final q = _ordered;
-    final issue = validateQuad(q, _photoSize);
     final land = _effLandscape;
-    final h = issue == null ? wallToPhoto(q, landscape: land) : null;
-    if (issue != null || h == null) {
-      setState(() => _issue = issue ?? QuadIssue.notConvex);
+    final h = wallToPhoto(q, landscape: land);
+    if (h == null) {
+      setState(() => _issue = QuadIssue.notConvex);
       return;
     }
     setState(() {
       _issue = null;
       _h = h;
+      _hQuad = q;
       _landscape = land;
       _pos = centredOnSheet(_size, landscape: land);
       _step = _Step.result;
     });
+  }
+
+  /// true = switch to what the photo shows, false = keep the forced choice,
+  /// null = dismissed (stay on the align step).
+  Future<bool?> _askOrientation(bool forcedLandscape) {
+    final shown = forcedLandscape ? 'عمودية' : 'عرضية';
+    final forced = forcedLandscape ? 'عرضية' : 'عمودية';
+    return showModalBottomSheet<bool>(
+      context: context,
+      backgroundColor: Colors.transparent,
+      builder: (c) => AppSheet(
+        children: [
+          Text(
+            'الورقة بالصورة تبين $shown',
+            textAlign: TextAlign.center,
+            style: AppText.big.copyWith(fontSize: 18),
+          ),
+          const SizedBox(height: 6),
+          Text(
+            'اخترت «$forced» بس الزوايا اللي حددتها شكلها $shown. إذا الاختيار غلط، ال${_size.kind.label} تطلع أكبر أو أصغر من حجمها الحقيقي.',
+            textAlign: TextAlign.center,
+            style: AppText.muted.copyWith(fontSize: 14, height: 1.7),
+          ),
+          const SizedBox(height: 18),
+          AppButton(
+            'صلّحها لـ $shown',
+            icon: AppIcon.check,
+            onPressed: () => Navigator.of(c).pop(true),
+          ),
+          const SizedBox(height: 10),
+          AppButton(
+            'متأكد، خليها $forced',
+            variant: AppButtonVariant.ghost,
+            onPressed: () => Navigator.of(c).pop(false),
+          ),
+        ],
+      ),
+    );
   }
 
   // ------------------------------------------------------------ result
@@ -445,6 +514,48 @@ class _WallFlowState extends ConsumerState<WallFlow> {
   final _shotKey = GlobalKey();
   var _stamp = false;
   var _sharing = false;
+  var _saving = false;
+
+  /// «حفظ بالصور»: the same stamped image as «شارك», into the gallery
+  /// (phones) or downloaded as a PNG (web).
+  Future<void> _save() async {
+    if (_saving || _sharing) return;
+    setState(() {
+      _saving = true;
+      _stamp = true;
+    });
+    var result = WallSaveResult.failed;
+    try {
+      await WidgetsBinding.instance.endOfFrame;
+      final png = await _capture();
+      if (png != null) {
+        result = await saveWallImage(png, name: 'dawwerli-wall');
+      }
+    } catch (_) {
+      result = WallSaveResult.failed;
+    } finally {
+      if (mounted) {
+        setState(() {
+          _saving = false;
+          _stamp = false;
+        });
+      }
+    }
+    if (!mounted) return;
+    final (text, icon) = switch (result) {
+      WallSaveResult.saved => ('انحفظت الصورة بالصور', AppIcon.check),
+      WallSaveResult.downloaded => ('نزّلنا الصورة على جهازك', AppIcon.check),
+      WallSaveResult.denied => (
+        'نحتاج إذن الصور حتى نحفظها. فعّله من إعدادات التلفون، أو استخدم «شارك».',
+        AppIcon.alert,
+      ),
+      WallSaveResult.failed => (
+        'ما كدرنا نحفظ الصورة. جرّب «شارك».',
+        AppIcon.alert,
+      ),
+    };
+    showAppToast(context, text, icon: icon);
+  }
 
   Future<void> _share() async {
     if (_sharing) return;
@@ -564,6 +675,18 @@ class _WallFlowState extends ConsumerState<WallFlow> {
         ),
       ],
     );
+    return AppPage(
+      title: 'حطها على حايطك',
+      subtitle: '${_v.name} · ${sizeText(s)}',
+      onBack: _back,
+      bottom: _Narrow(560, buttons),
+      children: [
+        for (final w in _introBody(compact: compact, s: s)) _Narrow(640, w),
+      ],
+    );
+  }
+
+  List<Widget> _introBody({required bool compact, required WallSize s}) {
     final steps = [
       (
         1,
@@ -581,91 +704,85 @@ class _WallFlowState extends ConsumerState<WallFlow> {
         'من الورقة نعرف القياس الحقيقي ونرسم ال${s.kind.label} بحجمها على حايطك.',
       ),
     ];
-    return AppPage(
-      title: 'حطها على حايطك',
-      subtitle: '${_v.name} · ${sizeText(s)}',
-      onBack: _back,
-      bottom: buttons,
-      children: [
-        if (!compact)
-          Gap(
-            ClipRRect(
-              borderRadius: BorderRadius.circular(22),
-              child: SizedBox(
-                height: 196,
-                child: CustomPaint(
-                  painter: _IntroArt(AppColors.dark, sizeText(s)),
-                ),
+    return [
+      if (!compact)
+        Gap(
+          ClipRRect(
+            borderRadius: BorderRadius.circular(22),
+            child: SizedBox(
+              height: 196,
+              child: CustomPaint(
+                painter: _IntroArt(AppColors.dark, sizeText(s)),
               ),
             ),
-            top: 16,
           ),
-        if (!compact) const SectionLabel('بثلاث خطوات بسيطة'),
-        for (final (i, t, b) in steps)
-          Gap(
-            _StepRow(i, t, compact ? null : b),
-            top: compact && i == 1 ? 18 : 14,
-          ),
+          top: 16,
+        ),
+      if (!compact) const SectionLabel('بثلاث خطوات بسيطة'),
+      for (final (i, t, b) in steps)
         Gap(
-          AppCard(
-            flat: true,
-            color: AppColors.blueTint,
-            insets: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
-            child: Row(
-              children: [
-                AppSvgIcon(AppIcon.ruler, color: AppColors.blue, size: 20),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Text(
-                    'الورقة هي المسطرة: 21 × 29.7 سم. صورتك تبقى على تلفونك وما نرفعها لأي مكان.',
-                    style: TextStyle(
-                      fontSize: 12.5,
-                      height: 1.7,
-                      color: AppColors.infoText,
-                    ),
+          _StepRow(i, t, compact ? null : b),
+          top: compact && i == 1 ? 18 : 14,
+        ),
+      Gap(
+        AppCard(
+          flat: true,
+          color: AppColors.blueTint,
+          insets: const EdgeInsets.symmetric(horizontal: 14, vertical: 12),
+          child: Row(
+            children: [
+              AppSvgIcon(AppIcon.ruler, color: AppColors.blue, size: 20),
+              const SizedBox(width: 10),
+              Expanded(
+                child: Text(
+                  'الورقة هي المسطرة: 21 × 29.7 سم. صورتك تبقى على تلفونك وما نرفعها لأي مكان.',
+                  style: TextStyle(
+                    fontSize: 12.5,
+                    height: 1.7,
+                    color: AppColors.infoText,
                   ),
                 ),
-              ],
-            ),
+              ),
+            ],
           ),
-          top: 18,
         ),
-        if (!compact)
-          Gap(
-            _HideIntroToggle(
-              value: _hideIntro,
-              onChanged: (v) async {
+        top: 18,
+      ),
+      if (!compact)
+        Gap(
+          _HideIntroToggle(
+            value: _hideIntro,
+            onChanged: (v) async {
+              await ref
+                  .read(sharedPrefsProvider)
+                  .setBool(wallIntroHiddenKey, v);
+              if (mounted) setState(() {});
+            },
+          ),
+          top: 10,
+        )
+      else
+        Gap(
+          Center(
+            child: TextButton(
+              onPressed: () async {
                 await ref
                     .read(sharedPrefsProvider)
-                    .setBool(wallIntroHiddenKey, v);
+                    .setBool(wallIntroHiddenKey, false);
                 if (mounted) setState(() {});
               },
-            ),
-            top: 10,
-          )
-        else
-          Gap(
-            Center(
-              child: TextButton(
-                onPressed: () async {
-                  await ref
-                      .read(sharedPrefsProvider)
-                      .setBool(wallIntroHiddenKey, false);
-                  if (mounted) setState(() {});
-                },
-                child: Text(
-                  'شوف الشرح كامل',
-                  style: AppText.strong.copyWith(
-                    color: AppColors.blue,
-                    fontSize: 13.5,
-                  ),
+              child: Text(
+                'شوف الشرح كامل',
+                style: AppText.strong.copyWith(
+                  color: AppColors.blue,
+                  fontSize: 13.5,
                 ),
               ),
             ),
-            top: 8,
           ),
-      ],
-    );
+          top: 8,
+        ),
+    ];
   }
 
   // ---------------------------------------------------------- 2. align
@@ -684,10 +801,7 @@ class _WallFlowState extends ConsumerState<WallFlow> {
             child: _AlignView(
               photo: _photo!,
               quad: _quad,
-              onChanged: (q) => setState(() {
-                _quad = q;
-                _issue = null;
-              }),
+              onChanged: _quadChanged,
             ),
           ),
           const SizedBox(height: 12),
@@ -699,7 +813,17 @@ class _WallFlowState extends ConsumerState<WallFlow> {
           const SizedBox(height: 10),
           if (_issue != null)
             _Note(_issue!.message, danger: true)
-          else
+          else ...[
+            if (_orientationOff)
+              Padding(
+                padding: const EdgeInsets.only(bottom: 8),
+                child: _Note(
+                  land
+                      ? 'الورقة بالصورة تبين عمودية. متأكد إنها معلّكة عرضية؟'
+                      : 'الورقة بالصورة تبين عرضية. متأكد إنها معلّكة عمودية؟',
+                  warn: true,
+                ),
+              ),
             Row(
               children: [
                 Expanded(
@@ -717,6 +841,7 @@ class _WallFlowState extends ConsumerState<WallFlow> {
                     _quad = defaultQuad(_photoSize);
                     _landscapeChoice = null;
                     _issue = null;
+                    _topDeg = null;
                   }),
                 ),
                 const SizedBox(width: 6),
@@ -727,6 +852,7 @@ class _WallFlowState extends ConsumerState<WallFlow> {
                 ),
               ],
             ),
+          ],
         ],
       ),
     );
@@ -737,111 +863,209 @@ class _WallFlowState extends ConsumerState<WallFlow> {
   Widget _result() {
     final v = _v, s = _size;
     final low = v.available && v.stock > 0 && v.stock <= 3;
-    return _FixedPage(
-      title: 'على حايطك',
-      subtitle: '${v.label.isEmpty ? v.name : v.label} · حجم حقيقي',
-      onBack: _back,
-      bottom: Row(
-        children: [
-          Expanded(
-            child: v.available
-                ? AppButton(
-                    'اطلبها',
-                    icon: AppIcon.cart,
-                    onPressed: () => memberOnly(context, ref, _order),
-                  )
-                : const AppButton('نفدت', variant: AppButtonVariant.disabled),
-          ),
-          const SizedBox(width: 10),
-          Expanded(
-            child: AppButton(
-              _sharing ? 'دا نجهّز...' : 'شارك الصورة',
-              icon: _sharing ? null : AppIcon.share,
-              variant: AppButtonVariant.ghost,
-              onPressed: _sharing ? null : _share,
+    final acc = wallAccuracy(
+      _hQuad,
+      _photoSize,
+      s,
+      _pos!,
+      landscape: _landscape,
+    );
+    final order = v.available
+        ? AppButton(
+            'اطلبها',
+            icon: AppIcon.cart,
+            onPressed: () => memberOnly(
+              context,
+              ref,
+              _order,
+              returnTo: Routes.wallPreview(widget.pageId, _v.id),
             ),
+          )
+        : const AppButton('نفدت', variant: AppButtonVariant.disabled);
+    final keep = Row(
+      children: [
+        Expanded(
+          child: AppButton(
+            _saving ? 'دا نحفظ...' : 'حفظ بالصور',
+            icon: _saving ? null : AppIcon.image,
+            variant: AppButtonVariant.ghost,
+            onPressed: _saving || _sharing ? null : _save,
           ),
-        ],
-      ),
-      body: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Expanded(
-            child: _ResultView(
-              photo: _photo!,
-              h: _h!,
-              pos: _pos!,
-              size: s,
-              imageUrl: v.imageUrl,
-              stamp: _stamp,
-              stampText: 'دوّرلي · ${v.label.isEmpty ? sizeText(s) : v.label}',
-              shotKey: _shotKey,
-              onMove: (p) => setState(() => _pos = p),
+        ),
+        const SizedBox(width: 10),
+        Expanded(
+          child: AppButton(
+            _sharing ? 'دا نجهّز...' : 'شارك',
+            icon: _sharing ? null : AppIcon.share,
+            variant: AppButtonVariant.ghost,
+            onPressed: _saving || _sharing ? null : _share,
+          ),
+        ),
+      ],
+    );
+    final badge = Align(
+      alignment: AlignmentDirectional.centerStart,
+      child: acc.approximate
+          ? _Pill(
+              'حجم تقريبي · الورقة صغيرة بالصورة',
+              icon: AppIcon.alert,
+              bg: AppColors.warnBg,
+              fg: AppColors.warnText,
+              size: 11.5,
+            )
+          : _Pill(
+              'حجم حقيقي · محسوب من ورقة A4',
+              icon: AppIcon.check,
+              bg: AppColors.turquoise.withValues(alpha: .94),
+              size: 11.5,
             ),
-          ),
-          if (widget.choices.length > 1) ...[
-            const SizedBox(height: 10),
-            SizedBox(
-              height: 40,
-              child: ListView.separated(
-                scrollDirection: Axis.horizontal,
-                itemCount: widget.choices.length,
-                separatorBuilder: (_, _) => const SizedBox(width: 8),
-                itemBuilder: (_, i) => _SizeChip(
-                  label: widget.choices[i].label.isEmpty
-                      ? sizeText(widget.choices[i].wall!)
-                      : widget.choices[i].label,
-                  selected: i == _sel,
-                  soldOut: !widget.choices[i].available,
-                  onTap: () => _select(i),
-                ),
+    );
+    final hints = [
+      if (acc.approximate)
+        'القياس تقريبي لأن الورقة صغيرة بالصورة. حتى يطلع أدق: قرّب من الحايط وصوّر مرة ثانية حتى تبين الورقة أكبر، وحطها قريبة من مكان ال${s.kind.label}.',
+      if (acc.tilted)
+        'الصورة مايلة على الحايط. صوّر وانت مقابل الحايط حتى يطلع القياس أدق.',
+    ];
+    final photo = _ResultView(
+      photo: _photo!,
+      h: _h!,
+      pos: _pos!,
+      size: s,
+      imageUrl: v.imageUrl,
+      stamp: _stamp,
+      stampText: 'دوّرلي · ${v.label.isEmpty ? sizeText(s) : v.label}',
+      shotKey: _shotKey,
+      onMove: (p) => setState(() => _pos = p),
+    );
+    final sizes = widget.choices.length < 2
+        ? null
+        : SizedBox(
+            height: 40,
+            child: ListView.separated(
+              scrollDirection: Axis.horizontal,
+              itemCount: widget.choices.length,
+              separatorBuilder: (_, _) => const SizedBox(width: 8),
+              itemBuilder: (_, i) => _SizeChip(
+                label: widget.choices[i].label.isEmpty
+                    ? sizeText(widget.choices[i].wall!)
+                    : widget.choices[i].label,
+                selected: i == _sel,
+                soldOut: !widget.choices[i].available,
+                onTap: () => _select(i),
               ),
             ),
-          ],
-          const SizedBox(height: 10),
-          AppCard(
-            insets: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
-            child: Row(
+          );
+    final info = AppCard(
+      insets: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
+      child: Row(
+        children: [
+          AppSvgIcon(AppIcon.ruler, color: AppColors.blue, size: 22),
+          const SizedBox(width: 10),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                AppSvgIcon(AppIcon.ruler, color: AppColors.blue, size: 22),
-                const SizedBox(width: 10),
-                Expanded(
-                  child: Column(
-                    crossAxisAlignment: CrossAxisAlignment.start,
-                    children: [
-                      Text(
-                        sizeText(s, depth: true),
-                        style: AppText.big.copyWith(fontSize: 17),
-                      ),
-                      Text(
-                        !v.available
-                            ? 'نفدت الكمية'
-                            : low
-                            ? 'باقي ${v.stock} بس'
-                            : s.kind == WallKind.tv
-                            ? 'عرض × ارتفاع بدون الستاند'
-                            : 'عرض × ارتفاع',
-                        style: AppText.muted.copyWith(
-                          fontSize: 12.5,
-                          color: !v.available || low ? AppColors.danger : null,
-                        ),
-                      ),
-                    ],
-                  ),
+                Text(
+                  sizeText(s, depth: true),
+                  style: AppText.big.copyWith(fontSize: 17),
                 ),
                 Text(
-                  storePrice(v.price),
-                  style: AppText.number.copyWith(
-                    color: AppColors.blue,
-                    fontWeight: FontWeight.w700,
-                    fontSize: 15,
+                  !v.available
+                      ? 'نفدت الكمية'
+                      : low
+                      ? 'باقي ${v.stock} بس'
+                      : s.kind == WallKind.tv
+                      ? 'عرض × ارتفاع بدون الستاند'
+                      : 'عرض × ارتفاع',
+                  style: AppText.muted.copyWith(
+                    fontSize: 12.5,
+                    color: !v.available || low ? AppColors.danger : null,
                   ),
                 ),
               ],
             ),
           ),
+          Text(
+            storePrice(v.price),
+            style: AppText.number.copyWith(
+              color: AppColors.blue,
+              fontWeight: FontWeight.w700,
+              fontSize: 15,
+            ),
+          ),
         ],
       ),
+    );
+    final subtitle =
+        '${v.label.isEmpty ? v.name : v.label} · ${acc.approximate ? 'حجم تقريبي' : 'حجم حقيقي'}';
+    return LayoutBuilder(
+      builder: (context, c) {
+        // Desktop / tablet landscape: photo on one side, controls beside it.
+        if (c.maxWidth >= 900) {
+          return _FixedPage(
+            title: 'على حايطك',
+            subtitle: subtitle,
+            onBack: _back,
+            maxWidth: 1240,
+            body: Row(
+              crossAxisAlignment: CrossAxisAlignment.stretch,
+              children: [
+                Expanded(child: photo),
+                const SizedBox(width: 20),
+                SizedBox(
+                  width: 360,
+                  child: SingleChildScrollView(
+                    child: Column(
+                      crossAxisAlignment: CrossAxisAlignment.stretch,
+                      children: [
+                        badge,
+                        for (final h in hints) ...[
+                          const SizedBox(height: 10),
+                          _Note(h, warn: true),
+                        ],
+                        const SizedBox(height: 12),
+                        info,
+                        if (sizes != null) ...[
+                          const SizedBox(height: 12),
+                          sizes,
+                        ],
+                        const SizedBox(height: 16),
+                        order,
+                        const SizedBox(height: 10),
+                        keep,
+                      ],
+                    ),
+                  ),
+                ),
+              ],
+            ),
+          );
+        }
+        return _FixedPage(
+          title: 'على حايطك',
+          subtitle: subtitle,
+          onBack: _back,
+          bottom: Column(
+            mainAxisSize: MainAxisSize.min,
+            children: [order, const SizedBox(height: 10), keep],
+          ),
+          body: Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              badge,
+              const SizedBox(height: 8),
+              Expanded(child: photo),
+              for (final h in hints) ...[
+                const SizedBox(height: 8),
+                _Note(h, warn: true),
+              ],
+              if (sizes != null) ...[const SizedBox(height: 10), sizes],
+              const SizedBox(height: 10),
+              info,
+            ],
+          ),
+        );
+      },
     );
   }
 }
@@ -854,13 +1078,18 @@ class _FixedPage extends StatelessWidget {
     required this.subtitle,
     required this.onBack,
     required this.body,
-    required this.bottom,
+    this.bottom,
+    this.maxWidth = 720,
   });
   final String title;
   final String subtitle;
   final VoidCallback onBack;
   final Widget body;
-  final Widget bottom;
+  final Widget? bottom;
+
+  /// Content stays this wide at most, centred, so desktop browsers don't get
+  /// a 1280px-wide segmented control or button row.
+  final double maxWidth;
 
   @override
   Widget build(BuildContext context) {
@@ -871,19 +1100,43 @@ class _FixedPage extends StatelessWidget {
         children: [
           AppHeader(title: title, subtitle: Text(subtitle), onBack: onBack),
           Expanded(
-            child: Padding(
-              padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
-              child: body,
+            child: _Narrow(
+              maxWidth,
+              Padding(
+                padding: const EdgeInsets.fromLTRB(16, 14, 16, 0),
+                child: body,
+              ),
             ),
           ),
-          Padding(
-            padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + inset),
-            child: bottom,
-          ),
+          if (bottom != null)
+            _Narrow(
+              math.min(maxWidth, 560),
+              Padding(
+                padding: EdgeInsets.fromLTRB(16, 12, 16, 16 + inset),
+                child: bottom,
+              ),
+            )
+          else
+            SizedBox(height: 16 + inset),
         ],
       ),
     );
   }
+}
+
+/// Centres [child] at no more than [maxWidth].
+class _Narrow extends StatelessWidget {
+  const _Narrow(this.maxWidth, this.child);
+  final double maxWidth;
+  final Widget child;
+
+  @override
+  Widget build(BuildContext context) => Center(
+    child: ConstrainedBox(
+      constraints: BoxConstraints(maxWidth: maxWidth),
+      child: child,
+    ),
+  );
 }
 
 class _StepRow extends StatelessWidget {
@@ -1019,22 +1272,33 @@ class _LinkButton extends StatelessWidget {
 }
 
 class _Note extends StatelessWidget {
-  const _Note(this.text, {this.danger = false});
+  const _Note(this.text, {this.danger = false, this.warn = false});
   final String text;
   final bool danger;
+
+  /// Amber: something to double-check, not an error.
+  final bool warn;
 
   @override
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 10),
     decoration: BoxDecoration(
-      color: danger ? AppColors.dangerBg : AppColors.blueTint,
+      color: danger
+          ? AppColors.dangerBg
+          : warn
+          ? AppColors.warnBg
+          : AppColors.blueTint,
       borderRadius: BorderRadius.circular(14),
     ),
     child: Row(
       children: [
         AppSvgIcon(
           AppIcon.alert,
-          color: danger ? AppColors.danger : AppColors.blue,
+          color: danger
+              ? AppColors.danger
+              : warn
+              ? AppColors.warn
+              : AppColors.blue,
           size: 18,
         ),
         const SizedBox(width: 8),
@@ -1045,7 +1309,11 @@ class _Note extends StatelessWidget {
               fontFamily: AppText.family,
               fontSize: 13,
               height: 1.6,
-              color: danger ? AppColors.dangerText : AppColors.infoText,
+              color: danger
+                  ? AppColors.dangerText
+                  : warn
+                  ? AppColors.warnText
+                  : AppColors.infoText,
             ),
           ),
         ),
@@ -1194,6 +1462,34 @@ class _AlignViewState extends State<_AlignView> {
 
   static const _grab = 40.0;
 
+  /// Screen px per accessibility nudge.
+  static const _step = 4.0;
+  static const _nudges = [
+    ('حرّك لفوك', Offset(0, -1)),
+    ('حرّك لجوّه', Offset(0, 1)),
+    ('حرّك لليمين', Offset(1, 0)),
+    ('حرّك لليسار', Offset(-1, 0)),
+  ];
+
+  void _nudge(int i, Offset by) {
+    final p = widget.quad[i] + by;
+    final next = [...widget.quad];
+    next[i] = Offset(
+      p.dx.clamp(0, widget.photo.width.toDouble()),
+      p.dy.clamp(0, widget.photo.height.toDouble()),
+    );
+    widget.onChanged(next);
+  }
+
+  /// Where handle [i] sits on the sheet, as the customer sees it.
+  String _cornerName(int i) {
+    final o = orderCorners(widget.quad);
+    final k = o.indexOf(widget.quad[i]);
+    return const ['فوك يسار', 'فوك يمين', 'جوّه يمين', 'جوّه يسار'][k < 0
+        ? i
+        : k];
+  }
+
   @override
   Widget build(BuildContext context) => _PhotoBox(
     photo: widget.photo,
@@ -1242,6 +1538,24 @@ class _AlignViewState extends State<_AlignView> {
             Positioned.fill(
               child: CustomPaint(painter: _QuadPainter(pts, active)),
             ),
+            // Screen readers: each handle is a node that can be nudged.
+            for (var i = 0; i < pts.length; i++)
+              Positioned(
+                left: pts[i].dx - 22,
+                top: pts[i].dy - 22,
+                width: 44,
+                height: 44,
+                child: Semantics(
+                  label: 'زاوية الورقة ${_cornerName(i)}',
+                  hint: 'حرّكها حتى توكف على زاوية الورقة بالصورة',
+                  customSemanticsActions: {
+                    for (final (name, d) in _nudges)
+                      CustomSemanticsAction(label: name): () =>
+                          _nudge(i, d * (_step / s)),
+                  },
+                  child: const SizedBox.expand(),
+                ),
+              ),
             if (active != null)
               Positioned(
                 top: 10,
@@ -1549,17 +1863,9 @@ class _ResultViewState extends State<_ResultView> {
                 ),
               ),
             ),
+            // The accuracy badge sits above the photo (not on it), so it can
+            // never cover the dimension labels.
             if (!widget.stamp) ...[
-              Positioned(
-                top: 10,
-                right: 10,
-                child: _Pill(
-                  'حجم حقيقي · محسوب من ورقة A4',
-                  icon: AppIcon.check,
-                  bg: AppColors.turquoise.withValues(alpha: .94),
-                  size: 11.5,
-                ),
-              ),
               Positioned(
                 bottom: 10,
                 left: 0,
@@ -1606,8 +1912,11 @@ class _DimPainter extends CustomPainter {
   bool shouldRepaint(_DimPainter old) => true;
 }
 
-/// The product, drawn in a width × height box of centimetre units: a
-/// procedural TV or mirror, else the product's own photo (cover-fit).
+/// The product, drawn in a width × height box of centimetre units. Whenever
+/// the product has a photo, that real photo is shown (contain-fit on a
+/// transparent background, so it is never cropped or stretched). The
+/// procedural TV / mirror / plain card is only a fallback: while the photo
+/// loads, when it fails, or when there is none.
 class WallProductArt extends StatelessWidget {
   const WallProductArt({super.key, required this.size, this.imageUrl});
   final WallSize size;
@@ -1615,6 +1924,24 @@ class WallProductArt extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final url = imageUrl?.trim() ?? '';
+    final fallback = _fallback();
+    if (url.isEmpty) return fallback;
+    return Image(
+      key: const ValueKey('wall-product-photo'),
+      image: appImage(url),
+      fit: BoxFit.contain,
+      width: size.widthCm,
+      height: size.heightCm,
+      filterQuality: FilterQuality.medium,
+      // Until the first frame arrives, keep the drawn stand-in in place.
+      frameBuilder: (_, child, frame, sync) =>
+          sync || frame != null ? child : fallback,
+      errorBuilder: (_, _, _) => fallback,
+    );
+  }
+
+  Widget _fallback() {
     final shadow = BoxShadow(
       color: const Color(0x66000000),
       blurRadius: math.max(1.5, size.widthCm * .03),
@@ -1623,6 +1950,7 @@ class WallProductArt extends StatelessWidget {
     switch (size.kind) {
       case WallKind.tv:
         return DecoratedBox(
+          key: const ValueKey('wall-product-drawn'),
           decoration: BoxDecoration(
             borderRadius: BorderRadius.circular(.8),
             boxShadow: [shadow],
@@ -1631,6 +1959,7 @@ class WallProductArt extends StatelessWidget {
         );
       case WallKind.mirror:
         return DecoratedBox(
+          key: const ValueKey('wall-product-drawn'),
           decoration: BoxDecoration(
             shape: size.round ? BoxShape.circle : BoxShape.rectangle,
             borderRadius: size.round
@@ -1643,22 +1972,13 @@ class WallProductArt extends StatelessWidget {
           child: CustomPaint(painter: _MirrorPainter(round: size.round)),
         );
       default:
-        final url = imageUrl ?? '';
         return DecoratedBox(
+          key: const ValueKey('wall-product-drawn'),
           decoration: BoxDecoration(
             color: const Color(0xFFE9E4D8),
             boxShadow: [shadow],
           ),
-          child: url.isEmpty
-              ? const SizedBox.expand()
-              : Image(
-                  image: appImage(url),
-                  fit: BoxFit.cover,
-                  width: size.widthCm,
-                  height: size.heightCm,
-                  filterQuality: FilterQuality.medium,
-                  errorBuilder: (_, _, _) => const SizedBox.expand(),
-                ),
+          child: const SizedBox.expand(),
         );
     }
   }
@@ -1730,11 +2050,12 @@ class _MirrorPainter extends CustomPainter {
     canvas.drawPath(
       shape(r),
       Paint()
-        ..shader = ui.Gradient.linear(r.topLeft, r.bottomRight, const [
-          Color(0xFFD9B46A),
-          Color(0xFF9C7A35),
-          Color(0xFFE6C98A),
-        ]),
+        ..shader = ui.Gradient.linear(
+          r.topLeft,
+          r.bottomRight,
+          const [Color(0xFFD9B46A), Color(0xFF9C7A35), Color(0xFFE6C98A)],
+          const [0, .5, 1],
+        ),
     );
     final glass = r.deflate(frame);
     canvas.drawPath(

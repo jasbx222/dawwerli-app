@@ -19,6 +19,25 @@ class GuestMode extends Notifier<bool> {
 
 final guestProvider = NotifierProvider<GuestMode, bool>(GuestMode.new);
 
+/// Where a guest was when they chose to sign in (e.g. the wall preview of
+/// the size they wanted to order); [afterSignIn] sends them back there.
+class SignInReturn extends Notifier<String?> {
+  @override
+  String? build() => null;
+  void set(String? path) => state = path;
+
+  /// Reads and clears the path.
+  String? take() {
+    final path = state;
+    state = null;
+    return path;
+  }
+}
+
+final signInReturnProvider = NotifierProvider<SignInReturn, String?>(
+  SignInReturn.new,
+);
+
 /// 51 · replaces the live-request card for guests.
 class GuestCard extends StatelessWidget {
   const GuestCard({super.key});
@@ -57,7 +76,24 @@ class GuestCard extends StatelessWidget {
 }
 
 /// 51 · guests trying to post (or open a personal tab) are asked to sign in.
-Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
+/// With [returnTo], signing in brings them back to that route.
+Future<void> showGuestSheet(BuildContext context, {String? returnTo}) {
+  void signIn(BuildContext sheet) {
+    ProviderScope.containerOf(
+      context,
+      listen: false,
+    ).read(signInReturnProvider.notifier).set(returnTo);
+    Navigator.of(sheet).pop();
+    context.push(Routes.login);
+  }
+
+  return _guestSheet(context, signIn);
+}
+
+Future<void> _guestSheet(
+  BuildContext context,
+  void Function(BuildContext sheet) signIn,
+) => showModalBottomSheet<void>(
   context: context,
   backgroundColor: Colors.transparent,
   barrierColor: const Color(0x8C070E1F),
@@ -75,10 +111,7 @@ Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
       ),
       const SizedBox(height: 14),
       GestureDetector(
-        onTap: () {
-          Navigator.of(c).pop();
-          context.push(Routes.login);
-        },
+        onTap: () => signIn(c),
         child: Container(
           padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
           decoration: BoxDecoration(
@@ -99,13 +132,7 @@ Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
         ),
       ),
       const SizedBox(height: 14),
-      AppButton(
-        AppStrings.guestSend,
-        onPressed: () {
-          Navigator.of(c).pop();
-          context.push(Routes.login);
-        },
-      ),
+      AppButton(AppStrings.guestSend, onPressed: () => signIn(c)),
       const SizedBox(height: 12),
       GestureDetector(
         onTap: () => Navigator.of(c).pop(),
@@ -119,6 +146,13 @@ Future<void> showGuestSheet(BuildContext context) => showModalBottomSheet<void>(
   ),
 );
 
-/// Runs [action] for members; guests get the sign-in sheet instead.
-void memberOnly(BuildContext context, WidgetRef ref, VoidCallback action) =>
-    ref.read(guestProvider) ? showGuestSheet(context) : action();
+/// Runs [action] for members; guests get the sign-in sheet instead (and,
+/// with [returnTo], come back there once signed in).
+void memberOnly(
+  BuildContext context,
+  WidgetRef ref,
+  VoidCallback action, {
+  String? returnTo,
+}) => ref.read(guestProvider)
+    ? showGuestSheet(context, returnTo: returnTo)
+    : action();

@@ -6,6 +6,11 @@ import 'package:dawwerli/features/store/data/store_data.dart';
 import 'package:dawwerli/features/wall/wall_math.dart';
 import 'package:flutter_test/flutter_test.dart';
 
+double _gap(double a, double b) {
+  final d = (a - b).abs() % 360;
+  return d > 180 ? 360 - d : d;
+}
+
 void near(Offset a, Offset b, [double tol = 1e-6]) {
   expect((a - b).distance, lessThan(tol), reason: '$a vs $b');
 }
@@ -182,18 +187,158 @@ void main() {
       expect(quadLooksLandscape(defaultQuad(const Size(1000, 1000))), isFalse);
     });
 
-    test('clampPlacement keeps the product on the photo', () {
+    test('clampPlacement keeps the whole product on the photo', () {
       const photo = Size(1000, 1000);
       final h = wallToPhoto(defaultQuad(photo), landscape: false)!;
       const s = WallSize(30, 30, WallKind.frame);
       const start = Offset(0, 0);
       expect(placementOk(h, start, s, photo), isTrue);
+      // A far drag stops with the right edge flush on the photo's edge.
       final far = clampPlacement(h, start, const Offset(5000, 0), s, photo);
-      expect(far, start);
+      expect(far.dy, 0);
+      expect(h.map(far + const Offset(30, 0)).dx, closeTo(1000, .5));
+      expect(placementOk(h, far, s, photo), isTrue);
+      // …and still slides along it.
       final slide = clampPlacement(h, start, const Offset(5000, 5), s, photo);
-      expect(slide, const Offset(0, 5));
+      expect(slide.dy, 5);
+      expect(h.map(slide + const Offset(30, 0)).dx, closeTo(1000, .5));
       final ok = clampPlacement(h, start, const Offset(3, 4), s, photo);
       expect(ok, const Offset(3, 4));
+    });
+
+    test('the centre on the photo is not enough: edges count', () {
+      const photo = Size(1000, 1000);
+      final h = wallToPhoto(defaultQuad(photo), landscape: false)!;
+      const s = WallSize(60, 30, WallKind.tv);
+      // Centre well inside the photo, right edge past it.
+      final tl =
+          h.inverse()!.map(const Offset(900, 500)) - const Offset(30, 15);
+      expect(placementOk(h, tl, s, photo), isFalse);
+      expect(placementOverflow(h, tl, s, photo), greaterThan(0));
+    });
+
+    test('a product bigger than the photo must keep covering it', () {
+      const photo = Size(1000, 1000);
+      final h = wallToPhoto(defaultQuad(photo), landscape: false)!;
+      const s = WallSize(200, 200, WallKind.tv);
+      final start =
+          h.inverse()!.map(const Offset(500, 500)) - const Offset(100, 100);
+      expect(placementOk(h, start, s, photo), isTrue);
+      final moved = clampPlacement(
+        h,
+        start,
+        start + const Offset(500, 0),
+        s,
+        photo,
+      );
+      expect(h.map(moved).dx, closeTo(0, .5));
+      expect(placementOk(h, moved, s, photo), isTrue);
+    });
+
+    test('orientation warning only when the photo clearly disagrees', () {
+      const wide = [
+        Offset(0, 0),
+        Offset(297, 0),
+        Offset(297, 210),
+        Offset(0, 210),
+      ];
+      const square = [
+        Offset(0, 0),
+        Offset(100, 0),
+        Offset(100, 105),
+        Offset(0, 105),
+      ];
+      expect(orientationContradicts(wide, landscape: false), isTrue);
+      expect(orientationContradicts(wide, landscape: true), isFalse);
+      final tall = defaultQuad(const Size(1000, 1000));
+      expect(orientationContradicts(tall, landscape: true), isTrue);
+      expect(orientationContradicts(tall, landscape: false), isFalse);
+      expect(orientationContradicts(square, landscape: true), isFalse);
+      expect(orientationContradicts(square, landscape: false), isFalse);
+    });
+
+    test('corner order keeps its labels near 45° roll (hysteresis)', () {
+      List<Offset> rolled(double deg) {
+        final a = deg * math.pi / 180;
+        Offset r(Offset p) => Offset(
+          500 + p.dx * math.cos(a) - p.dy * math.sin(a),
+          500 + p.dx * math.sin(a) + p.dy * math.cos(a),
+        );
+        return [
+          for (final p in const [
+            Offset(-150, -105),
+            Offset(150, -105),
+            Offset(150, 105),
+            Offset(-150, 105),
+          ])
+            r(p),
+        ];
+      }
+
+      // Plain ordering flips somewhere around 45°.
+      final plain = topEdgeDeg(orderCorners(rolled(50)));
+      expect(_gap(plain, 50), greaterThan(30));
+      // Coming from 40°, the labels carry on to 50°…
+      final kept = orderCornersStable(rolled(50), prevTopDeg: 40);
+      expect(topEdgeDeg(kept), closeTo(50, 1e-6));
+      expect(quadLooksLandscape(kept), isTrue);
+      // …and only give up past 45° + 10°.
+      final gone = orderCornersStable(rolled(60), prevTopDeg: 50);
+      expect(_gap(topEdgeDeg(gone), 60), greaterThan(30));
+      // Without history it is the plain order.
+      expect(orderCornersStable(rolled(50)), orderCorners(rolled(50)));
+    });
+
+    test('accuracy: a big sheet is precise, a tiny one approximate', () {
+      const photo = Size(4000, 3000);
+      const s = WallSize(145, 83, WallKind.tv);
+      final big = defaultQuad(photo);
+      final good = wallAccuracy(
+        big,
+        photo,
+        s,
+        centredOnSheet(s, landscape: false),
+        landscape: false,
+      );
+      expect(good.approximate, isFalse, reason: '${good.sizeErrorPct}');
+      expect(good.tilted, isFalse);
+      expect(good.tilt, closeTo(1, 1e-6));
+
+      final c = big.fold(Offset.zero, (a, p) => a + p) / 4;
+      final tiny = [for (final p in big) c + (p - c) * .25];
+      final bad = wallAccuracy(
+        tiny,
+        photo,
+        s,
+        centredOnSheet(s, landscape: false),
+        landscape: false,
+      );
+      expect(bad.approximate, isTrue);
+      expect(bad.sizeErrorPct, greaterThan(good.sizeErrorPct));
+    });
+
+    test('accuracy: a steep angle reads as tilted', () {
+      final cam = camera(yawDeg: 55, pitchDeg: 0, dist: 200);
+      final quad = [for (final p in a4Corners(landscape: false)) cam(p)];
+      const s = WallSize(145, 83, WallKind.tv);
+      final a = wallAccuracy(
+        quad,
+        const Size(2000, 1500),
+        s,
+        centredOnSheet(s, landscape: false),
+        landscape: false,
+      );
+      expect(a.tilted, isTrue, reason: '${a.tilt}');
+      final flat = camera(yawDeg: 0, pitchDeg: 0);
+      final q2 = [for (final p in a4Corners(landscape: false)) flat(p)];
+      final b = wallAccuracy(
+        q2,
+        const Size(2000, 1500),
+        s,
+        centredOnSheet(s, landscape: false),
+        landscape: false,
+      );
+      expect(b.tilted, isFalse, reason: '${b.tilt}');
     });
 
     test('centredOnSheet centres the product on the A4', () {
@@ -463,5 +608,39 @@ void main() {
       final truncatedPng = Uint8List.fromList([0x89, 0x50, 0x4E, 0x47, 0, 0]);
       expect(imageHeaderSize(truncatedPng), isNull);
     });
+  });
+
+  test('size picker never mixes wall kinds', () {
+    final p = StoreProduct.fromJson({
+      'id': 'a',
+      'name': 'شاشة 55',
+      'widthCm': 123,
+      'heightCm': 71,
+      'wallKind': 'tv',
+      'variants': [
+        {
+          'id': 'a',
+          'label': '55',
+          'widthCm': 123,
+          'heightCm': 71,
+          'wallKind': 'tv',
+        },
+        {
+          'id': 'b',
+          'label': '65',
+          'widthCm': 145,
+          'heightCm': 83,
+          'wallKind': 'TV',
+        },
+        {
+          'id': 'c',
+          'label': 'مراية',
+          'widthCm': 60,
+          'heightCm': 90,
+          'wallKind': 'mirror',
+        },
+      ],
+    });
+    expect(p.sizeChoices.map((v) => v.id), ['a', 'b']);
   });
 }

@@ -11,6 +11,7 @@ import '../../../core/widgets/app_header.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_inputs.dart';
 import '../../auth/data/auth_providers.dart';
+import '../../guest/guest.dart';
 
 class ProfileSetupScreen extends ConsumerStatefulWidget {
   const ProfileSetupScreen({
@@ -61,7 +62,9 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
           governorate: _gov,
           area: _area.text.trim(),
         );
-    if (mounted) context.go(Routes.home);
+    if (mounted) {
+      context.go(ref.read(signInReturnProvider.notifier).take() ?? Routes.home);
+    }
   }
 
   @override

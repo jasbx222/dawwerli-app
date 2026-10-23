@@ -583,7 +583,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
             ],
           ),
         ],
-        if (p.variants.length > 1) ...[
+        if (p.sizeChoices.length > 1) ...[
           const SizedBox(height: 16),
           _VariantPicker(
             product: p,
@@ -876,7 +876,7 @@ class _VariantPicker extends StatelessWidget {
         spacing: 8,
         runSpacing: 8,
         children: [
-          for (final v in product.variants)
+          for (final v in product.sizeChoices)
             Semantics(
               button: true,
               selected: v.id == product.id,

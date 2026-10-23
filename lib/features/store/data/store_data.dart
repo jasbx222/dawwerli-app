@@ -46,6 +46,17 @@ class StoreProduct {
   /// empty when it has no other sizes.
   final List<ProductVariant> variants;
 
+  /// The sizes the «المقاس» picker may offer: only siblings of the same wall
+  /// kind (a TV never lists a mirror, even if an old group mixed them).
+  List<ProductVariant> get sizeChoices {
+    String? k(String? v) => v?.trim().toLowerCase();
+    final own = k(wallKind);
+    return [
+      for (final v in variants)
+        if (v.id == id || k(v.wallKind) == own) v,
+    ];
+  }
+
   /// Non-null only when «حطها على حايطك» can show (size and kind all set).
   WallSize? get wall => WallSize.of(
     widthCm: widthCm,

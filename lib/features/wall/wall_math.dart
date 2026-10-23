@@ -256,11 +256,66 @@ QuadIssue? validateQuad(List<Offset> q, Size photo) {
   return null;
 }
 
-/// Whether the sheet in the photo looks wider than tall (hung landscape).
-bool quadLooksLandscape(List<Offset> q) {
+/// Width over height of the ordered sheet quad (top+bottom vs left+right).
+/// A4 seen square-on reads ≈ 0.71 (portrait) or ≈ 1.41 (landscape).
+double quadAspect(List<Offset> q) {
   final w = (q[1] - q[0]).distance + (q[2] - q[3]).distance;
   final h = (q[3] - q[0]).distance + (q[2] - q[1]).distance;
-  return w > h;
+  return h <= 0 ? 1 : w / h;
+}
+
+/// Whether the sheet in the photo looks wider than tall (hung landscape).
+bool quadLooksLandscape(List<Offset> q) => quadAspect(q) > 1;
+
+/// Whether the photo clearly contradicts a hand-picked sheet orientation
+/// (at least [margin] past square in the other direction), e.g. «عمودية»
+/// forced on a sheet that reads 1.4 : 1 wide. That would scale the product
+/// by √2 in one direction, so the screen asks before using it.
+bool orientationContradicts(
+  List<Offset> q, {
+  required bool landscape,
+  double margin = 1.15,
+}) {
+  final a = quadAspect(q);
+  return landscape ? a < 1 / margin : a > margin;
+}
+
+/// Direction of the top edge (TL → TR), degrees in (-180, 180].
+double topEdgeDeg(List<Offset> q) {
+  final d = q[1] - q[0];
+  return math.atan2(d.dy, d.dx) * 180 / math.pi;
+}
+
+double _angleGap(double a, double b) {
+  final d = (a - b).abs() % 360;
+  return d > 180 ? 360 - d : d;
+}
+
+/// [orderCorners] with hysteresis: while the sheet (or the phone) is rolled
+/// near 45°, which corner counts as "top-left" is a coin toss, and a flip
+/// rotates the product by 90° and swaps portrait/landscape. Given the
+/// previous top-edge direction ([prevTopDeg]), keep the corner labelling
+/// that continues it until its top edge is more than 45° + [hysteresisDeg]
+/// from level; only then switch to the plain ordering.
+List<Offset> orderCornersStable(
+  List<Offset> pts, {
+  double? prevTopDeg,
+  double hysteresisDeg = 10,
+}) {
+  final base = orderCorners(pts);
+  if (prevTopDeg == null) return base;
+  List<Offset> rot(int k) => [for (var i = 0; i < 4; i++) base[(i + k) % 4]];
+  var best = 0;
+  var gap = double.infinity;
+  for (var k = 0; k < 4; k++) {
+    final g = _angleGap(topEdgeDeg(rot(k)), prevTopDeg);
+    if (g < gap) {
+      gap = g;
+      best = k;
+    }
+  }
+  final keep = rot(best);
+  return _angleGap(topEdgeDeg(keep), 0) <= 45 + hysteresisDeg ? keep : base;
 }
 
 /// Wall cm → photo px for an ordered sheet quad, or null if unusable.
@@ -275,21 +330,38 @@ List<Offset> productCorners(Offset topLeft, WallSize s) => [
   topLeft + Offset(0, s.heightCm),
 ];
 
-/// Whether the product at [topLeft] can be drawn: all corners in front of
-/// the camera and its centre inside the photo.
-bool placementOk(Homography h, Offset topLeft, WallSize s, Size photo) {
+/// How far (photo px) the product's projected box breaks the "stays on the
+/// photo" rule; 0 = fine. Along an axis where the product fits in the photo,
+/// it must sit fully inside; where it is bigger than the photo (a 65" TV shot
+/// from close), it must cover the photo instead, so no empty gap shows at
+/// either side. Infinite when a corner is at/behind the horizon.
+double placementOverflow(Homography h, Offset topLeft, WallSize s, Size photo) {
+  final pts = <Offset>[];
   for (final c in productCorners(topLeft, s)) {
-    if (h.weight(c) <= 1e-9) return false;
+    if (h.weight(c) <= 1e-9) return double.infinity;
+    pts.add(h.map(c));
   }
-  final mid = h.map(topLeft + Offset(s.widthCm / 2, s.heightCm / 2));
-  return mid.dx >= 0 &&
-      mid.dy >= 0 &&
-      mid.dx <= photo.width &&
-      mid.dy <= photo.height;
+  double axis(Iterable<double> v, double size) {
+    final lo = v.reduce(math.min), hi = v.reduce(math.max);
+    return hi - lo <= size
+        ? math.max(0.0, -lo) + math.max(0.0, hi - size)
+        : math.max(0.0, lo) + math.max(0.0, size - hi);
+  }
+
+  return axis(pts.map((p) => p.dx), photo.width) +
+      axis(pts.map((p) => p.dy), photo.height);
 }
 
-/// Applies a drag: [next] if valid, else slides along whichever axis still
-/// is, else stays at [prev]. Keeps the product on the photo while dragging.
+/// Whether the product at [topLeft] can be drawn: all corners in front of
+/// the camera and its whole outline on the photo (see [placementOverflow]).
+bool placementOk(Homography h, Offset topLeft, WallSize s, Size photo) =>
+    placementOverflow(h, topLeft, s, photo) <= 1e-6;
+
+/// Applies a drag. A move is taken when it ends in a valid spot, or when it
+/// at least doesn't push the product further off the photo (so a product
+/// that starts partly outside can still be dragged back in). Otherwise each
+/// axis moves as far as it can (bisection), so the product stops flush
+/// against the photo edge and slides along it instead of freezing.
 Offset clampPlacement(
   Homography h,
   Offset prev,
@@ -297,12 +369,113 @@ Offset clampPlacement(
   WallSize s,
   Size photo,
 ) {
-  if (placementOk(h, next, s, photo)) return next;
-  final xOnly = Offset(next.dx, prev.dy);
-  if (placementOk(h, xOnly, s, photo)) return xOnly;
-  final yOnly = Offset(prev.dx, next.dy);
-  if (placementOk(h, yOnly, s, photo)) return yOnly;
-  return prev;
+  final before = placementOverflow(h, prev, s, photo);
+  bool fine(Offset o) {
+    final v = placementOverflow(h, o, s, photo);
+    return v <= 1e-6 || (before.isFinite && v <= before + 1e-9);
+  }
+
+  if (fine(next)) return next;
+  Offset furthest(Offset from, Offset to) {
+    if (fine(to)) return to;
+    var lo = 0.0, hi = 1.0;
+    for (var i = 0; i < 20; i++) {
+      final mid = (lo + hi) / 2;
+      if (fine(Offset.lerp(from, to, mid)!)) {
+        lo = mid;
+      } else {
+        hi = mid;
+      }
+    }
+    return Offset.lerp(from, to, lo)!;
+  }
+
+  final x = furthest(prev, Offset(next.dx, prev.dy));
+  return furthest(x, Offset(x.dx, next.dy));
+}
+
+/// How trustworthy the drawn size is, from the sheet as marked in the photo.
+class WallAccuracy {
+  const WallAccuracy({
+    required this.sizeErrorPct,
+    required this.sheetAreaPct,
+    required this.tilt,
+  });
+
+  /// Expected size error (one standard deviation, %) of the drawn product
+  /// for a corner marked ~0.1% of the photo's long edge off (about one
+  /// screen pixel through the loupe).
+  final double sizeErrorPct;
+
+  /// Share of the photo covered by the sheet (%).
+  final double sheetAreaPct;
+
+  /// Foreshortening across the product: how much bigger 1 cm looks at its
+  /// near side than at its far side (1 = shot square-on).
+  final double tilt;
+
+  /// The size is only a rough guide: a ±2σ error of 10% or more, or the
+  /// sheet covers under half a percent of the photo. The thresholds come
+  /// from a Monte Carlo of handle noise (wall-qa math/test_homography.py):
+  /// a 65" TV next to a sheet filling 0.8% of the photo is off by up to
+  /// 6–11% at one pixel of noise and 25–40% at three.
+  bool get approximate => sizeErrorPct >= 5 || sheetAreaPct < .5;
+
+  /// The photo was taken at a strong angle to the wall (one side of the
+  /// product is ≥ 1.6× the scale of the other): fine in theory, but small
+  /// marking errors and lens distortion weigh more.
+  bool get tilted => tilt >= 1.6;
+}
+
+/// Estimates [WallAccuracy] for the product at [topLeft]: nudges each corner
+/// coordinate in turn and measures how far each product edge moves when the
+/// drawn outline is measured back in cm (first-order error propagation).
+WallAccuracy wallAccuracy(
+  List<Offset> quad,
+  Size photo,
+  WallSize s,
+  Offset topLeft, {
+  required bool landscape,
+  double noiseFraction = .001,
+}) {
+  final a4 = a4Corners(landscape: landscape);
+  final h = Homography.tryFromPoints(a4, quad);
+  final areaPct = photo.isEmpty
+      ? 0.0
+      : 100 * quadArea(quad).abs() / (photo.width * photo.height);
+  if (h == null) {
+    return WallAccuracy(sizeErrorPct: 100, sheetAreaPct: areaPct, tilt: 1);
+  }
+  final rect = productCorners(topLeft, s);
+  final px = [for (final c in rect) h.map(c)];
+  final d = noiseFraction * math.max(photo.width, photo.height);
+  final acc = List<double>.filled(4, 0);
+  for (var i = 0; i < 4; i++) {
+    for (var k = 0; k < 2; k++) {
+      final q = [...quad];
+      q[i] = q[i] + (k == 0 ? Offset(d, 0) : Offset(0, d));
+      final inv = Homography.tryFromPoints(a4, q)?.inverse();
+      if (inv == null) continue;
+      final back = [for (final p in px) inv.map(p)];
+      for (var e = 0; e < 4; e++) {
+        final len = (back[(e + 1) % 4] - back[e]).distance;
+        final ref = e.isEven ? s.widthCm : s.heightCm;
+        acc[e] += math.pow(len / ref - 1, 2).toDouble();
+      }
+    }
+  }
+  double scaleAt(Offset p, Offset dir) => (h.map(p + dir) - h.map(p)).distance;
+  final l = scaleAt(rect[0] + Offset(0, s.heightCm / 2), const Offset(0, 1));
+  final r = scaleAt(rect[1] + Offset(0, s.heightCm / 2), const Offset(0, 1));
+  final t = scaleAt(rect[0] + Offset(s.widthCm / 2, 0), const Offset(1, 0));
+  final b = scaleAt(rect[3] + Offset(s.widthCm / 2, 0), const Offset(1, 0));
+  double ratio(double x, double y) =>
+      x <= 0 || y <= 0 ? double.infinity : math.max(x / y, y / x);
+  return WallAccuracy(
+    sizeErrorPct: 100 * math.sqrt(acc.reduce(math.max)),
+    sheetAreaPct: areaPct,
+    tilt: math.max(ratio(l, r), ratio(t, b)),
+  );
 }
 
 /// Starting spot: product centred on the sheet's centre.
