@@ -8,6 +8,7 @@ import '../../../../core/widgets/app_button.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../../../core/widgets/app_page.dart';
 import '../../../../core/widgets/app_sheet.dart';
+import '../../data/page_search_data.dart';
 import '../../data/store_data.dart';
 import 'store_widgets.dart';
 
@@ -49,7 +50,8 @@ Future<bool> showRateSheet(
   if (pageId.isNotEmpty) {
     ref
       ..invalidate(productProvider((pageId, productId)))
-      ..invalidate(pageProductsProvider(pageId));
+      // Its card's stars on the page's product list.
+      ..invalidate(pageSearchProvider);
   }
   if (context.mounted) showAppToast(context, 'شكراً، انحفظ تقييمك');
   return true;

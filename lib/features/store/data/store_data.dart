@@ -16,6 +16,8 @@ class StoreProduct {
     required this.stock,
     required this.available,
     this.category = '',
+    this.categoryId,
+    this.categoryName = '',
     this.rating = 0,
     this.ratingCount = 0,
     this.pageId = '',
@@ -86,6 +88,10 @@ class StoreProduct {
   final bool available;
   final String category;
 
+  /// Catalog category (search filters); null from older API builds.
+  final int? categoryId;
+  final String categoryName;
+
   /// Average product rating (0 when nobody rated it yet) and how many ratings.
   final double rating;
   final int ratingCount;
@@ -113,6 +119,10 @@ class StoreProduct {
       stock: stock,
       available: j.containsKey('available') ? j.b('available') : stock > 0,
       category: j.s('category'),
+      categoryId: j['categoryId'] is num
+          ? (j['categoryId'] as num).toInt()
+          : null,
+      categoryName: j.s('categoryName'),
       rating: j.d('rating'),
       ratingCount: j.i('ratingCount'),
       pageId: j.s('pageId'),
@@ -456,21 +466,6 @@ class Cart {
     subtotal: j.i('subtotal'),
   );
 }
-
-final pageProductsProvider = FutureProvider.autoDispose
-    .family<List<StoreProduct>, String>((ref, pageId) async {
-      final raw = await ref
-          .watch(apiClientProvider)
-          .get<Object?>('/api/v1/pages/$pageId/products');
-      // Plain list, or a paged envelope `{items: [...]}`.
-      final list = raw is Map ? asList(raw['items']) : asList(raw);
-      final products = [for (final p in list) StoreProduct.fromJson(p)];
-      // In-stock first; keep the server order inside each group.
-      return [
-        ...products.where((p) => p.available),
-        ...products.where((p) => !p.available),
-      ];
-    });
 
 /// One product by id (GET /products/{id}). Older API builds only had the
 /// page-scoped route, used as a fallback when the page is known.

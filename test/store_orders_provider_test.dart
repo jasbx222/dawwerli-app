@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:dawwerli/core/api/api_client.dart';
 import 'package:dawwerli/features/store/data/store_data.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
@@ -9,7 +10,11 @@ class _Api implements ApiClient {
   final Object body;
 
   @override
-  Future<T> get<T>(String path, {Map<String, Object?>? query}) async {
+  Future<T> get<T>(
+    String path, {
+    Map<String, Object?>? query,
+    CancelToken? cancelToken,
+  }) async {
     expect(path, '/api/v1/store/orders');
     // Like Dio, a body that does not match T is a type error.
     return body as T;

@@ -23,6 +23,7 @@ import '../../home/data/home_providers.dart';
 import '../../more/more_data.dart';
 import '../../post/domain/request_draft.dart' show PostRules;
 import '../data/store_data.dart';
+import 'page_search.dart';
 import 'widgets/product_card.dart';
 import 'widgets/product_reviews.dart';
 import 'widgets/store_widgets.dart';
@@ -60,51 +61,6 @@ String _err(Object e) => storeError(e);
 
 // ───────────────────────── Products of a page ─────────────────────────
 
-/// Products tab body: count line, grid, and loading / empty / error states.
-class PageProductsSection extends ConsumerWidget {
-  const PageProductsSection({super.key, required this.pageId});
-  final String pageId;
-
-  @override
-  Widget build(BuildContext context, WidgetRef ref) {
-    final products = ref.watch(pageProductsProvider(pageId));
-    return products.when(
-      skipLoadingOnRefresh: false,
-      loading: () => const ProductGrid(items: [], skeleton: 4),
-      error: (e, _) => StoreMessage(
-        icon: AppIcon.wifiOff,
-        title: 'ما قدرنا نجيب المنتجات',
-        body: 'تأكد من النت وجرّب مرة ثانية.',
-        onRetry: () => ref.invalidate(pageProductsProvider(pageId)),
-      ),
-      data: (list) {
-        if (list.isEmpty) {
-          return const StoreMessage(
-            title: 'ماكو منتجات بعد',
-            body: 'هالصفحة بعدها ما ضافت منتجات. تكدر تنشر طلب وتخليها تقدّملك عرض.',
-          );
-        }
-        final soldOut = list.where((p) => !p.available).length;
-        return Column(
-          crossAxisAlignment: CrossAxisAlignment.stretch,
-          children: [
-            Padding(
-              padding: const EdgeInsets.only(bottom: 12),
-              child: Text(
-                soldOut == 0
-                    ? '${list.length} منتج'
-                    : '${list.length} منتج · $soldOut نفدت كميتها',
-                style: AppText.muted,
-              ),
-            ),
-            ProductGrid(items: [for (final p in list) cardOf(p, pageId)]),
-          ],
-        );
-      },
-    );
-  }
-}
-
 /// Full-screen products list of one page (`/pages/p/:id/products`).
 class PageProductsScreen extends ConsumerWidget {
   const PageProductsScreen({super.key, required this.pageId});
@@ -128,6 +84,9 @@ class PageProductsScreen extends ConsumerWidget {
                 onTap: () => context.push(Routes.cart),
               ),
             ),
+      endDrawer: PageFilterDrawer(pageId: pageId),
+      onNearEnd: () => loadMorePageProducts(ref, pageId),
+      onRefresh: () async => refreshPageProducts(ref, pageId),
       children: [StoreWidth(child: PageProductsSection(pageId: pageId))],
     );
   }
@@ -628,11 +587,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              AppSvgIcon(
-                AppIcon.shieldCheck,
-                color: AppColors.blue,
-                size: 22,
-              ),
+              AppSvgIcon(AppIcon.shieldCheck, color: AppColors.blue, size: 22),
               const SizedBox(width: 10),
               Expanded(
                 child: Text(
@@ -1096,11 +1051,7 @@ class _PageRow extends StatelessWidget {
               'شوف الصفحة',
               style: AppText.label.copyWith(color: AppColors.blue),
             ),
-            AppSvgIcon(
-              AppIcon.chevronLeft,
-              size: 16,
-              color: AppColors.blue,
-            ),
+            AppSvgIcon(AppIcon.chevronLeft, size: 16, color: AppColors.blue),
           ],
         ),
       ),

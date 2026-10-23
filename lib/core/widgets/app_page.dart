@@ -29,7 +29,17 @@ class AppPage extends StatelessWidget {
     this.showBack = true,
     this.onBack,
     this.onRefresh,
+    this.endDrawer,
+    this.onNearEnd,
   });
+
+  /// Side panel from the end edge (filters), opened with
+  /// `Scaffold.of(context).openEndDrawer()`.
+  final Widget? endDrawer;
+
+  /// Called while the body is scrolled close to its end (infinite lists).
+  /// Only the body counts, not lists inside it or in the drawer.
+  final VoidCallback? onNearEnd;
   final String title;
   final String? subtitle;
   final Widget? titleIcon;
@@ -51,6 +61,7 @@ class AppPage extends StatelessWidget {
         ? AppSpacing.xl
         : AppSize.navOffset + AppSize.navHeight + AppSpacing.xl + inset;
     return Scaffold(
+      endDrawer: endDrawer,
       body: Stack(
         fit: StackFit.expand,
         children: [
@@ -58,24 +69,26 @@ class AppPage extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.stretch,
             children: [
               Expanded(
-                child: _refreshable(
-                  ListView(
-                    physics: onRefresh == null
-                        ? null
-                        : const AlwaysScrollableScrollPhysics(),
-                    padding: EdgeInsets.only(bottom: navRoom),
-                    children: [
-                      AppHeader(
-                        title: title,
-                        titleIcon: titleIcon,
-                        trailing: trailing,
-                        below: below,
-                        showBack: showBack,
-                        subtitle: subtitle == null ? null : Text(subtitle!),
-                        onBack: onBack ?? () => popOr(context),
-                      ),
-                      ...children,
-                    ],
+                child: _nearEnd(
+                  _refreshable(
+                    ListView(
+                      physics: onRefresh == null
+                          ? null
+                          : const AlwaysScrollableScrollPhysics(),
+                      padding: EdgeInsets.only(bottom: navRoom),
+                      children: [
+                        AppHeader(
+                          title: title,
+                          titleIcon: titleIcon,
+                          trailing: trailing,
+                          below: below,
+                          showBack: showBack,
+                          subtitle: subtitle == null ? null : Text(subtitle!),
+                          onBack: onBack ?? () => popOr(context),
+                        ),
+                        ...children,
+                      ],
+                    ),
                   ),
                 ),
               ),
@@ -105,6 +118,20 @@ class AppPage extends StatelessWidget {
 }
 
 extension on AppPage {
+  Widget _nearEnd(Widget body) => onNearEnd == null
+      ? body
+      : NotificationListener<ScrollNotification>(
+          onNotification: (n) {
+            if (n.depth == 0 &&
+                n.metrics.axis == Axis.vertical &&
+                n.metrics.extentAfter < 600) {
+              onNearEnd!();
+            }
+            return false;
+          },
+          child: body,
+        );
+
   Widget _refreshable(Widget list) => onRefresh == null
       ? list
       : RefreshIndicator(

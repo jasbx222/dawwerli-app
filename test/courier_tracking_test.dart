@@ -1,3 +1,5 @@
+import 'package:dio/dio.dart';
+
 import 'dart:async';
 
 import 'package:dawwerli/core/api/api_client.dart';
@@ -15,7 +17,11 @@ class _Api implements ApiClient {
   final calls = <String>[];
 
   @override
-  Future<T> get<T>(String path, {Map<String, Object?>? query}) async {
+  Future<T> get<T>(
+    String path, {
+    Map<String, Object?>? query,
+    CancelToken? cancelToken,
+  }) async {
     calls.add('GET $path');
     return location as T;
   }

@@ -15,7 +15,11 @@ class ApiException implements Exception {
   final String code;
   final Map<String, Object?> data;
 
-  bool get offline => status == 0;
+  /// Thrown by a request its caller cancelled; nobody shows it.
+  static const cancelled = ApiException(0, 'cancelled');
+
+  bool get offline => status == 0 && code != 'cancelled';
+  bool get isCancelled => status == 0 && code == 'cancelled';
   int? get retryIn => (data['retryIn'] as num?)?.toInt();
   List<String> get errors =>
       (data['errors'] as List?)?.whereType<String>().toList() ?? const [];
@@ -107,8 +111,15 @@ class ApiClient {
     }
   }();
 
-  Future<T> get<T>(String path, {Map<String, Object?>? query}) =>
-      _send(() => _dio.get<T>(path, queryParameters: query));
+  /// [cancelToken] aborts the request (a superseded search); it then throws
+  /// [ApiException.cancelled].
+  Future<T> get<T>(
+    String path, {
+    Map<String, Object?>? query,
+    CancelToken? cancelToken,
+  }) => _send(
+    () => _dio.get<T>(path, queryParameters: query, cancelToken: cancelToken),
+  );
 
   Future<T> post<T>(String path, [Object? body]) =>
       _send(() => _dio.post<T>(path, data: body));
@@ -139,6 +150,7 @@ class ApiClient {
   }
 
   static ApiException _toApi(DioException e) {
+    if (e.type == DioExceptionType.cancel) return ApiException.cancelled;
     final res = e.response;
     if (res == null) return const ApiException(0, 'network');
     final body = res.data;

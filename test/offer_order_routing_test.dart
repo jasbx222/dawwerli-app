@@ -1,3 +1,4 @@
+import 'package:dio/dio.dart';
 import 'package:dawwerli/core/api/api_client.dart';
 import 'package:dawwerli/features/orders/data/my_requests_provider.dart';
 import 'package:dawwerli/features/orders/presentation/my_requests_screen.dart';
@@ -14,7 +15,11 @@ class _Api implements ApiClient {
   final List<Map<String, dynamic>> rows;
 
   @override
-  Future<T> get<T>(String path, {Map<String, Object?>? query}) async {
+  Future<T> get<T>(
+    String path, {
+    Map<String, Object?>? query,
+    CancelToken? cancelToken,
+  }) async {
     expect(path, '/api/v1/requests/mine');
     return rows as T;
   }
