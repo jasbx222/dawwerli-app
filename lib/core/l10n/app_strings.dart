@@ -121,6 +121,11 @@ abstract final class AppStrings {
   static String hello(String name) => 'هلا $name 👋';
   static const homeQ1 = 'شتدوّر اليوم؟';
   static String homeQ2(String gov) => 'كول، و$gov تتسابق عليك';
+  static const homeQ2All = 'كول، وكل العراق تتسابق عليك';
+
+  /// Home headline: the customer's governorate, or all Iraq for guests.
+  static String homeHeadline(String gov, {required bool allIraq}) =>
+      allIraq || gov.trim().isEmpty ? homeQ2All : homeQ2(gov);
   static String locationLabel(String area, String gov) => '$area، $gov';
   static const live = 'مباشر';
   static String reachedPages(int n, String gov) => 'وصل لـ $n صفحة موثقة ب$gov';
@@ -142,6 +147,29 @@ abstract final class AppStrings {
     _ => '$n عروض',
   };
   static const statPages = 'صفحة موثقة';
+
+  /// Label after the big number: 1 «صفحة موثّقة»، 2 «صفحتين موثّقتين»،
+  /// 3–10 «صفحات موثّقة»، 11+ «صفحة موثّقة».
+  static String verifiedPagesLabel(int n) {
+    final r = n % 100;
+    if (n == 2) return 'صفحتين موثّقتين';
+    if (r >= 3 && r <= 10) return 'صفحات موثّقة';
+    return 'صفحة موثّقة';
+  }
+
+  static const verifiedAllChecked = 'كلها متحققة من دوّرلي';
+  static const verifiedSeeThem = 'شوفها';
+
+  /// «بـ18 محافظة»، «بـ5 محافظات»، «بمحافظتين»، «بمحافظة وحدة».
+  static String inGovernorates(int n) {
+    final r = n % 100;
+    if (n == 1) return 'بمحافظة وحدة';
+    if (n == 2) return 'بمحافظتين';
+    if (r >= 3 && r <= 10) return 'بـ$n محافظات';
+    return 'بـ$n محافظة';
+  }
+
+  static String firstOfferIn(int min) => 'أول عرض خلال $min د';
   static const statGovs = 'محافظة';
   static const statFirstOffer = 'أول عرض بالمعدل';
   static String minutesShort(int n) => '$n د';

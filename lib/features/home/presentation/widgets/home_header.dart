@@ -20,11 +20,15 @@ class HomeHeader extends StatelessWidget {
     this.onBell,
     this.onStory,
     this.guest = false,
+    this.allIraq = false,
     this.unread = 0,
   });
 
   /// 51 · «هلا بيك (زائر)».
   final bool guest;
+
+  /// No account / no picked governorate → «كول، وكل العراق تتسابق عليك».
+  final bool allIraq;
 
   final HomeData data;
 
@@ -224,7 +228,10 @@ class HomeHeader extends StatelessWidget {
                             children: [
                               const TextSpan(text: '${AppStrings.homeQ1}\n'),
                               TextSpan(
-                                text: AppStrings.homeQ2(data.governorate),
+                                text: AppStrings.homeHeadline(
+                                  data.governorate,
+                                  allIraq: allIraq,
+                                ),
                                 style: const TextStyle(
                                   color: AppColors.goldSoft,
                                 ),

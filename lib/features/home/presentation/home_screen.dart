@@ -3,6 +3,7 @@ import 'dart:async';
 import 'package:flutter/material.dart';
 
 import '../../guest/guest.dart';
+import '../../../core/api/token_store.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -45,9 +46,8 @@ class HomeScreen extends ConsumerWidget {
           // Sponsored ads show as a timed popup (admin-set timing).
           const SponsoredPopupStarter(),
           home.when(
-            loading: () => Center(
-              child: CircularProgressIndicator(color: AppColors.blue),
-            ),
+            loading: () =>
+                Center(child: CircularProgressIndicator(color: AppColors.blue)),
             error: (e, _) => Center(child: Text('$e')),
             data: (d) => SingleChildScrollView(
               child: Column(
@@ -56,6 +56,9 @@ class HomeScreen extends ConsumerWidget {
                   HomeHeader(
                     data: d,
                     guest: ref.watch(guestProvider),
+                    allIraq:
+                        ref.watch(guestProvider) ||
+                        !ref.read(tokenStoreProvider).signedIn,
                     unread: ref.watch(unreadNotificationsProvider).value ?? 0,
                     onBell: () => memberOnly(context, ref, () async {
                       await context.push(Routes.notifications);
@@ -246,7 +249,16 @@ class _Body extends StatelessWidget {
         const RankingSlider(ranking: ProductRanking.bestSelling),
         const RankingSlider(ranking: ProductRanking.highestRated),
         ActivityTicker(items: d.ticker),
-        StatsRow(stats: d.stats),
+        StatsRow(
+          stats: d.stats,
+          pageImages: {
+            for (final p in d.featuredPages)
+              if (!p.isAd && (p.image ?? '').isNotEmpty) p.image!,
+            for (final s in d.stories)
+              if (!s.isAd && s.image.isNotEmpty) s.image,
+          }.toList(),
+          onVerifiedTap: () => context.go(Routes.pages),
+        ),
         SectionTitle(
           AppStrings.secTrending,
           onSeeAll: () => context.push(Routes.categories),

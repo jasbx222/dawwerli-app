@@ -18,9 +18,9 @@ class ApiHomeRepository implements HomeRepository {
   };
 
   @override
-  Future<HomeData> load({required String governorate}) async {
+  Future<HomeData> load({String? governorate}) async {
     final cat = await catalog;
-    final gov = cat.governorateId(governorate);
+    final gov = governorate == null ? null : cat.governorateId(governorate);
     final j = await api.get<Map<String, dynamic>>(
       '/api/v1/home',
       query: {'governorateId': ?gov},

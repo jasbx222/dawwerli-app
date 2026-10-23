@@ -19,7 +19,9 @@ class CatalogCategory {
 
 final catalogCategoriesProvider = Provider<List<CatalogCategory>>(
   (ref) => [
-    for (final c in ref.watch(catalogProvider).value?.categories ?? const <CatalogCategoryRef>[])
+    for (final c
+        in ref.watch(catalogProvider).value?.categories ??
+            const <CatalogCategoryRef>[])
       CatalogCategory('${c.id}', c.name, c.image, slug: c.slug),
   ],
 );
@@ -29,8 +31,7 @@ extension CatalogCategoryLookup on List<CatalogCategory> {
       where((c) => c.id == id).firstOrNull ?? const CatalogCategory('', '', '');
 
   /// Slug for a category display name (pages list categories by name).
-  String? slugOf(String name) =>
-      where((c) => c.name == name).firstOrNull?.slug;
+  String? slugOf(String name) => where((c) => c.name == name).firstOrNull?.slug;
 }
 
 /// Public page profile (GET /api/v1/pages/{id}); phone never included.
@@ -58,57 +59,65 @@ class PageProfile {
   final String memberSince;
   final ImageRef? image;
 
-  PageSummary get summary =>
-      PageSummary(id: id, name: name, rating: rating, deals: deals, image: image);
+  PageSummary get summary => PageSummary(
+    id: id,
+    name: name,
+    rating: rating,
+    deals: deals,
+    image: image,
+  );
 }
 
-final pageProfileProvider = FutureProvider.autoDispose.family<PageProfile, String>((ref, id) async {
-  final j = await ref.watch(apiClientProvider).get<Map<String, dynamic>>('/api/v1/pages/$id');
-  final govs = j.list<String>('governorates');
-  return PageProfile(
-    id: j.s('id'),
-    name: j.s('name'),
-    rating: j.d('rating'),
-    deals: j.i('deals'),
-    governorate: govs.firstOrNull ?? '',
-    deliversTo: govs.length,
-    categories: j.list<String>('categories'),
-    replyMinutes: j.i('replyMinutes'),
-    memberSince: '${j.i('memberSince')}',
-    image: j.os('image'),
-  );
-});
+final pageProfileProvider = FutureProvider.autoDispose
+    .family<PageProfile, String>((ref, id) async {
+      final j = await ref
+          .watch(apiClientProvider)
+          .get<Map<String, dynamic>>('/api/v1/pages/$id');
+      final govs = j.list<String>('governorates');
+      return PageProfile(
+        id: j.s('id'),
+        name: j.s('name'),
+        rating: j.d('rating'),
+        deals: j.i('deals'),
+        governorate: govs.firstOrNull ?? '',
+        deliversTo: govs.length,
+        categories: j.list<String>('categories'),
+        replyMinutes: j.i('replyMinutes'),
+        memberSince: '${j.i('memberSince')}',
+        image: j.os('image'),
+      );
+    });
 
 /// Verified pages of a category in my governorate (paid «مُموّل» first, then organic).
-final categoryPagesProvider = FutureProvider.autoDispose.family<List<PageSummary>, String>((ref, categoryId) async {
-  final cat = await ref.watch(catalogProvider.future);
-  final gov = cat.governorateId(ref.watch(regionProvider).governorate);
-  final api = ref.watch(apiClientProvider);
-  final id = int.tryParse(categoryId) ?? cat.category(categoryId)?.id;
-  final j = await api.get<Map<String, dynamic>>(
-    '/api/v1/pages/featured',
-    query: {'categoryId': id, 'governorateId': gov},
-  );
-  List<Map<String, dynamic>> slot = const [];
-  try {
-    slot = asList(
-      await api.get<List<dynamic>>(
-        '/api/v1/ads',
-        query: {
-          'slot': 'featuredPage',
-          'governorateId': gov,
-          'categoryId': ?id,
-        },
-      ),
-    );
-  } on ApiException {
-    slot = const [];
-  }
-  return featuredWithPaid(
-    [for (final p in j.l('pages')) pageSummaryFromJson(p)],
-    slot,
-  );
-});
+final categoryPagesProvider = FutureProvider.autoDispose
+    .family<List<PageSummary>, String>((ref, categoryId) async {
+      final cat = await ref.watch(catalogProvider.future);
+      final gov = cat.governorateId(ref.watch(regionProvider).governorate);
+      final api = ref.watch(apiClientProvider);
+      final id = int.tryParse(categoryId) ?? cat.category(categoryId)?.id;
+      final j = await api.get<Map<String, dynamic>>(
+        '/api/v1/pages/featured',
+        query: {'categoryId': id, 'governorateId': gov},
+      );
+      List<Map<String, dynamic>> slot = const [];
+      try {
+        slot = asList(
+          await api.get<List<dynamic>>(
+            '/api/v1/ads',
+            query: {
+              'slot': 'featuredPage',
+              'governorateId': gov,
+              'categoryId': ?id,
+            },
+          ),
+        );
+      } on ApiException {
+        slot = const [];
+      }
+      return featuredWithPaid([
+        for (final p in j.l('pages')) pageSummaryFromJson(p),
+      ], slot);
+    });
 
 PageSummary pageSummaryFromJson(Map<String, dynamic> p) => PageSummary(
   id: p.s('id'),
@@ -133,7 +142,9 @@ List<PageSummary> featuredWithPaid(
     paid.add(
       PageSummary(
         id: id,
-        name: existing?.name.isNotEmpty == true ? existing!.name : a.s('pageName'),
+        name: existing?.name.isNotEmpty == true
+            ? existing!.name
+            : a.s('pageName'),
         rating: existing?.rating ?? 0,
         deals: existing?.deals ?? 0,
         image: existing?.image ?? a.os('image'),
@@ -159,16 +170,28 @@ FeedItem feedItemFromJson(Map<String, dynamic> f) => FeedItem(
 );
 
 /// Anonymized activity (GET /api/v1/home/feed): category + governorate + offers.
-final fullFeedProvider = FutureProvider.autoDispose<List<FeedItem>>((ref) async {
-  final list = asList(await ref.watch(apiClientProvider).get<List<dynamic>>('/api/v1/home/feed'));
+final fullFeedProvider = FutureProvider.autoDispose<List<FeedItem>>((
+  ref,
+) async {
+  final list = asList(
+    await ref.watch(apiClientProvider).get<List<dynamic>>('/api/v1/home/feed'),
+  );
   return [for (final f in list) feedItemFromJson(f)];
 });
 
 /// Legal text (GET /api/v1/legal/{terms|privacy}) as (title, body) sections.
-final legalProvider = FutureProvider.family<List<(String, String)>, String>((ref, doc) async {
-  final md = await ref.watch(apiClientProvider).get<String>('/api/v1/legal/$doc');
+final legalProvider = FutureProvider.family<List<(String, String)>, String>((
+  ref,
+  doc,
+) async {
+  final md = await ref
+      .watch(apiClientProvider)
+      .get<String>('/api/v1/legal/$doc');
   final out = <(String, String)>[];
-  for (final block in md.split(RegExp(r'^## ', multiLine: true)).where((b) => b.trim().isNotEmpty)) {
+  for (final block
+      in md
+          .split(RegExp(r'^## ', multiLine: true))
+          .where((b) => b.trim().isNotEmpty)) {
     final lines = block.trim().split('\n');
     out.add((lines.first.trim(), lines.skip(1).join('\n').trim()));
   }
@@ -177,9 +200,14 @@ final legalProvider = FutureProvider.family<List<(String, String)>, String>((ref
 
 /// Governorate + area shown on home and «حسابي» (saved on the device; PUT /me later).
 class Region {
-  const Region(this.governorate, this.area);
+  const Region(this.governorate, this.area, {this.explicit = false});
   final String governorate;
   final String area;
+
+  /// True once the user picked a governorate on this device («منطقتي»).
+  /// Until then home follows the governorate on the signed-in profile
+  /// (server side), and guests get the all-Iraq headline.
+  final bool explicit;
   String get label => area.isEmpty ? governorate : '$governorate · $area';
 }
 
@@ -187,9 +215,11 @@ class RegionNotifier extends Notifier<Region> {
   @override
   Region build() {
     final p = ref.watch(sharedPrefsProvider);
+    final gov = p.getString('region.gov');
     return Region(
-      p.getString('region.gov') ?? 'بغداد',
+      gov ?? 'بغداد',
       p.getString('region.area') ?? 'الكرادة',
+      explicit: gov != null,
     );
   }
 
@@ -197,10 +227,13 @@ class RegionNotifier extends Notifier<Region> {
     final p = ref.read(sharedPrefsProvider);
     p.setString('region.gov', gov);
     p.setString('region.area', area);
-    state = Region(gov, area);
+    state = Region(gov, area, explicit: true);
     if (!ref.read(tokenStoreProvider).signedIn) return;
     final id = (await ref.read(catalogProvider.future)).governorateId(gov);
-    await ref.read(apiClientProvider).put<void>('/api/v1/me/region', {'governorateId': id, 'area': area});
+    await ref.read(apiClientProvider).put<void>('/api/v1/me/region', {
+      'governorateId': id,
+      'area': area,
+    });
   }
 }
 
