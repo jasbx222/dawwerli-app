@@ -32,7 +32,7 @@ class OnboardingScreen extends ConsumerWidget {
               child: Column(
                 children: [
                   Text.rich(
-                    const TextSpan(
+                    TextSpan(
                       children: [
                         TextSpan(text: '${AppStrings.onbTitle1}\n'),
                         TextSpan(

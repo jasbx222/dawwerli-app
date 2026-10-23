@@ -100,7 +100,7 @@ class PageTile extends StatelessWidget {
               alignment: Alignment.center,
               child: Text(
                 page.name.characters.first,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 18,
                   height: 1.504630,
                   fontWeight: FontWeight.w700,
@@ -124,7 +124,7 @@ class PageTile extends StatelessWidget {
                       ),
                     ),
                     const SizedBox(width: 4),
-                    const AppSvgIcon(
+                    AppSvgIcon(
                       AppIcon.verified,
                       color: AppColors.blue,
                       size: 14,

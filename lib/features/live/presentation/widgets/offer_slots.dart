@@ -201,8 +201,8 @@ class _EmptySlot extends StatelessWidget {
         child: Container(
           width: 8,
           height: 8,
-          decoration: const BoxDecoration(
-            color: Color(0xFFCBD5E1),
+          decoration: BoxDecoration(
+            color: AppColors.dash,
             shape: BoxShape.circle,
           ),
         ),
@@ -220,7 +220,7 @@ class _DashedRRect extends CustomPainter {
     );
     canvas.drawRRect(rr, Paint()..color = AppColors.surface);
     final p = Paint()
-      ..color = Color(0xFFCBD5E1)
+      ..color = AppColors.dash
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     for (final m in (Path()..addRRect(rr)).computeMetrics()) {

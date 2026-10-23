@@ -187,7 +187,7 @@ class OtherPageCartSheet extends StatelessWidget {
             borderRadius: BorderRadius.circular(18),
           ),
           alignment: Alignment.center,
-          child: const AppSvgIcon(AppIcon.cart, color: AppColors.warn),
+          child: AppSvgIcon(AppIcon.cart, color: AppColors.warn),
         ),
       ),
       const SizedBox(height: 12),
@@ -388,7 +388,7 @@ class CartBar extends StatelessWidget {
       child: Container(
         padding: const EdgeInsetsDirectional.fromSTEB(12, 10, 16, 10),
         decoration: BoxDecoration(
-          color: AppColors.navy,
+          color: AppColors.navyFill,
           borderRadius: BorderRadius.circular(20),
           boxShadow: [
             BoxShadow(

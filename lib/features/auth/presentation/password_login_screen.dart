@@ -131,7 +131,7 @@ class _PasswordLoginScreenState extends ConsumerState<PasswordLoginScreen> {
                     alignment: AlignmentDirectional.centerStart,
                     child: GestureDetector(
                       onTap: () => _startOtp(AuthFlow.reset),
-                      child: const Text(
+                      child: Text(
                         AppStrings.forgotPassword,
                         style: _link,
                       ),
@@ -162,7 +162,7 @@ class _PasswordLoginScreenState extends ConsumerState<PasswordLoginScreen> {
                     // Long-press: point the app at another API server (testing on a real phone).
                     onLongPress: () => ServerUrlSheet.show(context),
                     child: Text.rich(
-                      const TextSpan(
+                      TextSpan(
                         children: [
                           TextSpan(text: AppStrings.noAccount),
                           TextSpan(
@@ -184,7 +184,7 @@ class _PasswordLoginScreenState extends ConsumerState<PasswordLoginScreen> {
     );
   }
 
-  static const _link = TextStyle(
+  static final _link = TextStyle(
     fontWeight: FontWeight.w700,
     color: AppColors.blue,
   );

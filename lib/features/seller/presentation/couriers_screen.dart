@@ -50,7 +50,7 @@ class CouriersScreen extends ConsumerWidget {
           ),
           TextButton(
             onPressed: () => Navigator.pop(d, true),
-            child: const Text(
+            child: Text(
               'احذف',
               style: TextStyle(color: AppColors.danger),
             ),
@@ -87,7 +87,7 @@ class CouriersScreen extends ConsumerWidget {
             child: Row(
               crossAxisAlignment: CrossAxisAlignment.start,
               children: [
-                const AppSvgIcon(
+                AppSvgIcon(
                   AppIcon.shield,
                   color: AppColors.blue,
                   size: 20,
@@ -117,7 +117,7 @@ class CouriersScreen extends ConsumerWidget {
                   AppCard(
                     child: Column(
                       children: [
-                        const AppSvgIcon(
+                        AppSvgIcon(
                           AppIcon.truck,
                           color: AppColors.blue,
                           size: 34,

@@ -78,7 +78,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
   Widget build(BuildContext context) {
     final o = ref.watch(orderProvider(widget.orderId)).value;
     if (o == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -269,7 +269,7 @@ class _RatingScreenState extends ConsumerState<RatingScreen> {
                     vertical: 13,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.navy,
+                    color: AppColors.navyFill,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: const [
                       BoxShadow(

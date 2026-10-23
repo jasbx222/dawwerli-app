@@ -92,7 +92,7 @@ class LiveRequestCard extends StatelessWidget {
               const Spacer(),
               Text(
                 AppStrings.slotsLeft(r.maxOffers - r.offerPrices.length),
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.500000,
                   fontWeight: FontWeight.w600,
@@ -157,9 +157,9 @@ class LiveRequestCard extends StatelessWidget {
           const SizedBox(height: 16),
           Row(
             children: [
-              const AppSvgIcon(
+              AppSvgIcon(
                 AppIcon.clock,
-                color: Color(0xFF475569),
+                color: AppColors.slate,
                 size: 16,
               ),
               const SizedBox(width: 6),
@@ -178,10 +178,10 @@ class LiveRequestCard extends StatelessWidget {
                       ),
                     ],
                   ),
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 13,
                     height: 1.500000,
-                    color: Color(0xFF475569),
+                    color: AppColors.slate,
                   ),
                 ),
               ),
@@ -194,7 +194,7 @@ class LiveRequestCard extends StatelessWidget {
                     vertical: 11,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.navy,
+                    color: AppColors.navyFill,
                     borderRadius: BorderRadius.circular(14),
                   ),
                   child: const Row(
@@ -234,7 +234,7 @@ class _LivePill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 6),
     decoration: BoxDecoration(
-      color: const Color(0xFFCCFBF1),
+      color: AppColors.tealBg,
       borderRadius: BorderRadius.circular(99),
     ),
     child: Row(
@@ -250,13 +250,13 @@ class _LivePill extends StatelessWidget {
           ),
         ),
         const SizedBox(width: 6),
-        const Text(
+        Text(
           AppStrings.live,
           style: TextStyle(
             fontSize: 12,
             height: 1.504630,
             fontWeight: FontWeight.w700,
-            color: Color(0xFF0B6E66),
+            color: AppColors.teal,
           ),
         ),
       ],
@@ -330,7 +330,7 @@ class _Slot extends StatelessWidget {
                   fontSize: 10,
                   height: 1.480556,
                   fontWeight: FontWeight.w700,
-                  color: AppColors.ink,
+                  color: AppColors.navy,
                 ),
               ),
             ),
@@ -352,8 +352,8 @@ class _EmptySlot extends StatelessWidget {
         child: Container(
           width: 8,
           height: 8,
-          decoration: const BoxDecoration(
-            color: Color(0xFFCBD5E1),
+          decoration: BoxDecoration(
+            color: AppColors.dash,
             shape: BoxShape.circle,
           ),
         ),
@@ -371,7 +371,7 @@ class _DashedRRect extends CustomPainter {
     );
     canvas.drawRRect(rr, Paint()..color = AppColors.surface);
     final p = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = AppColors.dash
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     for (final m in (Path()..addRRect(rr)).computeMetrics()) {

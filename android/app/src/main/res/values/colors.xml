@@ -1,4 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
-    <color name="ic_launcher_background">#0F1E3D</color>
+    <!-- Brand navy behind the native launch screen. Same in both modes: the
+         app picks light/dark from its own settings, never the device theme. -->
+    <color name="launch_background">#0F1E3D</color>
 </resources>

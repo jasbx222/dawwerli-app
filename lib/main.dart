@@ -1,6 +1,7 @@
 import 'dart:ui';
 
 import 'package:flutter/material.dart';
+import 'package:flutter/services.dart';
 import 'package:flutter_localizations/flutter_localizations.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
@@ -13,6 +14,7 @@ import 'core/settings/display_settings.dart';
 import 'core/storage/prefs.dart';
 import 'core/theme/app_colors.dart';
 import 'core/theme/app_theme.dart';
+import 'core/theme/theme_mode.dart';
 
 Future<void> main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -29,6 +31,9 @@ Future<void> main() async {
   }
   // API errors nobody caught (button handlers) become a snackbar, not a crash.
   PlatformDispatcher.instance.onError = (e, _) => reportApiError(e);
+  // Apply the saved light/dark choice before the first frame (no flash).
+  // The device theme is ignored on purpose; default is light.
+  AppColors.dark = ThemeModeNotifier.read(prefs) == ThemeMode.dark;
   final tokens = TokenStore();
   await tokens.load();
   runApp(
@@ -48,24 +53,28 @@ class DawwerliApp extends ConsumerWidget {
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final display = ref.watch(displaySettingsProvider);
-    final systemDark =
-        MediaQuery.platformBrightnessOf(context) == Brightness.dark;
-    AppColors.dark =
-        display.night == NightMode.on ||
-        (display.night == NightMode.auto && systemDark);
+    final dark = ref.watch(themeModeProvider) == ThemeMode.dark;
+    AppColors.dark = dark;
     return MaterialApp.router(
       scaffoldMessengerKey: messengerKey,
-      builder: (context, child) => RebuildOnChange(
-        token: (AppColors.dark, display.font),
-        child: MediaQuery(
-          data: MediaQuery.of(context)
-              .copyWith(textScaler: TextScaler.linear(display.font.scale)),
-          child: child!,
+      builder: (context, child) => AnnotatedRegion<SystemUiOverlayStyle>(
+        value: AppTheme.overlay(dark: dark),
+        child: RebuildOnChange(
+          token: (dark, display.font),
+          child: MediaQuery(
+            data: MediaQuery.of(context)
+                .copyWith(textScaler: TextScaler.linear(display.font.scale)),
+            child: child!,
+          ),
         ),
       ),
       debugShowCheckedModeBanner: false,
       title: 'دوّرلي',
       theme: AppTheme.light,
+      darkTheme: AppTheme.dark,
+      // Only the in-app setting decides; never ThemeMode.system.
+      themeMode: dark ? ThemeMode.dark : ThemeMode.light,
+      themeAnimationDuration: Duration.zero,
       locale: const Locale('ar', 'IQ'),
       supportedLocales: const [Locale('ar', 'IQ')],
       localizationsDelegates: GlobalMaterialLocalizations.delegates,

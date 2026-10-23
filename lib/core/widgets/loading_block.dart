@@ -9,7 +9,7 @@ class LoadingBlock extends StatelessWidget {
   static const _padding = 48.0;
 
   @override
-  Widget build(BuildContext context) => const Padding(
+  Widget build(BuildContext context) => Padding(
     padding: EdgeInsets.all(_padding),
     child: Center(child: CircularProgressIndicator(color: AppColors.blue)),
   );

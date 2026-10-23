@@ -255,7 +255,7 @@ class SellerReportsScreen extends ConsumerWidget {
       subtitle: 'الصفقات المكتملة وطلبات المتجر',
       children: [
         report.when(
-          loading: () => const Padding(
+          loading: () => Padding(
             padding: EdgeInsets.only(top: 40),
             child: Center(
               child: CircularProgressIndicator(color: AppColors.blue),
@@ -293,7 +293,7 @@ class SellerReportsScreen extends ConsumerWidget {
                       children: [
                         for (var i = 0; i < r.best.length; i++) ...[
                           if (i > 0)
-                            const Divider(height: 1, color: Color(0xFFF1ECE0)),
+                            Divider(height: 1, color: AppColors.divider),
                           _BestRow(r.best[i]),
                         ],
                       ],
@@ -315,7 +315,7 @@ class SellerReportsScreen extends ConsumerWidget {
                       children: [
                         for (var i = 0; i < r.orders.length; i++) ...[
                           if (i > 0)
-                            const Divider(height: 1, color: Color(0xFFF1ECE0)),
+                            Divider(height: 1, color: AppColors.divider),
                           _OrderRow(
                             r.orders[i],
                             onTap: r.orders[i].offerId == null
@@ -448,7 +448,7 @@ class _Thumb extends StatelessWidget {
     child: image.isEmpty
         ? Text(
             name.characters.firstOrNull ?? '',
-            style: const TextStyle(
+            style: TextStyle(
               fontWeight: FontWeight.w700,
               color: AppColors.blue,
             ),

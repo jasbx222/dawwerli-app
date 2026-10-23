@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../../../core/role/app_role.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/settings/display_settings.dart';
+import '../../../core/widgets/theme_mode_row.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_spacing.dart';
 import '../../../core/theme/app_typography.dart';
@@ -183,12 +184,7 @@ class _SellerAccountScreenState extends ConsumerState<SellerAccountScreen> {
             'التوثيق',
             onTap: () => go(sellerEntryRoute(s.status)),
           ),
-          SettingsRow(
-            AppIcon.sparkles,
-            'الوضع الليلي',
-            value: display.night.label,
-            onTap: displayCtl.nextNight,
-          ),
+          const ThemeModeRow(),
           SettingsRow(
             AppIcon.text,
             'حجم الخط',
@@ -457,7 +453,7 @@ class SellerStandingScreen extends ConsumerWidget {
                   title: 'صفحتك شغالة',
                   body: '$marks علامات خلال 30 يوم · 3 علامات = إيقاف 7 أيام',
                   bg: PillTone.teal.bg,
-                  tile: PillTone.teal.fg,
+                  tile: const Color(0xFF0B6E66),
                   fg: PillTone.teal.fg,
                 ),
         ),
@@ -687,7 +683,7 @@ class _DeleteState extends ConsumerState<SellerDeleteScreen> {
                     borderRadius: BorderRadius.circular(20),
                   ),
                   alignment: Alignment.center,
-                  child: const AppSvgIcon(
+                  child: AppSvgIcon(
                     AppIcon.trash,
                     color: AppColors.danger,
                     size: 30,

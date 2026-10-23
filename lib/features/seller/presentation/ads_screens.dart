@@ -89,7 +89,7 @@ class SellerAdsScreen extends ConsumerWidget {
                       width: AppSize.iconTile,
                       height: AppSize.iconTile,
                       decoration: BoxDecoration(
-                        color: AppColors.navy,
+                        color: AppColors.navyFill,
                         borderRadius: BorderRadius.circular(AppRadius.iconBox),
                       ),
                       alignment: Alignment.center,
@@ -298,7 +298,7 @@ class AdsEligibilityScreen extends ConsumerWidget {
             children: [
               IshtarBackground(
                 borderRadius: BorderRadius.circular(40),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [AppColors.blue, AppColors.navy],

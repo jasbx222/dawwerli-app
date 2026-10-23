@@ -132,7 +132,7 @@ class FilterChipButton extends StatelessWidget {
     child: Container(
       padding: const EdgeInsets.symmetric(horizontal: 12, vertical: 8),
       decoration: BoxDecoration(
-        color: AppColors.navy,
+        color: AppColors.navyFill,
         borderRadius: BorderRadius.circular(AppRadius.chip),
       ),
       child: Row(

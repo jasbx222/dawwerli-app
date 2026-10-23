@@ -128,7 +128,7 @@ class OfferDetailsScreen extends ConsumerWidget {
                         child: Pill(
                           OfferStrings.liveCamera,
                           bg: AppColors.white,
-                          fg: AppColors.ink,
+                          fg: AppColors.navy,
                           icon: AppIcon.camera,
                         ),
                       ),
@@ -319,12 +319,12 @@ class OfferDetailsScreen extends ConsumerWidget {
                     Text(
                       OfferStrings.want,
                       style: AppText.button.copyWith(
-                        color: AppColors.ink,
+                        color: AppColors.navy,
                         height: AppText.lh(16),
                       ),
                     ),
                     const SizedBox(width: 6),
-                    OfferIcon.target.of(AppColors.ink, 18),
+                    OfferIcon.target.of(AppColors.navy, 18),
                   ],
                 ),
               ),

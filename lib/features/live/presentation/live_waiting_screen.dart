@@ -70,7 +70,7 @@ class _LiveWaitingScreenState extends ConsumerState<LiveWaitingScreen> {
     final live = ref.watch(liveRequestProvider(widget.requestId));
     final r = live.value;
     if (r == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -300,7 +300,7 @@ class _Summary extends StatelessWidget {
       Container(
         padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
         decoration: BoxDecoration(
-          color: r.expired ? const Color(0xFFE7E5E4) : const Color(0xFFCCFBF1),
+          color: r.expired ? AppColors.tabTrack : AppColors.tealBg,
           borderRadius: BorderRadius.circular(99),
         ),
         child: Row(
@@ -311,8 +311,8 @@ class _Summary extends StatelessWidget {
                 width: 5,
                 height: 5,
                 margin: const EdgeInsets.only(top: 2.4),
-                decoration: const BoxDecoration(
-                  color: Color(0xFF0B6E66),
+                decoration: BoxDecoration(
+                  color: AppColors.teal,
                   shape: BoxShape.circle,
                 ),
               ),
@@ -325,8 +325,8 @@ class _Summary extends StatelessWidget {
                 height: AppText.lh(12),
                 fontWeight: FontWeight.w700,
                 color: r.expired
-                    ? const Color(0xFF57534E)
-                    : const Color(0xFF0B6E66),
+                    ? AppColors.tabText
+                    : AppColors.teal,
               ),
             ),
           ],

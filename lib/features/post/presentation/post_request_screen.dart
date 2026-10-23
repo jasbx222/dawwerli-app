@@ -309,7 +309,7 @@ class _VoiceCardState extends State<_VoiceCard> {
           const SizedBox(height: 6),
           Text(AppStrings.voiceNote, style: muted),
           const SizedBox(height: 6),
-          const EmojiText(
+          EmojiText(
             AppStrings.voiceWarn,
             style: TextStyle(
               fontSize: 12.5,

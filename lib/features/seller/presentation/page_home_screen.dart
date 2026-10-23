@@ -305,7 +305,7 @@ class _Summary extends StatelessWidget {
           ),
         ),
         if (loading)
-          const SizedBox(
+          SizedBox(
             width: 14,
             height: 14,
             child: CircularProgressIndicator(
@@ -404,7 +404,7 @@ class _FeedFilterSheetState extends State<FeedFilterSheet> {
         children: [
           Row(
             children: [
-              const AppSvgIcon(AppIcon.filter, color: AppColors.navy, size: 20),
+              AppSvgIcon(AppIcon.filter, color: AppColors.ink, size: 20),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(
@@ -515,7 +515,7 @@ class _PriceField extends StatelessWidget {
       ),
       focusedBorder: OutlineInputBorder(
         borderRadius: BorderRadius.circular(14),
-        borderSide: const BorderSide(color: AppColors.blue, width: 1.5),
+        borderSide: BorderSide(color: AppColors.blue, width: 1.5),
       ),
     ),
   );
@@ -529,7 +529,7 @@ class _EarlyBanner extends StatelessWidget {
     padding: const EdgeInsets.all(AppSpacing.lg),
     decoration: BoxDecoration(
       borderRadius: BorderRadius.circular(AppRadius.card),
-      gradient: const LinearGradient(
+      gradient: LinearGradient(
         begin: Alignment(-0.866, -0.5),
         end: Alignment(0.866, 0.5),
         colors: [AppColors.navy, AppColors.blue],

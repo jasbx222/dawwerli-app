@@ -685,7 +685,7 @@ class _InfoRow extends StatelessWidget {
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [
-                  const AppSvgIcon(
+                  AppSvgIcon(
                     AppIcon.phone,
                     color: AppColors.blue,
                     size: 14,

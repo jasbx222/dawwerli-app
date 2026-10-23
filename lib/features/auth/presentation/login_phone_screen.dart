@@ -126,7 +126,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
                 GestureDetector(
                   onLongPress: () => ServerUrlSheet.show(context),
                   child: Text.rich(
-                    const TextSpan(
+                    TextSpan(
                       children: [
                         TextSpan(text: AppStrings.termsPrefix),
                         TextSpan(text: AppStrings.privacy, style: _link),
@@ -146,7 +146,7 @@ class _LoginPhoneScreenState extends ConsumerState<LoginPhoneScreen> {
     );
   }
 
-  static const _link = TextStyle(
+  static final _link = TextStyle(
     fontWeight: FontWeight.w700,
     color: AppColors.blue,
   );

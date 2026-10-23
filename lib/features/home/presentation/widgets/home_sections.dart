@@ -52,7 +52,7 @@ class SectionTitle extends StatelessWidget {
               padding: const EdgeInsets.only(bottom: 2),
               child: Text(
                 seeAllLabel,
-                style: const TextStyle(
+                style: TextStyle(
                   fontSize: 13,
                   height: 1.500000,
                   fontWeight: FontWeight.w600,
@@ -287,7 +287,7 @@ class StatsRow extends StatelessWidget {
                   children: [
                     Text(
                       cells[i].$1,
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 17,
                         height: 1.508170,
                         fontWeight: FontWeight.w700,
@@ -468,7 +468,7 @@ class _BentoTile extends StatelessWidget {
                         fontSize: 11,
                         height: 1.510101,
                         fontWeight: FontWeight.w700,
-                        color: AppColors.ink,
+                        color: AppColors.navy,
                       ),
                     ),
                   ),
@@ -515,7 +515,7 @@ class _CategoryBadgeIcon extends StatelessWidget {
     slug,
     size: size,
     color: AppColors.blue,
-    background: AppColors.white.withValues(alpha: .92),
+    background: AppColors.surface.withValues(alpha: .92),
   );
 }
 
@@ -539,11 +539,11 @@ class LiveFeedCard extends StatelessWidget {
             padding: const EdgeInsets.symmetric(vertical: 11),
             decoration: i == items.length - 1
                 ? null
-                : const BoxDecoration(
+                : BoxDecoration(
                     border: Border(
                       // CSS 1px renders as 2 device px at the design's DPR.
                       bottom: BorderSide(
-                        color: Color(0xFFF1ECE0),
+                        color: AppColors.divider,
                         width: 2 / AppText.designDpr,
                       ),
                     ),
@@ -601,7 +601,7 @@ class LiveFeedCard extends StatelessWidget {
                   ),
                   child: Text(
                     AppStrings.offersCount(items[i].offers),
-                    style: const TextStyle(
+                    style: TextStyle(
                       fontSize: 12,
                       height: 1.504630,
                       fontWeight: FontWeight.w700,
@@ -734,8 +734,8 @@ class DealsStrip extends StatelessWidget {
                           const TextSpan(text: AppStrings.save),
                           TextSpan(
                             text: thousands(d.saved),
-                            style: const TextStyle(
-                              color: Color(0xFF0B6E66),
+                            style: TextStyle(
+                              color: AppColors.teal,
                               fontWeight: FontWeight.w700,
                               fontSize: 12,
                             ),
@@ -865,7 +865,7 @@ class SponsoredBanner extends StatelessWidget {
         decoration: BoxDecoration(
           borderRadius: BorderRadius.circular(22),
           border: Border.all(color: AppColors.gold, width: 1.5),
-          gradient: const LinearGradient(
+          gradient: LinearGradient(
             begin: Alignment(-0.866, -0.5),
             end: Alignment(0.866, 0.5),
             colors: [AppColors.navy, AppColors.blue, Color(0xFF2F5FD0)],
@@ -946,7 +946,7 @@ class SponsoredBanner extends StatelessWidget {
                       color: AppColors.surface,
                       borderRadius: BorderRadius.circular(10),
                     ),
-                    child: const Text(
+                    child: Text(
                       AppStrings.viewPage,
                       style: TextStyle(
                         fontSize: 12,

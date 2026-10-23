@@ -111,7 +111,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
           (_) => context.go(Routes.offers(widget.requestId)),
         );
       }
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -264,7 +264,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                                   borderRadius: BorderRadius.circular(14),
                                 ),
                                 alignment: Alignment.center,
-                                child: const AppSvgIcon(
+                                child: AppSvgIcon(
                                   AppIcon.clock,
                                   color: AppColors.warn,
                                 ),
@@ -274,7 +274,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                                 child: Column(
                                   crossAxisAlignment: CrossAxisAlignment.start,
                                   children: [
-                                    const Text(
+                                    Text(
                                       OfferStrings.noneLeftTitle,
                                       style: TextStyle(
                                         fontSize: 15.5,
@@ -328,7 +328,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                         children: [
                           Row(
                             children: [
-                              const AppSvgIcon(
+                              AppSvgIcon(
                                 AppIcon.clock,
                                 size: 22,
                                 color: AppColors.blue,
@@ -400,7 +400,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                           const SizedBox(width: 12),
                           Text(OfferStrings.priceChanged, style: AppText.body),
                           const Spacer(),
-                          const Text(
+                          Text(
                             OfferStrings.report,
                             style: TextStyle(
                               fontWeight: FontWeight.w700,
@@ -428,7 +428,7 @@ class _ChosenScreenState extends ConsumerState<ChosenScreen> {
                     vertical: 13,
                   ),
                   decoration: BoxDecoration(
-                    color: AppColors.navy,
+                    color: AppColors.navyFill,
                     borderRadius: BorderRadius.circular(18),
                     boxShadow: const [
                       BoxShadow(

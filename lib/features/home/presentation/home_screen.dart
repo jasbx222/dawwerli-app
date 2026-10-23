@@ -42,7 +42,7 @@ class HomeScreen extends ConsumerWidget {
       body: Stack(
         children: [
           home.when(
-            loading: () => const Center(
+            loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.blue),
             ),
             error: (e, _) => Center(child: Text('$e')),
@@ -203,7 +203,7 @@ class _Body extends StatelessWidget {
                                 ),
                                 Text(
                                   '${offers[i].price} د.ع',
-                                  style: const TextStyle(
+                                  style: TextStyle(
                                     color: AppColors.blue,
                                     fontWeight: FontWeight.w700,
                                   ),

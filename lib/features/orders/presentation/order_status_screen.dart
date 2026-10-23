@@ -25,7 +25,7 @@ class OrderStatusScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final o = ref.watch(orderProvider(orderId)).value;
     if (o == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -199,7 +199,7 @@ class _Step extends StatelessWidget {
           decoration: BoxDecoration(
             shape: BoxShape.circle,
             color: step.done ? AppColors.blue : AppColors.surface,
-            boxShadow: const [
+            boxShadow: [
               BoxShadow(color: AppColors.blue, spreadRadius: 2),
             ],
           ),

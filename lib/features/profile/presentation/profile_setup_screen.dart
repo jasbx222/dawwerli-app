@@ -133,7 +133,7 @@ class _ProfileSetupScreenState extends ConsumerState<ProfileSetupScreen> {
                           focusNode: _areaFocus,
                         ),
                       ),
-                      const AppSvgIcon(
+                      AppSvgIcon(
                         AppIcon.pin,
                         color: AppColors.blue,
                         size: 18,
