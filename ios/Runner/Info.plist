@@ -79,6 +79,10 @@
 			</array>
 		</dict>
 	</array>
+	<key>NSCameraUsageDescription</key>
+	<string>دوّرلي يستخدم الكاميرا حتى تصوّر الطلب أو حايطك لـ«حطها على حايطك». صورة الحايط تبقى على تلفونك وما نرفعها.</string>
+	<key>NSPhotoLibraryUsageDescription</key>
+	<string>دوّرلي يحتاج الصور حتى تختار صورة للطلب أو صورة حايطك لـ«حطها على حايطك». صورة الحايط تبقى على تلفونك وما نرفعها.</string>
 	<key>UIUserInterfaceStyle</key>
 	<string>Light</string>
 </dict>

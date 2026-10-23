@@ -4,6 +4,7 @@ import '../../../core/api/api_client.dart';
 import '../../../core/storage/prefs.dart';
 import '../../../core/utils/format.dart';
 import '../../guest/guest.dart';
+import '../../wall/wall_math.dart';
 
 class StoreProduct {
   const StoreProduct({
@@ -22,8 +23,39 @@ class StoreProduct {
     this.hasRated = false,
     this.myReview,
     this.isFavorite,
+    this.widthCm,
+    this.heightCm,
+    this.depthCm,
+    this.wallKind,
+    this.variantLabel,
+    this.variants = const [],
   });
   final String id;
+
+  /// Real size in centimetres (width × height as it hangs; depth optional)
+  /// and what kind of wall piece it is. All null when the page set no size.
+  final double? widthCm;
+  final double? heightCm;
+  final double? depthCm;
+  final String? wallKind;
+
+  /// This product's label inside its size group («55 بوصة»), null if alone.
+  final String? variantLabel;
+
+  /// Same-page sizes of this product, smallest first and including itself;
+  /// empty when it has no other sizes.
+  final List<ProductVariant> variants;
+
+  /// Non-null only when «حطها على حايطك» can show (size and kind all set).
+  WallSize? get wall => WallSize.of(
+    widthCm: widthCm,
+    heightCm: heightCm,
+    wallKind: wallKind,
+    depthCm: depthCm,
+  );
+
+  /// Any real size the page entered, wall piece or not.
+  bool get hasSize => WallSize.validCm(widthCm) && WallSize.validCm(heightCm);
 
   /// Owning page; sent by GET /products/{id} so a product opens by id alone.
   final String pageId;
@@ -79,8 +111,97 @@ class StoreProduct {
           ? ProductReview.fromJson(j['myReview'] as Map<String, dynamic>)
           : null,
       isFavorite: j['isFavorite'] is bool ? j['isFavorite'] as bool : null,
+      widthCm: _cm(j['widthCm']),
+      heightCm: _cm(j['heightCm']),
+      depthCm: _cm(j['depthCm']),
+      wallKind: j['wallKind'] is String ? j['wallKind'] as String : null,
+      variantLabel: j['variantLabel'] is String
+          ? j['variantLabel'] as String
+          : null,
+      variants: [
+        for (final v
+            in j['variants'] is List ? j['variants'] as List : const [])
+          if (v is Map) ProductVariant.fromJson(v.cast<String, dynamic>()),
+      ],
     );
   }
+}
+
+/// Centimetres from JSON: a finite positive number, else null.
+double? _cm(Object? v) {
+  if (v is! num) return null;
+  final d = v.toDouble();
+  return d.isFinite && d > 0 ? d : null;
+}
+
+/// Another size of the same product at the same page.
+class ProductVariant {
+  const ProductVariant({
+    required this.id,
+    required this.label,
+    required this.name,
+    required this.price,
+    required this.stock,
+    required this.available,
+    this.imageUrl,
+    this.widthCm,
+    this.heightCm,
+    this.depthCm,
+    this.wallKind,
+  });
+  final String id;
+  final String label;
+  final String name;
+  final int price;
+  final int stock;
+  final bool available;
+  final String? imageUrl;
+  final double? widthCm;
+  final double? heightCm;
+  final double? depthCm;
+  final String? wallKind;
+
+  WallSize? get wall => WallSize.of(
+    widthCm: widthCm,
+    heightCm: heightCm,
+    wallKind: wallKind,
+    depthCm: depthCm,
+  );
+
+  factory ProductVariant.fromJson(Map<String, dynamic> j) {
+    final stock = j.i('stock');
+    final label = j.s('label').trim();
+    return ProductVariant(
+      id: j.s('id'),
+      label: label.isEmpty ? j.s('name') : label,
+      name: j.s('name'),
+      price: j.i('price'),
+      stock: stock,
+      available: j.containsKey('available') ? j.b('available') : stock > 0,
+      imageUrl: j['imageUrl'] is String && (j['imageUrl'] as String).isNotEmpty
+          ? j['imageUrl'] as String
+          : null,
+      widthCm: _cm(j['widthCm']),
+      heightCm: _cm(j['heightCm']),
+      depthCm: _cm(j['depthCm']),
+      wallKind: j['wallKind'] is String ? j['wallKind'] as String : null,
+    );
+  }
+
+  /// The product itself as a variant (for products without size siblings).
+  factory ProductVariant.of(StoreProduct p) => ProductVariant(
+    id: p.id,
+    label: p.variantLabel ?? '',
+    name: p.name,
+    price: p.price,
+    stock: p.stock,
+    available: p.available,
+    imageUrl: p.image.isEmpty ? null : p.image,
+    widthCm: p.widthCm,
+    heightCm: p.heightCm,
+    depthCm: p.depthCm,
+    wallKind: p.wallKind,
+  );
 }
 
 /// Store order status codes as the app uses them. The API sends camelCase

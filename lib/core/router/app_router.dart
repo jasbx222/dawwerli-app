@@ -46,6 +46,7 @@ import '../../features/onboarding/presentation/onboarding_screen.dart';
 import '../../features/profile/presentation/profile_setup_screen.dart';
 import '../../features/splash/presentation/splash_screen.dart';
 import '../../features/store/presentation/store_screens.dart';
+import '../../features/wall/wall_preview_screen.dart';
 import '../widgets/order_map.dart';
 import 'routes.dart';
 
@@ -255,6 +256,15 @@ final appRouter = GoRouter(
                 pageId: s.pathParameters['id']!,
                 productId: s.pathParameters['productId']!,
               ),
+              routes: [
+                GoRoute(
+                  path: 'wall',
+                  builder: (_, s) => WallPreviewScreen(
+                    pageId: s.pathParameters['id']!,
+                    productId: s.pathParameters['productId']!,
+                  ),
+                ),
+              ],
             ),
           ],
         ),
@@ -270,6 +280,13 @@ final appRouter = GoRouter(
       path: '/products/:id',
       builder: (_, s) =>
           ProductDetailsScreen(pageId: '', productId: s.pathParameters['id']!),
+      routes: [
+        GoRoute(
+          path: 'wall',
+          builder: (_, s) =>
+              WallPreviewScreen(pageId: '', productId: s.pathParameters['id']!),
+        ),
+      ],
     ),
     GoRoute(
       path: '/store/ranking/:kind',
