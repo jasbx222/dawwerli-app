@@ -20,6 +20,8 @@ import '../../../core/widgets/pill.dart';
 import '../../store/data/store_data.dart';
 import '../../store/presentation/store_order_screens.dart'
     show OrderStatusPill, storeStatusLabel;
+import '../../tracking/courier_tracking.dart';
+import '../../tracking/tracking_widgets.dart';
 import '../data/page_store_orders.dart';
 import 'couriers_screen.dart';
 import 'widgets/page_side_widgets.dart';
@@ -348,6 +350,24 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
     }
   }
 
+  Future<void> _regenerateLink() async {
+    try {
+      final link = await ref
+          .read(courierTrackingRepoProvider)
+          .regenerate(widget.orderId);
+      if (!mounted) return;
+      setState(() => _o = _o?.withLink(link));
+      showAppToast(context, 'سوّينا رابط جديد، دزه للمندوب');
+    } on ApiException catch (e) {
+      if (!mounted) return;
+      showAppToast(
+        context,
+        pageOrderError(e, 'ما قدرنا نسوّي رابط جديد هسه'),
+        icon: AppIcon.alert,
+      );
+    }
+  }
+
   Future<void> _outForDelivery() async {
     final c = await CourierPickerSheet.show(context);
     if (c != null && mounted) await _move('out_for_delivery', courierId: c.id);
@@ -542,6 +562,29 @@ class _OrderState extends ConsumerState<SellerStoreOrderScreen>
           ),
         ),
       ],
+      if (o.trackingLink case final link?) ...[
+        const SectionLabel('رابط تتبع المندوب'),
+        Gap(
+          AppCard(
+            child: CourierLinkCard(link: link, onRegenerate: _regenerateLink),
+          ),
+        ),
+      ],
+      if (order.status == 'out_for_delivery')
+        LiveCourierSection(
+          key: ValueKey('courier-${order.id}'),
+          storeOrderId: order.id,
+          pinLatitude: order.location?.latitude,
+          pinLongitude: order.location?.longitude,
+          forPage: true,
+          wrap: (child) => Column(
+            crossAxisAlignment: CrossAxisAlignment.stretch,
+            children: [
+              const SectionLabel('وين وصل المندوب'),
+              Gap(AppCard(child: child)),
+            ],
+          ),
+        ),
       const SectionLabel('المنتجات'),
       Gap(
         AppCard(

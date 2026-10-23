@@ -20,6 +20,7 @@ import '../../../core/widgets/radio_row.dart';
 import '../../more/more_data.dart';
 import '../../orders/data/orders_providers.dart';
 import '../../orders/domain/order.dart' show DeliveryAnswer;
+import '../../tracking/tracking_widgets.dart';
 import '../data/store_data.dart';
 import 'widgets/product_card.dart';
 import 'widgets/rating_sheet.dart';
@@ -824,6 +825,15 @@ class _Details extends ConsumerWidget {
                 ],
               ),
             ),
+          ),
+        if (o.status == 'out_for_delivery')
+          LiveCourierSection(
+            key: ValueKey('courier-${o.id}'),
+            storeOrderId: o.id,
+            pinLatitude: o.location?.latitude,
+            pinLongitude: o.location?.longitude,
+            wrap: (child) =>
+                gap(_Section(title: 'وين وصل المندوب', child: child)),
           ),
         gap(
           _Section(

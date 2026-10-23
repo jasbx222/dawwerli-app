@@ -2,19 +2,36 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../../core/api/api_client.dart';
 import '../../store/data/store_data.dart';
+import '../../tracking/courier_tracking.dart';
 
 /// A product order placed with this page's store, with the customer details
 /// the API allows (the phone is dropped once the order is closed).
 class PageStoreOrder {
-  const PageStoreOrder(this.order, {this.customerName, this.customerPhone});
+  const PageStoreOrder(
+    this.order, {
+    this.customerName,
+    this.customerPhone,
+    this.trackingLink,
+  });
   final StoreOrder order;
   final String? customerName;
   final String? customerPhone;
+
+  /// Courier link while the order is out with a courier (details only).
+  final CourierTrackingLink? trackingLink;
+
+  PageStoreOrder withLink(CourierTrackingLink link) => PageStoreOrder(
+    order,
+    customerName: customerName,
+    customerPhone: customerPhone,
+    trackingLink: link,
+  );
 
   factory PageStoreOrder.fromJson(Map<String, dynamic> j) => PageStoreOrder(
     StoreOrder.fromJson(j.m('order')),
     customerName: j.os('customerName'),
     customerPhone: j.os('customerPhone'),
+    trackingLink: CourierTrackingLink.fromOrderJson(j),
   );
 }
 
