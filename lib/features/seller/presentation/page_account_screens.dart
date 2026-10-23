@@ -326,6 +326,7 @@ class _SettingsState extends ConsumerState<SellerSettingsScreen> {
                   ],
                   selected: _s.categories,
                   limit: 4,
+                  categoryKeyOf: ref.watch(catalogCategoriesProvider).slugOf,
                   onToggle: (v) => setState(
                     () => _s = _s.copyWith(categories: _flip(_s.categories, v)),
                   ),

@@ -11,6 +11,7 @@ import '../../core/theme/app_typography.dart';
 import '../../core/widgets/app_button.dart';
 import '../../core/widgets/app_card.dart';
 import '../../core/widgets/app_icons.dart';
+import '../../core/widgets/category_icon.dart';
 import '../../core/widgets/app_inputs.dart';
 import '../../core/widgets/app_page.dart';
 import '../../core/widgets/app_toggle.dart';
@@ -39,9 +40,6 @@ Widget _avatar(String name, {double size = AppSize.iconTile, String? image}) {
   }
   return LetterAvatar(name, size: size);
 }
-
-
-
 
 // ───────────────────────── Categories ─────────────────────────
 
@@ -101,17 +99,26 @@ class _CategoryTile extends StatelessWidget {
             stops: [.35, 1],
           ),
         ),
-        child: Align(
-          alignment: AlignmentDirectional.bottomStart,
-          child: Padding(
-            padding: const EdgeInsets.all(12),
-            child: Text(
-              c.name,
-              style: AppText.strong.copyWith(
-                color: AppColors.white,
-                fontSize: 15,
+        child: Padding(
+          padding: const EdgeInsets.all(12),
+          child: Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              CategoryIconTile(
+                c.slug,
+                size: 34,
+                color: AppColors.blue,
+                background: AppColors.white.withValues(alpha: .92),
               ),
-            ),
+              Text(
+                c.name,
+                style: AppText.strong.copyWith(
+                  color: AppColors.white,
+                  fontSize: 15,
+                ),
+              ),
+            ],
           ),
         ),
       ),
@@ -720,14 +727,15 @@ class CategoryPickerScreen extends ConsumerWidget {
                             ),
                       child: Row(
                         children: [
-                          ClipRRect(
-                            borderRadius: BorderRadius.circular(12),
-                            child: AppImage(
-                              c.image,
-                              width: 40,
-                              height: 40,
-                              fit: BoxFit.cover,
-                            ),
+                          CategoryIconTile(
+                            c.slug,
+                            size: 40,
+                            color: c.name == current
+                                ? AppColors.white
+                                : AppColors.blue,
+                            background: c.name == current
+                                ? AppColors.blue
+                                : null,
                           ),
                           const SizedBox(width: 12),
                           Expanded(

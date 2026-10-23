@@ -127,6 +127,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                 options: [for (final c in ref.watch(catalogCategoriesProvider)) c.name],
                 selected: _cats,
                 limit: 4,
+                categoryKeyOf: ref.watch(catalogCategoriesProvider).slugOf,
                 onToggle: (v) => setState(() => _cats = _flip(_cats, v)),
               ),
               const SizedBox(height: 14),

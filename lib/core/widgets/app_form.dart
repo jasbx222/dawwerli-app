@@ -105,8 +105,12 @@ class ChipPicker extends StatefulWidget {
     required this.onToggle,
     this.limit,
     this.extra,
+    this.categoryKeyOf,
   });
   final List<String> options;
+
+  /// When set, each chip shows the category SVG icon for this key.
+  final String? Function(String option)? categoryKeyOf;
   final Set<String> selected;
   final ValueChanged<String> onToggle;
   final int? limit;
@@ -137,6 +141,9 @@ class _ChipPickerState extends State<ChipPicker> {
             o,
             selected: widget.selected.contains(o),
             onTap: () => widget.onToggle(o),
+            categoryKey: widget.categoryKeyOf == null
+                ? null
+                : widget.categoryKeyOf!(o) ?? '',
           ),
         if (hidden > 0)
           AppChip('+$hidden', onTap: () => setState(() => _all = true)),

@@ -2,11 +2,13 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/api/catalog.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/theme/app_typography.dart';
 import '../../../core/widgets/app_icons.dart';
 import '../../../core/widgets/app_image.dart';
+import '../../../core/widgets/category_icon.dart';
 import '../../../core/widgets/app_page.dart';
 import '../../guest/guest.dart';
 import '../../home/presentation/widgets/home_sections.dart';
@@ -509,12 +511,23 @@ class PageDirectoryCard extends ConsumerWidget {
                         color: AppColors.blueTint,
                         borderRadius: BorderRadius.circular(8),
                       ),
-                      child: Text(
-                        c,
-                        style: AppText.label.copyWith(
-                          fontSize: 11.5,
-                          color: AppColors.blue,
-                        ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          CategoryIcon(
+                            ref.watch(catalogProvider).value?.slugOf(c),
+                            size: 13,
+                            color: AppColors.blue,
+                          ),
+                          const SizedBox(width: 4),
+                          Text(
+                            c,
+                            style: AppText.label.copyWith(
+                              fontSize: 11.5,
+                              color: AppColors.blue,
+                            ),
+                          ),
+                        ],
                       ),
                     ),
                 ],

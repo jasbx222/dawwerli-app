@@ -18,7 +18,8 @@ class ApiHomeRepository implements HomeRepository {
 
   @override
   Future<HomeData> load({required String governorate}) async {
-    final gov = (await catalog).governorateId(governorate);
+    final cat = await catalog;
+    final gov = cat.governorateId(governorate);
     final j = await api.get<Map<String, dynamic>>(
       '/api/v1/home',
       query: {'governorateId': ?gov},
@@ -69,6 +70,7 @@ class ApiHomeRepository implements HomeRepository {
             name: c.s('name'),
             image: c.os('image') ?? '',
             badge: _badges[c.s('badge')] ?? CategoryBadge.none,
+            slug: c.os('slug') ?? cat.categoryById(c.i('id'))?.slug ?? '',
           ),
       ],
       feed: [for (final f in j.l('feed')) feedItemFromJson(f)],

@@ -208,9 +208,10 @@ class _HomeState extends ConsumerState<SellerHomeScreen>
               ),
               for (final c in cats)
                 choiceChip(
-                  '${c.emoji ?? ''} ${c.name}'.trim(),
+                  c.name,
                   _filter.categoryId == c.id,
                   () => _apply(_filter.copyWith(categoryId: () => c.id)),
+                  categoryKey: c.slug,
                 ),
             ],
           ),
@@ -421,9 +422,10 @@ class _FeedFilterSheetState extends State<FeedFilterSheet> {
             ),
             for (final c in widget.categories)
               choiceChip(
-                '${c.emoji ?? ''} ${c.name}'.trim(),
+                c.name,
                 _f.categoryId == c.id,
                 () => setState(() => _f = _f.copyWith(categoryId: () => c.id)),
+                categoryKey: c.slug,
               ),
           ]),
           _group('تاريخ النشر', [

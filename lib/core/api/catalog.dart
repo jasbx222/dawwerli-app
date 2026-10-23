@@ -56,6 +56,9 @@ class Catalog {
             '${c.id}' == nameOrSlugOrId,
       )
       .firstOrNull;
+
+  /// Slug for a category name/slug/id (icon key); null when unknown.
+  String? slugOf(String nameOrSlugOrId) => category(nameOrSlugOrId)?.slug;
   CatalogCategoryRef? categoryById(int id) =>
       categories.where((c) => c.id == id).firstOrNull;
   int? governorateId(String name) =>

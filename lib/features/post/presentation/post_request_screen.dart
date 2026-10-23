@@ -136,6 +136,7 @@ class _PostRequestScreenState extends ConsumerState<PostRequestScreen> {
                       for (final c in cats)
                         AppChip(
                           c.label,
+                          categoryKey: c.slug ?? '',
                           selected:
                               c.name == (draft.category ?? cats.first.name),
                           onTap: () => notifier.update(

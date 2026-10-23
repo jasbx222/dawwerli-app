@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import 'category_icon.dart';
 import 'emoji_text.dart';
 
 import 'exact_line.dart';
@@ -129,10 +130,14 @@ class AppChip extends StatelessWidget {
     this.gold = false,
     this.onTap,
     this.width,
+    this.categoryKey,
   });
 
   final String label;
   final bool selected;
+
+  /// Category slug: draws its SVG icon before the label in the text colour.
+  final String? categoryKey;
 
   /// Fixed outer width (design-measured) so Chrome/Flutter glyph-width
   /// differences don't shift neighbouring chips; label is centred.
@@ -144,6 +149,21 @@ class AppChip extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    final fg = selected
+        ? AppColors.white
+        : (gold ? AppColors.warn : AppColors.ink);
+    final text = ExactLine(
+      fontSize: 13,
+      child: EmojiText(
+        label,
+        style: TextStyle(
+          fontSize: 13,
+          height: 1.500000,
+          fontWeight: FontWeight.w600,
+          color: fg,
+        ),
+      ),
+    );
     return GestureDetector(
       onTap: onTap,
       child: Container(
@@ -162,20 +182,20 @@ class AppChip extends StatelessWidget {
               ? null
               : [BoxShadow(color: AppColors.border, spreadRadius: 1.5)],
         ),
-        child: ExactLine(
-          fontSize: 13,
-          child: EmojiText(
-            label,
-            style: TextStyle(
-              fontSize: 13,
-              height: 1.500000,
-              fontWeight: FontWeight.w600,
-              color: selected
-                  ? AppColors.white
-                  : (gold ? AppColors.warn : AppColors.ink),
-            ),
-          ),
-        ),
+        child: categoryKey == null
+            ? text
+            : Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CategoryIcon(
+                    categoryKey,
+                    size: 16,
+                    color: selected ? AppColors.white : AppColors.blue,
+                  ),
+                  const SizedBox(width: 6),
+                  text,
+                ],
+              ),
       ),
     );
   }
