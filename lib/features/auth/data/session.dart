@@ -43,7 +43,11 @@ Future<String> afterSignIn(WidgetRef ref, {required bool needsProfile}) async {
   }
   await ref.read(appRoleProvider.notifier).set(wanted);
   if (wanted == AppRole.seller) {
+    ref.read(signInReturnProvider.notifier).set(null);
     return sellerEntryRoute(await ref.read(sellerProvider.notifier).refresh());
   }
-  return needsProfile ? Routes.profileSetup : Routes.home;
+  // New accounts finish their profile first; profile setup then takes the
+  // return path (see [signInReturnProvider]).
+  if (needsProfile) return Routes.profileSetup;
+  return ref.read(signInReturnProvider.notifier).take() ?? Routes.home;
 }
