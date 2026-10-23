@@ -20,7 +20,7 @@ class ToastBar extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 14, vertical: 13),
     decoration: BoxDecoration(
-      color: AppColors.navy,
+      color: AppColors.navyFill,
       borderRadius: BorderRadius.circular(18),
       boxShadow: const [
         BoxShadow(

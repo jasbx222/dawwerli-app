@@ -63,10 +63,10 @@ class _Attribution extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
     color: AppColors.white.withValues(alpha: .8),
-    child: const Text(
+    child: Text(
       '© OpenStreetMap',
       textDirection: TextDirection.ltr,
-      style: TextStyle(fontSize: 10, color: Color(0xFF555555)),
+      style: TextStyle(fontSize: 10, color: AppColors.grey),
     ),
   );
 }
@@ -137,7 +137,7 @@ class OrderPinMap extends StatelessWidget {
                     child: Row(
                       mainAxisSize: MainAxisSize.min,
                       children: [
-                        const AppSvgIcon(
+                        AppSvgIcon(
                           AppIcon.pin,
                           color: AppColors.blue,
                           size: 15,
@@ -237,7 +237,7 @@ class _PinPickerScreenState extends State<PinPickerScreen> {
                       vertical: 10,
                     ),
                     decoration: BoxDecoration(
-                      color: AppColors.navy,
+                      color: AppColors.navyFill,
                       borderRadius: BorderRadius.circular(16),
                     ),
                     child: Text(
@@ -337,7 +337,7 @@ class _RoundButton extends StatelessWidget {
     button: true,
     label: label,
     child: Material(
-      color: AppColors.white,
+      color: AppColors.surface,
       shape: const CircleBorder(),
       elevation: 3,
       child: InkWell(

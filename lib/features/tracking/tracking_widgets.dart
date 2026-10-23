@@ -222,7 +222,7 @@ class _LiveCourierMapState extends State<LiveCourierMap> {
                         point: p,
                         width: 34,
                         height: 34,
-                        child: const _Dot(
+                        child: _Dot(
                           color: AppColors.blue,
                           icon: AppIcon.pin,
                         ),
@@ -249,10 +249,10 @@ class _LiveCourierMapState extends State<LiveCourierMap> {
             child: Container(
               padding: const EdgeInsets.symmetric(horizontal: 6, vertical: 2),
               color: AppColors.white.withValues(alpha: .8),
-              child: const Text(
+              child: Text(
                 '© OpenStreetMap',
                 textDirection: TextDirection.ltr,
-                style: TextStyle(fontSize: 10, color: Color(0xFF555555)),
+                style: TextStyle(fontSize: 10, color: AppColors.grey),
               ),
             ),
           ),
@@ -386,7 +386,7 @@ class _CourierLinkCardState extends State<CourierLinkCard> {
           ),
           child: Row(
             children: [
-              const AppSvgIcon(AppIcon.link, color: AppColors.blue, size: 18),
+              AppSvgIcon(AppIcon.link, color: AppColors.blue, size: 18),
               const SizedBox(width: 8),
               Expanded(
                 child: Text(

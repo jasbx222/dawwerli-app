@@ -51,7 +51,7 @@ class RecoverOffersScreen extends ConsumerWidget {
                 color: AppColors.warnBg,
                 child: Row(
                   children: [
-                    const AppSvgIcon(AppIcon.clock, color: AppColors.warn, size: 22),
+                    AppSvgIcon(AppIcon.clock, color: AppColors.warn, size: 22),
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text.rich(
@@ -66,7 +66,7 @@ class RecoverOffersScreen extends ConsumerWidget {
                             ),
                           ],
                         ),
-                        style: const TextStyle(
+                        style: TextStyle(
                           fontSize: 12.5,
                           height: 1.502222,
                           color: AppColors.warnText,

@@ -255,7 +255,7 @@ class _ReasonSheetState extends State<ReasonSheet> {
           padding: const EdgeInsets.only(top: 4),
           child: Row(
             children: [
-              const AppSvgIcon(
+              AppSvgIcon(
                 AppIcon.alert,
                 color: AppColors.danger,
                 size: 16,
@@ -264,7 +264,7 @@ class _ReasonSheetState extends State<ReasonSheet> {
               Expanded(
                 child: Text(
                   widget.warning!,
-                  style: const TextStyle(
+                  style: TextStyle(
                     fontSize: 12.5,
                     fontWeight: FontWeight.w700,
                     color: AppColors.danger,

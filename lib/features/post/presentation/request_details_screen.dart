@@ -259,7 +259,7 @@ class _RequestDetailsScreenState extends ConsumerState<RequestDetailsScreen> {
                         mainAxisAlignment: MainAxisAlignment.spaceBetween,
                         children: [
                           Text(AppStrings.fromAccount(draft.governorate)),
-                          const AppSvgIcon(
+                          AppSvgIcon(
                             AppIcon.pin,
                             size: 18,
                             color: AppColors.blue,

@@ -35,7 +35,7 @@ class OfflineScreen extends ConsumerWidget {
       child: AppCard(
         child: Row(
           children: [
-            const Pill('بالانتظار', bg: AppColors.warnBg, fg: AppColors.warn),
+            Pill('بالانتظار', bg: AppColors.warnBg, fg: AppColors.warn),
             const SizedBox(width: 12),
             Text('$draftTitle · مسودة', style: AppText.strong),
           ],
@@ -168,7 +168,7 @@ class _DotPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: const Color(0xFFCCFBF1),
+      color: AppColors.tealBg,
       borderRadius: BorderRadius.circular(99),
     ),
     child: Row(
@@ -177,8 +177,8 @@ class _DotPill extends StatelessWidget {
         Container(
           width: 6,
           height: 6,
-          decoration: const BoxDecoration(
-            color: Color(0xFF0B6E66),
+          decoration: BoxDecoration(
+            color: AppColors.teal,
             shape: BoxShape.circle,
           ),
         ),
@@ -189,7 +189,7 @@ class _DotPill extends StatelessWidget {
             fontSize: 12,
             height: AppText.lh(12),
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0B6E66),
+            color: AppColors.teal,
           ),
         ),
       ],

@@ -79,7 +79,7 @@ class _RegisterState extends ConsumerState<SellerRegisterScreen> {
                 controller: _handle,
                 ltr: true,
                 onChanged: (_) => setState(() {}),
-                trailing: const AppSvgIcon(
+                trailing: AppSvgIcon(
                   AppIcon.camera,
                   color: AppColors.blue,
                   size: 18,
@@ -216,7 +216,7 @@ class _VerifiedPhone extends ConsumerWidget {
               style: AppText.body.copyWith(fontSize: 15),
             ),
             const Spacer(),
-            const AppSvgIcon(
+            AppSvgIcon(
               AppIcon.verified,
               color: AppColors.success,
               size: 18,
@@ -272,7 +272,7 @@ class SellerVerifyScreen extends ConsumerWidget {
                   margin: const EdgeInsets.symmetric(vertical: 14),
                   padding: const EdgeInsets.all(18),
                   decoration: BoxDecoration(
-                    color: AppColors.navy,
+                    color: AppColors.navyFill,
                     borderRadius: BorderRadius.circular(AppRadius.button),
                   ),
                   alignment: Alignment.center,

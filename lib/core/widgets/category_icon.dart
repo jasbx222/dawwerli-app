@@ -44,27 +44,27 @@ String categoryIconAsset(String? key) {
 
 /// Category line icon tinted with [color] (stroke uses `currentColor`).
 class CategoryIcon extends StatelessWidget {
-  const CategoryIcon(
-    this.categoryKey, {
-    super.key,
-    this.size = 20,
-    this.color = AppColors.blue,
-  });
+  const CategoryIcon(this.categoryKey, {super.key, this.size = 20, this.color});
 
   /// Stable category key (the API `slug`), never the Arabic name.
   final String? categoryKey;
   final double size;
-  final Color color;
+
+  /// Defaults to the brand blue of the current theme.
+  final Color? color;
 
   @override
-  Widget build(BuildContext context) => SvgPicture.asset(
-    categoryIconAsset(categoryKey),
-    width: size,
-    height: size,
-    theme: SvgTheme(currentColor: color),
-    colorFilter: ColorFilter.mode(color, BlendMode.srcIn),
-    excludeFromSemantics: true,
-  );
+  Widget build(BuildContext context) {
+    final tint = color ?? AppColors.blue;
+    return SvgPicture.asset(
+      categoryIconAsset(categoryKey),
+      width: size,
+      height: size,
+      theme: SvgTheme(currentColor: tint),
+      colorFilter: ColorFilter.mode(tint, BlendMode.srcIn),
+      excludeFromSemantics: true,
+    );
+  }
 }
 
 /// Rounded tile with the icon on a soft tint (pickers, grids).
@@ -73,23 +73,26 @@ class CategoryIconTile extends StatelessWidget {
     this.categoryKey, {
     super.key,
     this.size = 40,
-    this.color = AppColors.blue,
+    this.color,
     this.background,
   });
   final String? categoryKey;
   final double size;
-  final Color color;
+  final Color? color;
   final Color? background;
 
   @override
-  Widget build(BuildContext context) => Container(
-    width: size,
-    height: size,
-    alignment: Alignment.center,
-    decoration: BoxDecoration(
-      color: background ?? color.withValues(alpha: .10),
-      borderRadius: BorderRadius.circular(size * .3),
-    ),
-    child: CategoryIcon(categoryKey, size: size * .55, color: color),
-  );
+  Widget build(BuildContext context) {
+    final tint = color ?? AppColors.blue;
+    return Container(
+      width: size,
+      height: size,
+      alignment: Alignment.center,
+      decoration: BoxDecoration(
+        color: background ?? tint.withValues(alpha: AppColors.dark ? .18 : .10),
+        borderRadius: BorderRadius.circular(size * .3),
+      ),
+      child: CategoryIcon(categoryKey, size: size * .55, color: tint),
+    );
+  }
 }

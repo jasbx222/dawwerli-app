@@ -302,7 +302,7 @@ class _OtpScreenState extends ConsumerState<OtpScreen> {
                   ),
                 if (_locked != null) ...[
                   const SizedBox(height: 12),
-                  const AlertCard(
+                  AlertCard(
                     leading: AppSvgIcon(
                       AppIcon.lock,
                       color: AppColors.danger,

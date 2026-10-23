@@ -308,7 +308,7 @@ class _Tag extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 9, vertical: 2),
     decoration: BoxDecoration(
-      color: soldOut ? AppColors.navy : AppColors.gold,
+      color: soldOut ? AppColors.navyFill : AppColors.gold,
       borderRadius: BorderRadius.circular(99),
     ),
     child: Text(
@@ -348,7 +348,7 @@ class FavoriteButton extends StatelessWidget {
         height: size,
         alignment: Alignment.center,
         decoration: BoxDecoration(
-          color: AppColors.white,
+          color: AppColors.surface,
           shape: BoxShape.circle,
           boxShadow: const [
             BoxShadow(
@@ -365,7 +365,7 @@ class FavoriteButton extends StatelessWidget {
             on ? AppIcon.heartFilled : AppIcon.heart,
             key: ValueKey(on),
             size: size * .52,
-            color: on ? AppColors.danger : AppColors.navy,
+            color: on ? AppColors.danger : AppColors.ink,
           ),
         ),
       ),

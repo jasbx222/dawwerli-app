@@ -360,7 +360,7 @@ class _PrivacyCard extends StatelessWidget {
     child: Row(
       children: [
         // Design: the 22px svg flex-shrinks to 17.4 next to the long note.
-        const SizedBox(
+        SizedBox(
           width: 17.4,
           height: 22,
           child: Center(

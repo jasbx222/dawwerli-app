@@ -37,7 +37,7 @@ class SettingsRow extends StatelessWidget {
           if (icon != null) ...[
             AppSvgIcon(
               icon!,
-              color: danger ? const Color(0xFFB42318) : AppColors.blue,
+              color: danger ? AppColors.dangerFill : AppColors.blue,
               size: AppSize.rowIcon,
             ),
             const SizedBox(width: AppSpacing.md),

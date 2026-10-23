@@ -92,7 +92,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
   Widget build(BuildContext context) {
     final o = ref.watch(orderProvider(widget.orderId)).value;
     if (o == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -150,7 +150,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                               final p = await pickPhoto(camera: false);
                               if (p != null && mounted) setState(() => _photo = p);
                             },
-                            child: const DashedCard(
+                            child: DashedCard(
                             radius: 16,
                             padding: 0,
                             child: SizedBox(
@@ -189,7 +189,7 @@ class _ReportScreenState extends ConsumerState<ReportScreen> {
                         behavior: HitTestBehavior.opaque,
                         child: Row(
                           children: [
-                            const AppSvgIcon(
+                            AppSvgIcon(
                               AppIcon.lock,
                               color: AppColors.danger,
                               size: 18,

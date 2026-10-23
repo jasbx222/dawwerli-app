@@ -68,7 +68,7 @@ class AlertCard extends StatelessWidget {
       children: [
         Text(
           title,
-          style: const TextStyle(
+          style: TextStyle(
             fontWeight: FontWeight.w700,
             color: AppColors.danger,
             fontSize: 14,
@@ -76,7 +76,7 @@ class AlertCard extends StatelessWidget {
         ),
         Text(
           body,
-          style: const TextStyle(
+          style: TextStyle(
             fontSize: 12.5,
             height: 1.502222,
             color: AppColors.dangerText,

@@ -44,7 +44,7 @@ class AppButton extends StatelessWidget {
           ),
         ],
       ),
-      AppButtonVariant.navy => (AppColors.navy, AppColors.white, <BoxShadow>[]),
+      AppButtonVariant.navy => (AppColors.navyFill, AppColors.white, <BoxShadow>[]),
       AppButtonVariant.ghost => (
         AppColors.surface,
         AppColors.blue,
@@ -56,7 +56,7 @@ class AppButton extends StatelessWidget {
         <BoxShadow>[],
       ),
       AppButtonVariant.danger => (
-        const Color(0xFFB42318),
+        AppColors.dangerFill,
         AppColors.white,
         <BoxShadow>[],
       ),

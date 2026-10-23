@@ -65,7 +65,7 @@ class StandingScreen extends ConsumerWidget {
                         width: 64,
                         height: 64,
                         decoration: BoxDecoration(
-                          color: const Color(0xFFB42318),
+                          color: AppColors.dangerFill,
                           borderRadius: BorderRadius.circular(20),
                         ),
                         alignment: Alignment.center,
@@ -125,7 +125,7 @@ class StandingScreen extends ConsumerWidget {
                                 ),
                           child: Row(
                             children: [
-                              const AppSvgIcon(
+                              AppSvgIcon(
                                 AppIcon.alert,
                                 color: AppColors.danger,
                                 size: 20,
@@ -384,7 +384,7 @@ class _DisputeNewScreenState extends ConsumerState<DisputeNewScreen> {
                         final p = await pickPhoto(camera: false);
                         if (p != null && mounted) setState(() => _photos.add(p));
                       },
-                      child: const DashedCard(
+                      child: DashedCard(
                         radius: 16,
                         padding: 0,
                         child: SizedBox(
@@ -403,7 +403,7 @@ class _DisputeNewScreenState extends ConsumerState<DisputeNewScreen> {
                   ],
                 ),
                 const SizedBox(height: 8),
-                const Text.rich(
+                Text.rich(
                   TextSpan(
                     children: [
                       WidgetSpan(
@@ -535,7 +535,7 @@ class DisputeStatusScreen extends ConsumerWidget {
                 color: AppColors.warnBg,
                 child: Row(
                   children: [
-                    const AppSvgIcon(
+                    AppSvgIcon(
                       AppIcon.lock,
                       color: AppColors.warn,
                       size: 22,
@@ -543,7 +543,7 @@ class DisputeStatusScreen extends ConsumerWidget {
                     const SizedBox(width: 12),
                     Expanded(
                       child: Text.rich(
-                        const TextSpan(
+                        TextSpan(
                           children: [
                             TextSpan(
                               text: 'الإنذار متجمّد ',
@@ -579,14 +579,14 @@ class DisputeStatusScreen extends ConsumerWidget {
                   children: [
                     Text('القرار', style: AppText.strong),
                     const SizedBox(height: 10),
-                    const Wrap(
+                    Wrap(
                       spacing: 8,
                       runSpacing: 8,
                       children: [
                         Pill(
                           'انقبل: انشال الإنذار',
-                          bg: Color(0xFFCCFBF1),
-                          fg: Color(0xFF0B6E66),
+                          bg: AppColors.tealBg,
+                          fg: AppColors.teal,
                           icon: AppIcon.check,
                         ),
                         Pill(

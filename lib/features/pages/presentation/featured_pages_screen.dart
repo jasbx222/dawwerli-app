@@ -31,7 +31,7 @@ class FeaturedPagesScreen extends ConsumerWidget {
     final data = ref.watch(featuredPagesProvider(query));
     return Scaffold(
       body: data.when(
-        loading: () => const Center(
+        loading: () => Center(
           child: CircularProgressIndicator(color: AppColors.blue),
         ),
         error: (e, _) => Center(child: Text('$e')),
@@ -75,7 +75,7 @@ class _FeaturedCard extends StatelessWidget {
     return GestureDetector(
       onTap: onTap,
       child: AppCard(
-        color: page.isAd ? const Color(0xFFFFF8E8) : null,
+        color: page.isAd ? AppColors.adBg : null,
         child: Row(
           children: [
             Container(

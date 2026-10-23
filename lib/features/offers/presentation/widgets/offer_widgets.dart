@@ -336,7 +336,7 @@ class _Dashed extends CustomPainter {
       Radius.circular(radius - .75),
     );
     final p = Paint()
-      ..color = const Color(0xFFCBD5E1)
+      ..color = AppColors.dash
       ..style = PaintingStyle.stroke
       ..strokeWidth = 1.5;
     for (final m in (Path()..addRRect(rr)).computeMetrics()) {
@@ -371,7 +371,7 @@ class NoPrepayText extends StatelessWidget {
       height: 1.5,
       forceStrutHeight: true,
     ),
-    style: const TextStyle(
+    style: TextStyle(
       fontWeight: FontWeight.w700,
       color: AppColors.dangerText,
     ),

@@ -104,7 +104,7 @@ class FloatingNav<T> extends StatelessWidget {
                       alignment: Alignment.center,
                       child: AppSvgIcon(
                         fabIcon,
-                        color: AppColors.ink,
+                        color: AppColors.navy,
                         size: 26,
                         strokeWidth: 2.6,
                       ),

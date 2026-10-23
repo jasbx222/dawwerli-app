@@ -279,7 +279,7 @@ class _Row extends StatelessWidget {
         bg: AppColors.blueTint,
         fg: AppColors.blue,
       ),
-      _Kind.chosen => const Pill(
+      _Kind.chosen => Pill(
         'اخترت',
         bg: AppColors.warnBg,
         fg: AppColors.warn,
@@ -289,10 +289,10 @@ class _Row extends StatelessWidget {
         bg: AppColors.tabTrack,
         fg: AppColors.tabText,
       ),
-      _Kind.done => const Pill(
+      _Kind.done => Pill(
         'تم ',
-        bg: Color(0xFFCCFBF1),
-        fg: Color(0xFF0B6E66),
+        bg: AppColors.tealBg,
+        fg: AppColors.teal,
         check: true,
       ),
     };
@@ -351,7 +351,7 @@ class _LiveDotPill extends StatelessWidget {
   Widget build(BuildContext context) => Container(
     padding: const EdgeInsets.symmetric(horizontal: 10, vertical: 5),
     decoration: BoxDecoration(
-      color: const Color(0xFFCCFBF1),
+      color: AppColors.tealBg,
       borderRadius: BorderRadius.circular(99),
     ),
     child: Row(
@@ -360,8 +360,8 @@ class _LiveDotPill extends StatelessWidget {
         Container(
           width: 6,
           height: 6,
-          decoration: const BoxDecoration(
-            color: Color(0xFF0B6E66),
+          decoration: BoxDecoration(
+            color: AppColors.teal,
             shape: BoxShape.circle,
           ),
         ),
@@ -372,7 +372,7 @@ class _LiveDotPill extends StatelessWidget {
             fontSize: 12,
             height: AppText.lh(12),
             fontWeight: FontWeight.w700,
-            color: const Color(0xFF0B6E66),
+            color: AppColors.teal,
           ),
         ),
       ],
@@ -456,11 +456,7 @@ class _SkeletonCardState extends State<_SkeletonCard>
           gradient: LinearGradient(
             begin: Alignment(-1 + 4 * c.value - 1, 0),
             end: Alignment(1 + 4 * c.value - 1, 0),
-            colors: const [
-              Color(0xFFEFEAE0),
-              Color(0xFFF6F2E8),
-              Color(0xFFEFEAE0),
-            ],
+            colors: [AppColors.tabTrack, AppColors.divider, AppColors.tabTrack],
           ),
         ),
       ),

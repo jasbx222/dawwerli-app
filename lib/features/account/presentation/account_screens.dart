@@ -3,6 +3,7 @@ import 'dart:ui';
 import 'package:flutter/material.dart';
 
 import '../../../core/settings/display_settings.dart';
+import '../../../core/widgets/theme_mode_row.dart';
 
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
@@ -125,12 +126,7 @@ class AccountScreen extends ConsumerWidget {
                     notifOn == 0 ? 'مطفية' : 'مفعّلة',
                     () => context.push(Routes.notificationSettings),
                   ),
-                  _item(
-                    AppIcon.sparkles,
-                    'الوضع الليلي',
-                    display.night.label,
-                    displayCtl.nextNight,
-                  ),
+                  const ThemeModeRow(),
                   _item(
                     AppIcon.text,
                     'حجم الخط',
@@ -386,7 +382,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                     alignment: Alignment.center,
                     child: const AppSvgIcon(
                       AppIcon.trash,
-                      color: Color(0xFFB42318),
+                      color: AppColors.dangerFill,
                       size: 30,
                     ),
                   ),
@@ -414,7 +410,7 @@ class _DeleteAccountScreenState extends ConsumerState<DeleteAccountScreen> {
                     padding: 12,
                     child: Text(
                       'عندك طلب «${open.title}» بالطريق. أكد الاستلام أو ألغيه أول.',
-                      style: const TextStyle(
+                      style: TextStyle(
                         fontSize: 12.5,
                         height: 1.502222,
                         color: AppColors.warnText,

@@ -152,7 +152,7 @@ class _ProfileHeader extends ConsumerWidget {
               ),
               if (p.trusted) ...[
                 const SizedBox(width: 4),
-                const AppSvgIcon(
+                AppSvgIcon(
                   AppIcon.verified,
                   color: AppColors.blue,
                   size: 16,
@@ -292,7 +292,7 @@ class _About extends ConsumerWidget {
         child: Row(
           crossAxisAlignment: CrossAxisAlignment.start,
           children: [
-            const AppSvgIcon(AppIcon.alert, color: AppColors.warn, size: 22),
+            AppSvgIcon(AppIcon.alert, color: AppColors.warn, size: 22),
             const SizedBox(width: 10),
             Expanded(
               child: Text(

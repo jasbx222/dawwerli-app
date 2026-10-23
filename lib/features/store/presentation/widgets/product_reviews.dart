@@ -329,7 +329,7 @@ class _MineCard extends StatelessWidget {
       children: [
         Row(
           children: [
-            const AppSvgIcon(
+            AppSvgIcon(
               AppIcon.check,
               color: AppColors.blue,
               size: 18,

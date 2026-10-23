@@ -25,7 +25,7 @@ class _OrderRedirectState extends State<OrderRedirect> {
   }
 
   @override
-  Widget build(BuildContext context) => const Scaffold(
+  Widget build(BuildContext context) => Scaffold(
     body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
   );
 }

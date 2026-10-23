@@ -25,9 +25,9 @@ class TintedNote extends StatelessWidget {
   final AppIcon? icon;
 
   static Color get blueBg => AppColors.blueTint;
-  static const blueFg = Color(0xFF1F3B73);
-  static const tealBg = Color(0xFFE6F7F5);
-  static const tealFg = Color(0xFF0B6E66);
+  static Color get blueFg => AppColors.infoText;
+  static Color get tealBg => AppColors.tealBg;
+  static Color get tealFg => AppColors.teal;
 
   @override
   Widget build(BuildContext context) => AppCard(
@@ -96,48 +96,54 @@ class BannerCard extends StatelessWidget {
     required this.icon,
     required this.title,
     required this.body,
-    this.bg = AppColors.dangerBg,
-    this.tile = const Color(0xFFB42318),
-    this.fg = AppColors.dangerText,
+    this.bg,
+    this.tile = AppColors.dangerFill,
+    this.fg,
   });
   final AppIcon icon;
   final String title;
   final String body;
-  final Color bg;
+
+  /// Defaults to the danger tint of the current mode.
+  final Color? bg;
   final Color tile;
-  final Color fg;
+  final Color? fg;
 
   @override
-  Widget build(BuildContext context) => AppCard(
-    flat: true,
-    color: bg,
-    child: Column(
-      children: [
-        Container(
-          width: 64,
-          height: 64,
-          margin: const EdgeInsets.fromLTRB(0, 4, 0, 10),
-          decoration: BoxDecoration(
-            color: tile,
-            borderRadius: BorderRadius.circular(20),
+  Widget build(BuildContext context) {
+    final bg = this.bg ?? AppColors.dangerBg;
+    final fg = this.fg ?? AppColors.dangerText;
+    return AppCard(
+      flat: true,
+      color: bg,
+      child: Column(
+        children: [
+          Container(
+            width: 64,
+            height: 64,
+            margin: const EdgeInsets.fromLTRB(0, 4, 0, 10),
+            decoration: BoxDecoration(
+              color: tile,
+              borderRadius: BorderRadius.circular(20),
+            ),
+            alignment: Alignment.center,
+            child: AppSvgIcon(icon, color: AppColors.white, size: 30),
           ),
-          alignment: Alignment.center,
-          child: AppSvgIcon(icon, color: AppColors.white, size: 30),
-        ),
-        Text(
-          title,
-          textAlign: TextAlign.center,
-          style: AppText.strong.copyWith(fontSize: 18, color: fg),
-        ),
-        const SizedBox(height: 4),
-        Text(
-          body,
-          textAlign: TextAlign.center,
-          style: TextStyle(fontSize: 13, height: 1.5, color: fg),
-        ),
-      ],
-    ),
-  );
+          Text(
+            title,
+            textAlign: TextAlign.center,
+            style: AppText.strong.copyWith(fontSize: 18, color: fg),
+          ),
+          const SizedBox(height: 4),
+          Text(
+            body,
+            textAlign: TextAlign.center,
+            style: TextStyle(fontSize: 13, height: 1.5, color: fg),
+          ),
+        ],
+      ),
+    );
+  }
 }
 
 /// Rounded photo square (`.th` 52×52, r16).

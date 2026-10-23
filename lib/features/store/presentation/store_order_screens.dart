@@ -291,9 +291,9 @@ class _Chip extends StatelessWidget {
         duration: const Duration(milliseconds: 160),
         padding: const EdgeInsetsDirectional.fromSTEB(14, 7, 8, 7),
         decoration: BoxDecoration(
-          color: on ? AppColors.navy : AppColors.surface,
+          color: on ? AppColors.navyFill : AppColors.surface,
           borderRadius: BorderRadius.circular(99),
-          border: Border.all(color: on ? AppColors.navy : AppColors.cardRing),
+          border: Border.all(color: on ? AppColors.navyFill : AppColors.cardRing),
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,
@@ -753,7 +753,7 @@ class _Details extends ConsumerWidget {
               child: Row(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
-                  const AppSvgIcon(
+                  AppSvgIcon(
                     AppIcon.alert,
                     color: AppColors.danger,
                     size: 20,

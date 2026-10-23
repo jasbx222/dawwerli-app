@@ -178,7 +178,7 @@ class TopupSheet extends ConsumerWidget {
             Center(
               child: IshtarBackground(
                 borderRadius: BorderRadius.circular(22),
-                gradient: const LinearGradient(
+                gradient: LinearGradient(
                   begin: Alignment.topLeft,
                   end: Alignment.bottomRight,
                   colors: [AppColors.blue, AppColors.navy],

@@ -388,8 +388,8 @@ class _RoundButton extends StatelessWidget {
         width: 42,
         height: 42,
         alignment: Alignment.center,
-        decoration: const BoxDecoration(
-          color: AppColors.white,
+        decoration: BoxDecoration(
+          color: AppColors.surface,
           shape: BoxShape.circle,
           boxShadow: [
             BoxShadow(
@@ -399,7 +399,7 @@ class _RoundButton extends StatelessWidget {
             ),
           ],
         ),
-        child: AppSvgIcon(icon, size: 20, color: AppColors.navy),
+        child: AppSvgIcon(icon, size: 20, color: AppColors.ink),
       ),
     ),
   );
@@ -438,7 +438,7 @@ class QuantityStepper extends StatelessWidget {
               child: AppSvgIcon(
                 icon,
                 size: 18,
-                color: enabled ? AppColors.navy : AppColors.checkOff,
+                color: enabled ? AppColors.ink : AppColors.checkOff,
               ),
             ),
           ),
@@ -610,7 +610,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
           child: Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
-              const AppSvgIcon(
+              AppSvgIcon(
                 AppIcon.shieldCheck,
                 color: AppColors.blue,
                 size: 22,
@@ -796,7 +796,7 @@ class _ProductDetailsScreenState extends ConsumerState<ProductDetailsScreen> {
                 color: AppColors.successBg,
                 borderRadius: BorderRadius.circular(18),
               ),
-              child: const AppSvgIcon(AppIcon.check, color: AppColors.success),
+              child: AppSvgIcon(AppIcon.check, color: AppColors.success),
             ),
           ),
           const SizedBox(height: 12),
@@ -978,7 +978,7 @@ class _PageRow extends StatelessWidget {
               'شوف الصفحة',
               style: AppText.label.copyWith(color: AppColors.blue),
             ),
-            const AppSvgIcon(
+            AppSvgIcon(
               AppIcon.chevronLeft,
               size: 16,
               color: AppColors.blue,
@@ -1323,7 +1323,7 @@ class CartScreen extends ConsumerWidget {
                         }
                         ref.invalidate(cartProvider);
                       },
-                      icon: const AppSvgIcon(
+                      icon: AppSvgIcon(
                         AppIcon.trash,
                         size: 16,
                         color: AppColors.danger,
@@ -1603,7 +1603,7 @@ class _FavoritesEmpty extends StatelessWidget {
             shape: BoxShape.circle,
           ),
           alignment: Alignment.center,
-          child: const AppSvgIcon(
+          child: AppSvgIcon(
             AppIcon.heart,
             color: AppColors.blue,
             size: 42,

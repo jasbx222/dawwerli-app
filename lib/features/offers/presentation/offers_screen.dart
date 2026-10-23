@@ -109,7 +109,7 @@ class _OffersScreenState extends ConsumerState<OffersScreen> {
     }
     final board = async.value;
     if (board == null) {
-      return const Scaffold(
+      return Scaffold(
         body: Center(child: CircularProgressIndicator(color: AppColors.blue)),
       );
     }
@@ -478,11 +478,11 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
             ),
             const SizedBox(height: 6),
             point(
-              const AppSvgIcon(AppIcon.user, size: 20, color: AppColors.blue),
+              AppSvgIcon(AppIcon.user, size: 20, color: AppColors.blue),
               OfferStrings.pointPhone,
             ),
             point(
-              const AppSvgIcon(
+              AppSvgIcon(
                 AppIcon.clipboardList,
                 size: 20,
                 color: AppColors.blue,
@@ -490,11 +490,11 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
               OfferStrings.pointOrder,
             ),
             point(
-              const AppSvgIcon(AppIcon.clock, size: 20, color: AppColors.blue),
+              AppSvgIcon(AppIcon.clock, size: 20, color: AppColors.blue),
               OfferStrings.pointNoReply,
             ),
             point(
-              const AppSvgIcon(AppIcon.shield, size: 20, color: AppColors.blue),
+              AppSvgIcon(AppIcon.shield, size: 20, color: AppColors.blue),
               OfferStrings.pointPrivacy,
             ),
             const SizedBox(height: 14),
@@ -535,7 +535,7 @@ class _ConfirmSheetState extends State<ConfirmSheet> {
                 child: Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    const AppSvgIcon(
+                    AppSvgIcon(
                       AppIcon.alert,
                       size: 18,
                       color: AppColors.danger,

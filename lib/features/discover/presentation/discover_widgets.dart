@@ -67,7 +67,7 @@ class PageAvatar extends StatelessWidget {
       width: size,
       height: size,
       padding: const EdgeInsets.all(2.5),
-      decoration: const BoxDecoration(
+      decoration: BoxDecoration(
         shape: BoxShape.circle,
         gradient: LinearGradient(
           colors: [AppColors.gold, Color(0xFFF6D27A), AppColors.blue],
@@ -617,7 +617,7 @@ class LoadMoreFooter extends StatelessWidget {
     padding: const EdgeInsets.symmetric(vertical: 18),
     child: Center(
       child: loading
-          ? const SizedBox.square(
+          ? SizedBox.square(
               dimension: 26,
               child: CircularProgressIndicator(
                 strokeWidth: 2.6,

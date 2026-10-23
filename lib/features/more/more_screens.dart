@@ -286,7 +286,7 @@ class _RegionScreenState extends ConsumerState<RegionScreen> {
                 Expanded(
                   child: BareTextField(controller: _area, focusNode: _focus),
                 ),
-                const AppSvgIcon(AppIcon.pin, color: AppColors.blue, size: 18),
+                AppSvgIcon(AppIcon.pin, color: AppColors.blue, size: 18),
               ],
             ),
           ),
@@ -616,12 +616,12 @@ class _ContactScreenState extends ConsumerState<ContactScreen> {
                   Container(
                     width: 56,
                     height: 56,
-                    decoration: const BoxDecoration(
+                    decoration: BoxDecoration(
                       color: AppColors.successBg,
                       shape: BoxShape.circle,
                     ),
                     alignment: Alignment.center,
-                    child: const AppSvgIcon(
+                    child: AppSvgIcon(
                       AppIcon.check,
                       color: AppColors.success,
                       size: 28,
@@ -747,7 +747,7 @@ class CategoryPickerScreen extends ConsumerWidget {
                             ),
                           ),
                           if (c.name == current)
-                            const AppSvgIcon(
+                            AppSvgIcon(
                               AppIcon.check,
                               color: AppColors.blue,
                               size: 20,
