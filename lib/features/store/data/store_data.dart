@@ -389,11 +389,11 @@ final storeOrderProvider = FutureProvider.autoDispose
 final storeOrdersProvider = FutureProvider.autoDispose<List<StoreOrder>>((
   ref,
 ) async {
-  final list = asList(
-    await ref
-        .watch(apiClientProvider)
-        .get<List<dynamic>>('/api/v1/store/orders'),
-  );
+  final raw = await ref
+      .watch(apiClientProvider)
+      .get<Object?>('/api/v1/store/orders');
+  // The API returns a paged envelope `{items: [...]}`; accept a plain list too.
+  final list = raw is Map ? asList(raw['items']) : asList(raw);
   return [for (final o in list) StoreOrder.fromJson(o)];
 });
 
