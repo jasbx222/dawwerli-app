@@ -66,19 +66,21 @@ String storeError(Object e) {
   };
 }
 
-ProductCardData cardOf(StoreProduct p, String pageId) => ProductCardData(
-  id: p.id,
-  pageId: pageId,
-  name: p.name,
-  description: p.description,
-  price: p.price,
-  image: p.image,
-  available: p.available,
-  stock: p.stock,
-  badge: p.lowStock ? 'باقي ${p.stock}' : null,
-  rating: p.rating,
-  ratingCount: p.ratingCount,
-);
+ProductCardData cardOf(StoreProduct p, String pageId, {String? highlight}) =>
+    ProductCardData(
+      id: p.id,
+      pageId: pageId,
+      name: p.name,
+      description: p.description,
+      price: p.price,
+      image: p.image,
+      available: p.available,
+      stock: p.stock,
+      badge: p.lowStock ? 'باقي ${p.stock}' : null,
+      rating: p.rating,
+      ratingCount: p.ratingCount,
+      highlight: highlight,
+    );
 
 ProductCardData homeProductCard(HomeProduct p, {String? badge}) =>
     ProductCardData(

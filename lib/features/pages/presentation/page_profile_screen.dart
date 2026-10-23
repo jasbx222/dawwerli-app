@@ -20,6 +20,7 @@ import '../../guest/guest.dart';
 import '../../more/more_data.dart';
 import '../../store/presentation/store_screens.dart';
 import '../../store/presentation/widgets/store_widgets.dart';
+import '../../store/presentation/page_search.dart';
 
 /// Public page profile, Instagram style: avatar + stats, bio, follow,
 /// then the products grid. No contact and no share on purpose.
@@ -59,6 +60,8 @@ class _PageProfileScreenState extends ConsumerState<PageProfileScreen> {
     final blocked = ref.watch(blockedProvider).contains(p.id);
     final onProducts = _tab == 0;
     return AppPage(
+      endDrawer: onProducts ? PageFilterDrawer(pageId: p.id) : null,
+      onNearEnd: onProducts ? () => loadMorePageProducts(ref, p.id) : null,
       title: p.name,
       titleIcon: p.trusted
           ? const AppSvgIcon(
@@ -70,7 +73,7 @@ class _PageProfileScreenState extends ConsumerState<PageProfileScreen> {
           : null,
       onRefresh: () async {
         ref.invalidate(pageProfileV2Provider(widget.pageId));
-        ref.invalidate(pageProductsProvider(widget.pageId));
+        refreshPageProducts(ref, widget.pageId);
       },
       bottom: onProducts && !cart.isEmpty
           ? CartBar(cart: cart, onTap: () => context.push(Routes.cart))

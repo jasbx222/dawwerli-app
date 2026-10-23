@@ -44,7 +44,11 @@ class AppButton extends StatelessWidget {
           ),
         ],
       ),
-      AppButtonVariant.navy => (AppColors.navyFill, AppColors.white, <BoxShadow>[]),
+      AppButtonVariant.navy => (
+        AppColors.navyFill,
+        AppColors.white,
+        <BoxShadow>[],
+      ),
       AppButtonVariant.ghost => (
         AppColors.surface,
         AppColors.blue,
@@ -86,14 +90,20 @@ class AppButton extends StatelessWidget {
                 AppSvgIcon(icon!, color: fg, size: 18),
                 const SizedBox(width: 8),
               ],
-              ExactLine(
-                fontSize: compact ? 14.5 : 16,
-                child: Text(
-                  label,
-                  style: AppText.button.copyWith(
-                    color: fg,
-                    fontSize: compact ? 14.5 : 16,
-                    height: AppText.lh(compact ? 14.5 : 16),
+              // Long labels on narrow buttons end with … instead of overflowing.
+              Flexible(
+                child: ExactLine(
+                  fontSize: compact ? 14.5 : 16,
+                  child: Text(
+                    label,
+                    maxLines: 1,
+                    softWrap: false,
+                    overflow: TextOverflow.ellipsis,
+                    style: AppText.button.copyWith(
+                      color: fg,
+                      fontSize: compact ? 14.5 : 16,
+                      height: AppText.lh(compact ? 14.5 : 16),
+                    ),
                   ),
                 ),
               ),

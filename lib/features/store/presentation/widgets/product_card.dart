@@ -7,6 +7,7 @@ import '../../../../core/theme/app_typography.dart';
 import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../../../core/widgets/app_image.dart';
+import '../../data/page_search_data.dart';
 
 /// What a [ProductCard] shows. Built from a page product or a home product.
 class ProductCardData {
@@ -23,7 +24,11 @@ class ProductCardData {
     this.badge,
     this.rating = 0,
     this.ratingCount = 0,
+    this.highlight,
   });
+
+  /// Search text to mark inside the name (same fold as the API).
+  final String? highlight;
   final String id;
   final String pageId;
   final String name;
@@ -387,11 +392,14 @@ class _Texts extends StatelessWidget {
       crossAxisAlignment: CrossAxisAlignment.start,
       mainAxisSize: MainAxisSize.min,
       children: [
-        Text(
-          data.name,
+        Text.rich(
+          highlightSpan(
+            data.name,
+            data.highlight,
+            AppText.strong.copyWith(fontSize: 15, height: 1.4),
+          ),
           maxLines: 1,
           overflow: TextOverflow.ellipsis,
-          style: AppText.strong.copyWith(fontSize: 15, height: 1.4),
         ),
         const SizedBox(height: 1),
         // Always one line tall, so every card has the same height.
@@ -615,6 +623,31 @@ class StarRow extends StatelessWidget {
             strokeWidth: 1.8,
           ),
         ),
+    ],
+  );
+}
+
+/// [text] with the part matching [query] marked (same fold as the API, so
+/// «ايفون» marks «آيفون»).
+TextSpan highlightSpan(String text, String? query, TextStyle style) {
+  final m = query == null ? null : ArabicFold.match(text, query);
+  if (m == null) return TextSpan(text: text, style: style);
+  final (a, b) = m;
+  final dark = AppColors.dark;
+  return TextSpan(
+    style: style,
+    children: [
+      TextSpan(text: text.substring(0, a)),
+      TextSpan(
+        text: text.substring(a, b),
+        style: TextStyle(
+          color: dark ? AppColors.goldSoft : AppColors.blue,
+          backgroundColor: dark
+              ? const Color(0x33E8B02E)
+              : const Color(0x40F5C95A),
+        ),
+      ),
+      TextSpan(text: text.substring(b)),
     ],
   );
 }
