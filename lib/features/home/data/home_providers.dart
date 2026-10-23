@@ -23,11 +23,12 @@ final pagesRepositoryProvider = Provider<PagesRepository>(
   ),
 );
 
-final homeDataProvider = FutureProvider<HomeData>(
-  (ref) => ref
+final homeDataProvider = FutureProvider<HomeData>((ref) {
+  final region = ref.watch(regionProvider);
+  return ref
       .watch(homeRepositoryProvider)
-      .load(governorate: ref.watch(regionProvider).governorate),
-);
+      .load(governorate: region.explicit ? region.governorate : null);
+});
 
 final featuredPagesProvider =
     FutureProvider.family<FeaturedPages, FeaturedQuery>(
@@ -36,14 +37,14 @@ final featuredPagesProvider =
 
 /// «منتجات أعلى الصفحات تقييماً» → «الكل». Falls back to the home strip when
 /// the server has no top-rated endpoint yet.
-final topRatedProductsProvider = FutureProvider.autoDispose<List<HomeProduct>>(
-  (ref) async {
-    try {
-      return await ref
-          .watch(homeRepositoryProvider)
-          .topRatedProducts(pages: 12, perPage: 6);
-    } on Object {
-      return (await ref.watch(homeDataProvider.future)).topProducts;
-    }
-  },
-);
+final topRatedProductsProvider = FutureProvider.autoDispose<List<HomeProduct>>((
+  ref,
+) async {
+  try {
+    return await ref
+        .watch(homeRepositoryProvider)
+        .topRatedProducts(pages: 12, perPage: 6);
+  } on Object {
+    return (await ref.watch(homeDataProvider.future)).topProducts;
+  }
+});

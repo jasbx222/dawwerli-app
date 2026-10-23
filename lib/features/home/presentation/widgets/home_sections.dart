@@ -17,6 +17,7 @@ import '../../../../core/utils/format.dart';
 import '../../../../core/widgets/app_icons.dart';
 import '../../domain/home_models.dart';
 import 'ticker_marquee.dart';
+import 'verified_pages_card.dart';
 
 final _ring = BoxShadow(color: AppColors.cardRing, spreadRadius: 1);
 
@@ -208,8 +209,17 @@ class ActivityTicker extends StatelessWidget {
 
 /// Real stats only; each metric hidden until it passes the admin threshold.
 class StatsRow extends StatelessWidget {
-  const StatsRow({super.key, required this.stats});
+  const StatsRow({
+    super.key,
+    required this.stats,
+    this.pageImages = const [],
+    this.onVerifiedTap,
+  });
   final HomeStats stats;
+
+  /// Logos of verified pages already on home, for the card's avatars.
+  final List<ImageRef> pageImages;
+  final VoidCallback? onVerifiedTap;
 
   @override
   Widget build(BuildContext context) {
@@ -264,9 +274,16 @@ class StatsRow extends StatelessWidget {
         ),
       );
     }
+    if (stats.verifiedPages case final n?) {
+      return VerifiedPagesCard(
+        count: n,
+        pages: pageImages.take(n.clamp(0, 3)).toList(),
+        governorates: stats.governorates,
+        avgFirstOfferMinutes: stats.avgFirstOfferMinutes,
+        onTap: onVerifiedTap ?? () {},
+      );
+    }
     final cells = <(String, String)>[
-      if (stats.verifiedPages != null)
-        (thousands(stats.verifiedPages!), AppStrings.statPages),
       if (stats.avgFirstOfferMinutes != null)
         (
           AppStrings.minutesShort(stats.avgFirstOfferMinutes!),
