@@ -13,7 +13,7 @@ class ApiPostRepository implements PostRepository {
 
   static const _rejected = 'request.invalid';
   static const _conditions = {
-    ItemCondition.brandNew: 'brandNew',
+    ItemCondition.brandNew: 'new',
     ItemCondition.used: 'used',
     ItemCondition.any: 'any',
   };
