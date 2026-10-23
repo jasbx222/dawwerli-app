@@ -110,7 +110,11 @@ class AdBanner {
     required this.discountPercent,
     required this.pageId,
     this.image,
+    this.adId = '',
   });
+
+  /// Campaign id for impression/click events.
+  final String adId;
   final String pageName;
   final String headline;
   final int discountPercent;
@@ -128,7 +132,11 @@ class PageSummary {
     required this.deals,
     this.image,
     this.isAd = false,
+    this.adId,
   });
+
+  /// Campaign id when this card is a paid placement (impression/click events).
+  final String? adId;
   final String id;
   final String name;
   final double rating;
@@ -188,7 +196,6 @@ class HomeData {
     required this.feed,
     required this.deals,
     required this.banners,
-    required this.sponsored,
     required this.featuredPages,
     required this.topProducts,
   });
@@ -209,8 +216,6 @@ class HomeData {
   /// Paid home banners (`homeBanner`). Shown above the fold.
   final List<AdBanner> banners;
 
-  /// Paid sponsored offers (`sponsoredOffer`), one card per page.
-  final List<PageSummary> sponsored;
   final List<PageSummary> featuredPages;
 
   /// Products belonging to the highest-rated pages.

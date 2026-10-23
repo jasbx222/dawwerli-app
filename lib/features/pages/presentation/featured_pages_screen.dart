@@ -5,6 +5,7 @@ import '../../../core/widgets/app_image.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../../core/ads/ad_events.dart';
 import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
@@ -72,8 +73,15 @@ class _FeaturedCard extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AdImpression(
+      adId: page.adId,
+      child: _buildCard(context),
+    );
+  }
+
+  Widget _buildCard(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => trackAdTap(context, page.adId, onTap),
       child: AppCard(
         color: page.isAd ? AppColors.adBg : null,
         child: Row(

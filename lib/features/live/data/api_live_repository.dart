@@ -39,6 +39,7 @@ class ApiLiveRequestRepository implements LiveRequestRepository {
               name: ad.s('pageName'),
               tagline: ad.s('headline'),
               image: ad.os('image') ?? '',
+              adId: ad.os('id') ?? '',
             ),
     );
   }

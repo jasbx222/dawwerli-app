@@ -4,7 +4,10 @@ import 'package:flutter/material.dart';
 
 /// Image from an API URL, a local file (camera) or a bundled asset.
 ImageProvider appImage(String ref) {
-  if (ref.startsWith('http')) return NetworkImage(ref);
+  // `blob:` is a picked photo on web.
+  if (ref.startsWith('http') || ref.startsWith('blob:')) {
+    return NetworkImage(ref);
+  }
   if (ref.startsWith('/')) return FileImage(File(ref));
   return AssetImage(ref);
 }

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 
 import '../../features/home/domain/home_models.dart';
 import '../l10n/app_strings.dart';
+import '../ads/ad_events.dart';
 import '../theme/app_colors.dart';
 import '../theme/app_typography.dart';
 import 'app_icons.dart';
@@ -73,8 +74,12 @@ class PageTile extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return AdImpression(adId: page.adId, child: _buildTile(context));
+  }
+
+  Widget _buildTile(BuildContext context) {
     return GestureDetector(
-      onTap: onTap,
+      onTap: () => trackAdTap(context, page.adId, onTap),
       child: Container(
         padding: EdgeInsets.all(12),
         decoration: BoxDecoration(

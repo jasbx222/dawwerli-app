@@ -11,8 +11,9 @@ import '../../../core/l10n/app_strings.dart';
 import '../../../core/router/routes.dart';
 import '../../../core/theme/app_colors.dart';
 import '../../../core/widgets/app_bottom_nav.dart';
-import '../../../core/widgets/page_tile.dart';
+import '../../../core/ads/ad_events.dart';
 import '../data/home_notice.dart';
+import '../data/sponsored_popup_scheduler.dart';
 import '../data/home_providers.dart';
 import '../../post/presentation/widgets/post_widgets.dart';
 import '../../../core/widgets/app_icons.dart';
@@ -41,6 +42,8 @@ class HomeScreen extends ConsumerWidget {
     return Scaffold(
       body: Stack(
         children: [
+          // Sponsored ads show as a timed popup (admin-set timing).
+          const SponsoredPopupStarter(),
           home.when(
             loading: () => Center(
               child: CircularProgressIndicator(color: AppColors.blue),
@@ -231,27 +234,14 @@ class _Body extends StatelessWidget {
         if (d.banners.isNotEmpty)
           AdSlider(
             ads: d.banners,
-            onTap: (ad) => context.push(Routes.pageProfile(ad.pageId)),
+            onTap: (ad) {
+              ProviderScope.containerOf(
+                context,
+                listen: false,
+              ).read(adEventsProvider).click(ad.adId);
+              context.push(Routes.pageProfile(ad.pageId));
+            },
           ),
-        if (d.sponsored.isNotEmpty) ...[
-          const SectionTitle(AppStrings.secSponsored),
-          Padding(
-            padding: const EdgeInsets.symmetric(horizontal: 16),
-            child: Column(
-              children: [
-                for (var i = 0; i < d.sponsored.length; i++) ...[
-                  if (i > 0) const SizedBox(height: 10),
-                  PageTile(
-                    page: d.sponsored[i],
-                    adLabel: AppStrings.sponsored,
-                    onTap: () =>
-                        context.push(Routes.pageProfile(d.sponsored[i].id)),
-                  ),
-                ],
-              ],
-            ),
-          ),
-        ],
         const TopPagesBoxes(),
         const RankingSlider(ranking: ProductRanking.bestSelling),
         const RankingSlider(ranking: ProductRanking.highestRated),
