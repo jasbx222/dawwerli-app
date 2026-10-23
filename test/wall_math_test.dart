@@ -407,4 +407,61 @@ void main() {
       }
     });
   });
+
+  group('imageHeaderSize', () {
+    test('reads PNG, GIF and WebP headers', () {
+      final png = Uint8List.fromList([
+        0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A, //
+        0, 0, 0, 13, 0x49, 0x48, 0x44, 0x52, //
+        0, 0, 0x04, 0x4C, 0, 0, 0x05, 0xBB, 8, 2, 0, 0, 0,
+      ]);
+      expect(imageHeaderSize(png), (1100, 1467));
+      final gif = Uint8List.fromList([
+        0x47,
+        0x49,
+        0x46,
+        0x38,
+        0x39,
+        0x61,
+        0x40,
+        0x01,
+        0xF0,
+        0x00,
+        0,
+        0,
+      ]);
+      expect(imageHeaderSize(gif), (320, 240));
+      final webp = Uint8List(30)
+        ..setAll(0, 'RIFF'.codeUnits)
+        ..setAll(8, 'WEBPVP8X'.codeUnits)
+        ..setAll(24, [0x3F, 0x01, 0x00, 0xEF, 0x00, 0x00]);
+      expect(imageHeaderSize(webp), (320, 240));
+    });
+
+    test('never throws and rejects junk or zero sizes', () {
+      final rnd = math.Random(7);
+      for (var n = 0; n < 200; n++) {
+        final b = Uint8List.fromList(
+          List.generate(rnd.nextInt(40), (_) => rnd.nextInt(256)),
+        );
+        expect(() => imageHeaderSize(b), returnsNormally);
+      }
+      expect(imageHeaderSize(Uint8List(0)), isNull);
+      final zero = Uint8List.fromList([
+        0x47,
+        0x49,
+        0x46,
+        0x38,
+        0x39,
+        0x61,
+        0,
+        0,
+        0,
+        0,
+      ]);
+      expect(imageHeaderSize(zero), isNull);
+      final truncatedPng = Uint8List.fromList([0x89, 0x50, 0x4E, 0x47, 0, 0]);
+      expect(imageHeaderSize(truncatedPng), isNull);
+    });
+  });
 }

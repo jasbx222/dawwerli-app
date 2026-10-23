@@ -80,11 +80,7 @@ Future<ui.Image> decodeWallPhoto(
     throw const WallPickException(WallPickFailure.unreadable);
   }
   // Check the size before decoding, so a huge file can't exhaust memory.
-  final buf = await ui.ImmutableBuffer.fromUint8List(bytes);
-  final desc = await ui.ImageDescriptor.encoded(buf);
-  final pixels = desc.width * desc.height;
-  desc.dispose();
-  buf.dispose();
+  final pixels = await _encodedPixels(bytes);
   if (pixels <= 0 || pixels > wallPhotoMaxPixels) {
     throw const WallPickException(WallPickFailure.unreadable);
   }
@@ -109,6 +105,29 @@ Future<ui.Image> decodeWallPhoto(
   final out = _redraw(img, o, k);
   img.dispose();
   return out;
+}
+
+/// Pixel count of the encoded image, read from its header without decoding.
+/// The web engine has no `ImageDescriptor.encoded`, so there (or if the
+/// engine refuses) the header is parsed in Dart; unknown formats give 0.
+Future<int> _encodedPixels(Uint8List bytes) async {
+  if (!kIsWeb) {
+    try {
+      final buf = await ui.ImmutableBuffer.fromUint8List(bytes);
+      try {
+        final desc = await ui.ImageDescriptor.encoded(buf);
+        final px = desc.width * desc.height;
+        desc.dispose();
+        return px;
+      } finally {
+        buf.dispose();
+      }
+    } catch (_) {
+      // Fall through to the header parser.
+    }
+  }
+  final d = imageHeaderSize(bytes);
+  return d == null ? 0 : d.$1 * d.$2;
 }
 
 /// Draws [src] rotated per EXIF [o] (1, 5–8) and scaled by [k].

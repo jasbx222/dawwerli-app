@@ -425,3 +425,56 @@ class JpegInfo {
   8 => (a: 0, b: -1, c: 1, d: 0, tx: 0, ty: w), // 90° counter-clockwise
   _ => (a: 1, b: 0, c: 0, d: 1, tx: 0, ty: 0),
 };
+
+/// Width and height from a JPEG, PNG, GIF or WebP header, without decoding.
+/// Null for anything else or malformed data. Never throws.
+(int, int)? imageHeaderSize(Uint8List b) {
+  try {
+    final j = JpegInfo.read(b);
+    if (j != null) {
+      return j.width > 0 && j.height > 0 ? (j.width, j.height) : null;
+    }
+    int be32(int i) =>
+        (b[i] << 24) | (b[i + 1] << 16) | (b[i + 2] << 8) | b[i + 3];
+    int le16(int i) => b[i] | (b[i + 1] << 8);
+    int le24(int i) => b[i] | (b[i + 1] << 8) | (b[i + 2] << 16);
+    (int, int)? ok(int w, int h) => w > 0 && h > 0 ? (w, h) : null;
+    // PNG: signature, then IHDR.
+    if (b.length >= 24 &&
+        b[0] == 0x89 &&
+        b[1] == 0x50 &&
+        b[2] == 0x4E &&
+        b[3] == 0x47 &&
+        b[12] == 0x49 &&
+        b[13] == 0x48 &&
+        b[14] == 0x44 &&
+        b[15] == 0x52) {
+      return ok(be32(16), be32(20));
+    }
+    // GIF87a / GIF89a logical screen.
+    if (b.length >= 10 && b[0] == 0x47 && b[1] == 0x49 && b[2] == 0x46) {
+      return ok(le16(6), le16(8));
+    }
+    // WebP: RIFF....WEBP then VP8 / VP8L / VP8X.
+    if (b.length >= 30 &&
+        b[0] == 0x52 &&
+        b[1] == 0x49 &&
+        b[2] == 0x46 &&
+        b[3] == 0x46 &&
+        b[8] == 0x57 &&
+        b[9] == 0x45 &&
+        b[10] == 0x42 &&
+        b[11] == 0x50) {
+      final c = String.fromCharCodes(b.sublist(12, 16));
+      if (c == 'VP8 ') return ok(le16(26) & 0x3FFF, le16(28) & 0x3FFF);
+      if (c == 'VP8L') {
+        final v = b[21] | (b[22] << 8) | (b[23] << 16) | (b[24] << 24);
+        return ok((v & 0x3FFF) + 1, ((v >> 14) & 0x3FFF) + 1);
+      }
+      if (c == 'VP8X') return ok(le24(24) + 1, le24(27) + 1);
+    }
+    return null;
+  } catch (_) {
+    return null;
+  }
+}
